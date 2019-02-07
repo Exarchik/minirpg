@@ -4,6 +4,11 @@ parameters:
     #parameter_name: value
 
 services:
+    templating.engine.fenom:
+            class: AppBundle\Templating\FenomEngine
+            arguments: 
+                - '%root_dir%/templates'
+                - '@router'
     # default configuration for services in *this* file
     _defaults:
         # automatically injects dependencies in your services
