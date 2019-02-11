@@ -19,6 +19,12 @@ class DefaultController extends Controller
             'base_dir' => realpath($this->getParameter('kernel.project_dir')).DIRECTORY_SEPARATOR,
         ]);
         */
-        return $this->render('default.tpl', array('base_dir' => 'test'));
+
+        $someData = array(1,20,45,12,345,6,7);
+
+        return $this->render('default.tpl', array(
+            'base_dir' => 'tested information',
+            'data' => $someData,
+        ));
     }
 }

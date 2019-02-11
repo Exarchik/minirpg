@@ -1,0 +1,6 @@
+<div class='test-page'>
+</div>
+
+<div class="container-fluid">
+{$content}
+</div>

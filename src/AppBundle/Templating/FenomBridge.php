@@ -30,7 +30,7 @@ class FenomBridge
         'main_report' => 'reports/main_report.ihtml',
     ];
     
-    public function __construct(string $source = FS_TEMPLATES)
+    public function __construct(string $source = MAIN_TEMPLATES)
     {
         $this->source = $source;
     }
