@@ -28,7 +28,7 @@ class FenomEngine extends FenomBridge implements EngineInterface
         return $response;
     }
     
-    public function getFenomTemplate(): \Fenom
+    public function getFenomTemplate()
     {
         $fenom = parent::getFenomTemplate();
         

@@ -35,20 +35,20 @@ class FenomBridge
         $this->source = $source;
     }
     
-    public function render($name, array $parameters = array()): string
+    public function render($name, array $parameters = array())
     {
         $content = $this->fetch($name, $parameters);
         
         return $this->renderLayout($content);
     }
     
-    private function fetch($name, array $parameters = array()): string
+    private function fetch($name, array $parameters = array())
     {
         if (empty($name)) {
             return (string)$parameters['content'];
         }
         
-        $method = $this->helpers[$name] ?? null;
+        $method = isset($this->helpers[$name]) ? $this->helpers[$name] : null;
         if ($method) {
             return $this->$method($parameters);
         }
@@ -56,7 +56,7 @@ class FenomBridge
         return $this->getFenomTemplate()->fetch($name, $parameters);
     }
     
-    private function renderLayout(string $content): string
+    private function renderLayout(string $content)
     {
         if (!$this->layout) {
             return $content;
@@ -65,23 +65,23 @@ class FenomBridge
         return $this->basicDisplay($content);
     }
     
-    protected function basicDisplay(string $content): string
+    protected function basicDisplay(string $content)
     {
         return (string)basicDisplay($content, $this->layout, $this->layoutVars);
     }
     
     public function setLayout(string $name, array $vars = array())
     {
-        $this->layout = $this->layoutAliases[$name] ?? $name;
+        $this->layout = isset($this->layoutAliases[$name]) ? $this->layoutAliases[$name] : $name;
         $this->layoutVars = array_merge($vars, array('return_content' => true));
     }
     
-    public function exists($name): bool
+    public function exists($name)
     {
         return isset($this->helpers[$name]) || $this->getFenomTemplate()->templateExists($name);
     }
     
-    public function supports($name): bool
+    public function supports($name)
     {
         return isset($this->helpers[$name]) || in_array(pathinfo($name, PATHINFO_EXTENSION), array('ihtml', 'tpl')) || empty($name);
     }
@@ -91,7 +91,7 @@ class FenomBridge
         $this->providers[$key] = $provider;
     }
     
-    protected function getFenomTemplate(): Fenom
+    protected function getFenomTemplate()
     {
         $fenom = Fenom\Extra::factory($this->source, "/tmp/", ['disable_cache' => true]);
         
@@ -106,12 +106,12 @@ class FenomBridge
     
     protected function Notify($parameters)
     {
-        $parameters['backLink'] = $parameters['backLink'] ?? $_SERVER['HTTP_REFERER'];
+        $parameters['backLink'] = isset($parameters['backLink']) ? $parameters['backLink'] : $_SERVER['HTTP_REFERER'];
         
         return $this->render('helpers/Notify.tpl', $parameters);
     }
     
-    protected function jsError(array $parameters): string
+    protected function jsError(array $parameters)
     {
         $this->setLayout("");
         
@@ -123,7 +123,7 @@ class FenomBridge
         return $this->render('helpers/jsError.tpl', $parameters);
     }
     
-    protected function jsSuccess(array $parameters): string
+    protected function jsSuccess(array $parameters)
     {
         $this->setLayout("");
         
@@ -132,7 +132,7 @@ class FenomBridge
         return $this->render('helpers/jsSuccess.tpl', $parameters);
     }
     
-    protected function jsMessage(array $parameters): string
+    protected function jsMessage(array $parameters)
     {
         $this->setLayout("");
         
