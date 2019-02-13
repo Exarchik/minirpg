@@ -2,7 +2,7 @@
 [[ {$base_dir} ]]
 
 
-{foreach $data as $k=>$val}
-    <div id="{$val}"> ++{$val}++ </div>
+{foreach $data as $key => $val}
+    <div id="{$key}"> ++{$val}++ </div>
 {/foreach}
 </div>

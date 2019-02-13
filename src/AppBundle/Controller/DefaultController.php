@@ -13,15 +13,13 @@ class DefaultController extends Controller
      */
     public function indexAction(Request $request)
     {
-        // replace this example code with whatever you need
         $db = $this->get('zfi.db');
-        $userData = $db->getAssoc('SELECT * FROM users');
-
-        $someData = range(1, 20);
+        #$userData2 = $db->getAssoc('SELECT code, id FROM users_roles');
+        $userData = ['tst' => 'data', 'tst2' => 'data2'];
 
         return $this->render('default.tpl', array(
             'base_dir' => 'tested information',
-            'data' => $someData,
+            'data' => $userData,
         ));
     }
 }

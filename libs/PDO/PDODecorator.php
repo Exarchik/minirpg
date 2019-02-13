@@ -29,12 +29,12 @@ class PDODecorator
                     }
                 }
                 if ($type == 'assoc') {
+                    $firstValue = reset($value);
+                    $firstKey = key($value);
                     if (count($value) == 2) {
-                        $data[reset($value)] = end($value);
+                        $data[$firstValue] = end($value);
                         continue;
                     } else {
-                        $firstValue = reset($value);
-                        $firstKey = key($value);
                         $data[$firstValue] = array_diff_key($value, array($firstKey => ''));
                         continue;
                     }
