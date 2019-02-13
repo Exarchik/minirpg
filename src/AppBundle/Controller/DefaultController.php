@@ -14,13 +14,10 @@ class DefaultController extends Controller
     public function indexAction(Request $request)
     {
         // replace this example code with whatever you need
-        /*
-        return $this->render('default/index.html.twig', [
-            'base_dir' => realpath($this->getParameter('kernel.project_dir')).DIRECTORY_SEPARATOR,
-        ]);
-        */
+        $db = $this->get('zfi.db');
+        $userData = $db->getAssoc('SELECT * FROM users');
 
-        $someData = array(1,20,45,12,345,6,7);
+        $someData = range(1, 20);
 
         return $this->render('default.tpl', array(
             'base_dir' => 'tested information',

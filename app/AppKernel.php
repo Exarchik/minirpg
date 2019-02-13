@@ -6,6 +6,15 @@ use Symfony\Component\Config\Loader\LoaderInterface;
 
 class AppKernel extends Kernel
 {
+    protected function initializeContainer()
+    {
+        global $db;
+
+        parent::initializeContainer();
+
+        $this->container->set('zfi.db', $db);
+    }
+
     public function registerBundles()
     {
         $bundles = [

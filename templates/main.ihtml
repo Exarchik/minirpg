@@ -1,6 +1,9 @@
-<div class='test-page'>
-</div>
+<!doctype html>
+<html lang="ua">
+    <div class='test-page'>
+    </div>
 
-<div class="container-fluid">
-{$content}
-</div>
+    <div class="container-fluid">
+        {$content}
+    </div>
+</html>
