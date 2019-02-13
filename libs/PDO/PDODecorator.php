@@ -19,6 +19,9 @@ class PDODecorator
         $data = array();
         try {
             foreach ($this->db->query($sql, PDO::FETCH_ASSOC) as $value) {
+                if ($type == 'one') {
+                    return reset($value);
+                }
                 if ($type == 'row') {
                     return $value;
                 }
@@ -45,6 +48,11 @@ class PDODecorator
             echo 'Ошибка запроса: ' . $e->getMessage();
         }
         return $data;
+    }
+
+    public function getOne($sql)
+    {
+        return $this->getAll($sql, 'one');
     }
 
     public function getRow($sql)

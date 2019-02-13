@@ -14,7 +14,17 @@ class DefaultController extends Controller
     public function indexAction(Request $request)
     {
         $db = $this->get('zfi.db');
-        #$userData2 = $db->getAssoc('SELECT code, id FROM users_roles');
+        /*
+        $sql = 'SELECT password, login, id, username FROM users';
+        print_r([
+            $db->getAll($sql),
+            $db->getRow($sql),
+            $db->getCol($sql),
+            $db->getAssoc($sql),
+            $db->getOne($sql),
+        ]);
+        */
+
         $userData = ['tst' => 'data', 'tst2' => 'data2'];
 
         return $this->render('default.tpl', array(
