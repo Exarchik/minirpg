@@ -69,4 +69,9 @@ class PDODecorator
     {
         return $this->getAll($sql, 'assoc');
     }
+
+    public function __call($methodName, $args)
+    {
+        return $this->db->$methodName(...$args);
+    }
 }

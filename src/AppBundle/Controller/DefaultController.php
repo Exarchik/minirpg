@@ -6,7 +6,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-require MAIN_LIBS.'/data/Users.php';
 use Users;
 
 class DefaultController extends Controller
@@ -16,17 +15,23 @@ class DefaultController extends Controller
      */
     public function indexAction(Request $request)
     {
-        $db = $this->get('zfi.db');
+        require MAIN_LIBS.'/data/Users.php';
+        #$db = $this->get('zfi.db');
 
         $users = new Users();
+        try {
+            $result = $users->add(['login' => 'empty', 'password' => 'parolchik']);
+        } catch (Exception $e) {
+            print_r([$e->getMessage()]);
+        }
 
-        print_r([$users->getData(1), $users]);
+        print_r([$result]);
 
-        $userData = ['tst' => 'data', 'tst2' => 'data2'];
+        $data = [0,1,2,3,4];
 
         return $this->render('default.tpl', array(
             'base_dir' => 'tested information',
-            'data' => $userData,
+            'data' => $data,
         ));
     }
 }
