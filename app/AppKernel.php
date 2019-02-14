@@ -8,11 +8,9 @@ class AppKernel extends Kernel
 {
     protected function initializeContainer()
     {
-        global $db;
-
         parent::initializeContainer();
 
-        $this->container->set('zfi.db', $db);
+        $this->container->set('zfi.db', App::getPDO());
     }
 
     public function registerBundles()

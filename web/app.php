@@ -7,9 +7,7 @@ require __DIR__.'/../const.php';
 require __DIR__.'/../config.php';
 
 require MAIN_LIBS.'/functions.php';
-require MAIN_LIBS.'/PDO/PDODecorator.php';
-
-$GLOBALS['db'] = new PDODecorator($config->dbHost, $config->dbName, $config->dbLogin, $config->dbPassword);
+require MAIN_LIBS.'/App.php';
 
 if (PHP_VERSION_ID < 70000) {
     include_once __DIR__.'/../var/bootstrap.php.cache';
