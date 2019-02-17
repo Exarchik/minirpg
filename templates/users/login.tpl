@@ -38,12 +38,10 @@
             for (var key in result) {
                 if (result[key] != true) {
                     resultSuccess = false;
-                    jQuery('#'+key).removeClass('is-valid');
-                    jQuery('#'+key).addClass('is-invalid');
+                    setInvalid('#'+key);
                     jQuery('#'+key).parent().find('.invalid-feedback').html(result[key][0]);
                 } else {
-                    jQuery('#'+key).removeClass('is-invalid');
-                    jQuery('#'+key).addClass('is-valid');
+                    setValid('#'+key);
                 }
             }
             if (resultSuccess) {
