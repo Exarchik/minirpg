@@ -8,7 +8,7 @@ use Fenom\ProviderInterface;
 // Нужен для поддержки legacy code, после перехода на Symfony объединится с FenomEngine
 class FenomBridge
 {
-    protected $layout = 'main.ihtml';
+    protected $layout = 'main.tpl';
     
     protected $layoutVars = array();
     
@@ -24,10 +24,10 @@ class FenomBridge
     protected $providers = [];
     
     protected $layoutAliases = [
-        'main' => 'main.ihtml',
-        'light' => 'light.ihtml',
-        'iframe' => 'iframe.ihtml',
-        'main_report' => 'reports/main_report.ihtml',
+        'main' => 'main.tpl',
+        //'light' => 'light.ihtml',
+        //'iframe' => 'iframe.ihtml',
+        //'main_report' => 'reports/main_report.ihtml',
     ];
     
     public function __construct(string $source = MAIN_TEMPLATES)
@@ -37,6 +37,10 @@ class FenomBridge
     
     public function render($name, array $parameters = array())
     {
+        if (isset($parameters['layout'])) {
+            $this->layoutVars = array_merge($this->layoutVars, $parameters['layout']);
+            unset($parameters['layout']);
+        }
         $content = $this->fetch($name, $parameters);
         
         return $this->renderLayout($content);
@@ -75,7 +79,7 @@ class FenomBridge
         $this->layout = isset($this->layoutAliases[$name]) ? $this->layoutAliases[$name] : $name;
         $this->layoutVars = array_merge($vars, array('return_content' => true));
     }
-    
+
     public function exists($name)
     {
         return isset($this->helpers[$name]) || $this->getFenomTemplate()->templateExists($name);

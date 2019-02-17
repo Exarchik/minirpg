@@ -1,5 +1,10 @@
 <?php
 
+function __($ident)
+{
+    return \App::getLang()->__($ident);
+}
+
 function addFenomModifiersAndFunctions($fenom)
 {
 
@@ -17,7 +22,7 @@ function getTemplateHandle(string $tplPath = MAIN_TEMPLATES)
 function basicDisplay($content, $template = false, $vars = array())
 {    
     if (!$template) {
-        $template = 'main.ihtml';
+        $template = 'main.tpl';
     }
 
     $tpl = getTemplateHandle();

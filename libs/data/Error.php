@@ -25,6 +25,6 @@ class Error
 
     public function getMessage()
     {
-        return join("\n", $this->messages);
+        return $this->messages;
     }
 }

@@ -17,20 +17,23 @@ class DefaultController extends Controller
     {
         require MAIN_LIBS.'/data/Users.php';
         #$db = $this->get('zfi.db');
+        $params = array();
 
         $users = new Users();
-        $result = $users->add(['login' => 'empty', 'password' => '']);
+        $result = $users->add(['login' => 'empty', 'password' => '34234234']);
         if ($result === true) {
-            print_r(['Учетка создана успешно!']);
+            $params['layout']['messages'] = array(__('ACCOUNT_SUCCESSFULLY_CREATED').'!');
         } else {
-            print_r([$result->getMessage()]);
+            $params['layout']['errors'] = $result->getMessage();
         }
 
         $data = [0,1,2,3,4];
 
-        return $this->render('default.tpl', array(
+        $params = array_merge($params, array(
             'base_dir' => 'tested information',
             'data' => $data,
         ));
+
+        return $this->render('default.tpl', $params);
     }
 }

@@ -27,11 +27,11 @@ class Users
     {
         $error = new Error();
         if (empty($data['login']) || empty($data['password'])) {
-            $error->addMessage("Have no login or password data");
+            $error->addMessage(__('NO_PASSWORD_OR_LOGIN_SPECIFIED'));
         }
 
         if ($this->isLoginExist($data['login'])) {
-            $error->addMessage("Such login exist!");
+            $error->addMessage(__('THIS_LOGIN_IS_ALREADY_RESERVED'));
         }
 
         if ($error->hasErrors()) {

@@ -12,6 +12,9 @@ class PDODecorator
         } catch (PDOException $e) {
             echo 'Подключение не удалось: ' . $e->getMessage();
         }
+
+        // главное сразу кодировку включить
+        $this->db->query("SET NAMES utf8");
     }
 
     public function getAll($sql, $type = false)
