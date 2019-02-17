@@ -6,6 +6,7 @@ require __DIR__.'/../vendor/autoload.php';
 require __DIR__.'/../const.php';
 require __DIR__.'/../config.php';
 
+require MAIN_LIBS.'/data/Error.php';
 require MAIN_LIBS.'/functions.php';
 require MAIN_LIBS.'/App.php';
 

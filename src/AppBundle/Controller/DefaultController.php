@@ -6,7 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-use Users;
+use ZFI\Users;
 
 class DefaultController extends Controller
 {
@@ -19,13 +19,12 @@ class DefaultController extends Controller
         #$db = $this->get('zfi.db');
 
         $users = new Users();
-        try {
-            $result = $users->add(['login' => 'empty', 'password' => 'parolchik']);
-        } catch (Exception $e) {
-            print_r([$e->getMessage()]);
+        $result = $users->add(['login' => 'empty', 'password' => '']);
+        if ($result === true) {
+            print_r(['Учетка создана успешно!']);
+        } else {
+            print_r([$result->getMessage()]);
         }
-
-        print_r([$result]);
 
         $data = [0,1,2,3,4];
 
