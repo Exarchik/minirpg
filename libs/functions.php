@@ -32,23 +32,3 @@ function basicDisplay($content, $template = false, $vars = array())
     echo $tpl->fetch($template, $vars);
     exit();
 }
-
-// валидация $data по типу
-function validateData($data, $type = 'text')
-{
-    switch ($type) {
-        case 'int':
-            return intval($data);
-            break;
-        case 'text':
-        default:
-            return strip_tags($data);
-            break;
-    }
-}
-
-// проверка на совпадение $data до и после валидации, если идентично TRUE
-function isDataValid($data, $type = 'text')
-{
-    return ($data == validateData($data));
-}

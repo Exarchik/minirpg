@@ -4,3 +4,6 @@ default_page:
 login_page:
     path:      /login
     defaults:  { _controller: AppBundle:Main:login}
+login_json:
+    path:      /login/json
+    defaults:  { _controller: AppBundle:Main:json}

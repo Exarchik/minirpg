@@ -2,29 +2,26 @@
 
 namespace AppBundle\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use AppBundle\Controller\ZFIController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-use ZFI\Users;
-
-class DefaultController extends Controller
+class DefaultController extends ZFIController
 {
     /**
      * @Route("/", name="homepage")
      */
     public function indexAction(Request $request)
     {
-        require MAIN_LIBS.'/data/Users.php';
         #$db = $this->get('zfi.db');
         $params = array();
 
-        $users = new Users();
+        $users = $this->get('zfi.users');
         $result = $users->add(['login' => 'empty', 'password' => '34234234']);
         if ($result === true) {
-            $params['layout']['messages'] = array(__('ACCOUNT_SUCCESSFULLY_CREATED').'!');
+            $this->addMessage(__('ACCOUNT_SUCCESSFULLY_CREATED').'!');
         } else {
-            $params['layout']['errors'] = $result->getMessage();
+            $this->addError($result->getMessage());
         }
 
         $data = [0,1,2,3,4];
