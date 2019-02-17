@@ -13,6 +13,12 @@ use Symfony\Component\Debug\Debug;
 set_time_limit(0);
 
 require __DIR__.'/../vendor/autoload.php';
+require __DIR__.'/../const.php';
+require __DIR__.'/../config.php';
+
+require MAIN_LIBS.'/data/Error.php';
+require MAIN_LIBS.'/functions.php';
+require MAIN_LIBS.'/App.php';
 
 $input = new ArgvInput();
 $env = $input->getParameterOption(['--env', '-e'], getenv('SYMFONY_ENV') ?: 'dev', true);

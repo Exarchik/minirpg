@@ -21,11 +21,6 @@
             <div class="alert alert-success" role="alert">{$message}</div>
         {/foreach}
     </div>
-
-    <div class='container-fluid'>
-        Test page
-    </div>
-
     <div class="container-fluid">
         {$content}
     </div>

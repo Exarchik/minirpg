@@ -10,7 +10,7 @@ class AppKernel extends Kernel
     {
         parent::initializeContainer();
 
-        $this->container->set('zfi.db', App::getPDO());
+        $this->container->set('zfi.db', \App::getPDO());
     }
 
     public function registerBundles()
