@@ -1,20 +1,21 @@
 <div class='container'>
     <div class='row justify-content-md-center'>
-        <div class='col-md-auto' style='min-width:30%'>
+        <div class='col-md-auto' style='min-width:50%'>
             <form method="post" id="login-form" class="needs-validation" novalidate>
                 <h2>{__('AUTHORIZATION')}</h2>
                 <div class="form-group">
                     <label for="zfiLogin">{__('LOGIN')}</label>
                     <input required type="login" name="zfi_login" class="form-control" id="zfi_login" placeholder="{__('LOGIN')}">
-                    <div class="invalid-feedback">Доступны только латиница, цифры и нижнее подчеркивание</div>
+                    <div class="invalid-feedback"></div>
                 </div>
                 <div class="form-group">
                     <label for="zfiPassword">{__('PASSWORD')}</label>
-                    <input required type="password" name="zfi_password" class="form-control is-invalid" id="zfi_password" placeholder="{__('PASSWORD')}">
+                    <input required type="password" name="zfi_password" class="form-control" id="zfi_password" placeholder="{__('PASSWORD')}">
+                    <div class="invalid-feedback"></div>
                 </div>
                 <div class="form-group form-check">
                     <input type="checkbox" name="zfi_check" class="form-check-input" id="zfiCheck">
-                    <label class="form-check-label" for="zfiCheck">Check me out</label>
+                    <label class="form-check-label" for="zfiCheck">{__('FORM_REMEMBER_ME')}</label>
                 </div>
                 <button type="submit" class="btn btn-outline-primary">{__('LOG_IN')}</button>
             </form>
@@ -33,13 +34,21 @@
             data: jQuery(form).serializeArray()
         })
         .done(function(result) {
-            console.log(result);
+            var resultSuccess = true;
+            for (var key in result) {
+                if (result[key] != true) {
+                    resultSuccess = false;
+                    jQuery('#'+key).removeClass('is-valid');
+                    jQuery('#'+key).addClass('is-invalid');
+                    jQuery('#'+key).parent().find('.invalid-feedback').html(result[key][0]);
+                } else {
+                    jQuery('#'+key).removeClass('is-invalid');
+                    jQuery('#'+key).addClass('is-valid');
+                }
+            }
+            if (resultSuccess) {
+                jQuery(form).submit();
+            }
         });
-
-        /*if (form.checkValidity() === false) {
-            event.preventDefault();
-            event.stopPropagation();
-        }*/
-        form.classList.add('was-validated');
     })
 </script>

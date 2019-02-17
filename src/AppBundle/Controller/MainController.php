@@ -25,14 +25,16 @@ class MainController extends ZFIController
     {
         $validationData = array(
             'zfi_login' => array(
-                'min' => array(5, 'Логин должен быть длинее %s символов'),
-                'max' => array(20, 'Логин не должен превышать %s символов'),
-                'login' => array('Логин может содержать только латиницу, цифры и "-_')
+                'required' => array(__('FORM_REQUIRED_FIELD')),
+                'min' => array(5, __('FORM_MIN_FIELD_LONG')),
+                'max' => array(20, __('FORM_MAX_FIELD_LONG')),
+                'login' => array('Поле может содержать только латиницу, цифры и "-_"')
             ),
             'zfi_password' => array(
-                'required' => array('Поле обязательно к заполнению'),
-                'min' => array(5, 'Пароль должен быть длинее %s символов'),
-                'max' => array(20, 'Пароль не должен превышать %s символов'),
+                'required' => array(__('FORM_REQUIRED_FIELD')),
+                'min' => array(5, __('FORM_MIN_FIELD_LONG')),
+                'max' => array(20, __('FORM_MAX_FIELD_LONG')),
+                'login' => array('Поле может содержать только латиницу, цифры и "-_"')
             ),
         );
 

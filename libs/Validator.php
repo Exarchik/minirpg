@@ -13,15 +13,20 @@ class Validator
                     }
                     break;
                 case 'min':
-                    if  (strlen($value) < $data[0]) {
+                    if (strlen($value) < $data[0]) {
                         $result[] = sprintf($data[1], $data[0]);
                     }
                     break;
                 case 'max':
-                    if  (strlen($value) > $data[0]) {
+                    if (strlen($value) > $data[0]) {
                         $result[] = sprintf($data[1], $data[0]);
                     }
                     break;
+                case 'login':
+                    if (!preg_match('/^[a-z\d_-]{5,20}$/i',$value)) {
+                        $result[] = $data[0];
+                    }
+                    break;    
                 default:
                     break;
             }
