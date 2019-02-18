@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: uchifeek.mysql.ukraine.com.ua
--- Время создания: Фев 18 2019 г., 16:26
+-- Время создания: Фев 18 2019 г., 16:36
 -- Версия сервера: 5.7.16-10-log
 -- Версия PHP: 7.0.33
 
@@ -62,7 +62,8 @@ INSERT INTO `lang_data` (`id`, `ident`, `value`) VALUES
 (21, 'REF_LINK_REGISTER_ONLY_BY', '{\"en\": \"Registration is available only by referral link\", \"ru\": \"Регистрация доступна только по реферальной ссылке\", \"ua\": \"Реєстрація доступна тільки за реферальним посиланням\"}'),
 (22, 'REF_LINK_NOT_AVAILABLE', '{\"en\": \"The referral link does not exist or is not available\", \"ru\": \"Реферальная ссылка не существует или недоступна\", \"ua\": \"Реферальне посилання недоступне або не існує\"}'),
 (23, 'PASSWORD_REPEAT', '{\"en\": \"Repeat password\", \"ru\": \"Повторить пароль\", \"ua\": \"Повторити пароль\"}'),
-(24, 'FORM_FIELD_NOT_IDENTICAL', '{\"en\": \"Values do not match\", \"ru\": \"Значения не совпадают\", \"ua\": \"Значення не співпадають\"}');
+(24, 'FORM_FIELD_NOT_IDENTICAL', '{\"en\": \"Values do not match\", \"ru\": \"Значения не совпадают\", \"ua\": \"Значення не співпадають\"}'),
+(25, 'FORM_FIELD_NOT_UNIQUE', '{\"en\": \"Value is not unique\", \"ru\": \"Значение не уникально\", \"ua\": \"Значення не унікальне\"}');
 
 -- --------------------------------------------------------
 
@@ -167,7 +168,7 @@ ALTER TABLE `users_roles`
 -- AUTO_INCREMENT для таблицы `lang_data`
 --
 ALTER TABLE `lang_data`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT для таблицы `refferal_hash`

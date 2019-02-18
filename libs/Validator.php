@@ -27,58 +27,58 @@ class Validator
             switch ($type) {
                 // поле недолжно быть пустым
                 case 'required':
-                    $msg = !empty($data[0]) ? __($data[0]) : __('FORM_REQUIRED_FIELD');
+                    $msg = !empty($data[0]) ? $data[0] : 'FORM_REQUIRED_FIELD';
                     if (empty($value)) {
-                        $result[] = $msg;
+                        $result[] = __($msg);
                     }
                     break;
                 // минимум % знаков
                 case 'min':
-                    $msg = !empty($data[1]) ? __($data[1]) : __('FORM_MIN_FIELD_LONG');
+                    $msg = !empty($data[1]) ? $data[1] : 'FORM_MIN_FIELD_LONG';
                     if (mb_strlen($value) < $data[0]) {
-                        $result[] = sprintf($msg, $data[0]);
+                        $result[] = sprintf(__($msg), $data[0]);
                     }
                     break;
                 // максимум % знаков
                 case 'max':
-                    $msg = !empty($data[1]) ? __($data[1]) : __('FORM_MAX_FIELD_LONG');
+                    $msg = !empty($data[1]) ? $data[1] : 'FORM_MAX_FIELD_LONG';
                     if (mb_strlen($value) > $data[0]) {
-                        $result[] = sprintf($msg, $data[0]);
+                        $result[] = sprintf(__($msg), $data[0]);
                     }
                     break;
                 // проверка логина только латиница, цифры, дефис и нижнее подчеркивание
                 case 'login':
-                    $msg = !empty($data[0]) ? __($data[0]) : __('FORM_LOGIN_TYPE_VALIDATION_TEXT');
+                    $msg = !empty($data[0]) ? $data[0] : 'FORM_LOGIN_TYPE_VALIDATION_TEXT';
                     if (!preg_match('/^[a-z\d_-]+$/i', $value)) {
-                        $result[] = $msg;
+                        $result[] = __($msg);
                     }
                     break;
                 // толко латиница и цифры без пробелов и прочего (для проверка хеша например)
                 case 'alphanum':
-                    $msg = !empty($data[0]) ? __($data[0]) : __('FORM_ERROR');
+                    $msg = !empty($data[0]) ? $data[0] : 'FORM_ERROR';
                     if (!preg_match('/^[a-z\d]+$/i', $value)) {
-                        $result[] = $msg;
+                        $result[] = __($msg);
                     }
                     break;
                 // все доступные буквы латиница и кирилица
                 case 'fio':
-                    $msg = !empty($data[0]) ? __($data[0]) : __('FORM_FIO_TYPE_VALIDATION_TEXT');
+                    $msg = !empty($data[0]) ? $data[0] : 'FORM_FIO_TYPE_VALIDATION_TEXT';
                     if (!preg_match('/^[\sa-z'.$this->cyrillicSings.']+$/i', $value)) {
-                        $result[] = $msg;
+                        $result[] = __($msg);
                     }
                     break;
                 // когда нужно совпадение по указаному значению в другом поле (например для паролей)
                 case 'identical':
-                    $msg = !empty($data[1]) ? __($data[1]) : __('FORM_FIELD_NOT_IDENTICAL');
+                    $msg = !empty($data[1]) ? $data[1] : 'FORM_FIELD_NOT_IDENTICAL';
                     if ($value != $this->currentValues[$data[0]]) {
-                        $result[] = $msg;
+                        $result[] = __($msg);
                     }
                     break;
-                // когда значение может быть только одно в указаной таблице
+                // когда значение может быть только одно в указаной таблице и поле
                 case 'unique':
-                    $msg = !empty($data[1]) ? __($data[1]) : __('FORM_FIELD_NOT_IDENTICAL');
-                    if (!$this->isUniqueValidation($value, $data[0])) {
-                        $result[] = $msg;
+                    $msg = !empty($data[1]) ? $data[1] : 'FORM_FIELD_NOT_UNIQUE';
+                    if (!$this->isUnique($value, $data[0])) {
+                        $result[] = __($msg);
                     }
                     break;
                 default:
@@ -102,7 +102,7 @@ class Validator
     }
 
     // fieldParam вида <TABLE>.<FIELD> всегда через точку пример: users.login
-    protected function isUniqueValidation($value, $fieldParam)
+    protected function isUnique($value, $fieldParam)
     {
         list($tmpTable, $tmpField) = explode('.', $fieldParam);
         $sql = "SELECT {$tmpField} FROM `{$tmpTable}` WHERE {$tmpField} = ".\App::getPDO()->quote($value);
