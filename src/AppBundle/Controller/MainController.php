@@ -63,18 +63,8 @@ class MainController extends ZFIController
     public function jsonAction(Request $request)
     {
         $validationData = array(
-            'zfi_login' => array(
-                'required' => array(__('FORM_REQUIRED_FIELD')),
-                'min' => array(5, __('FORM_MIN_FIELD_LONG')),
-                'max' => array(20, __('FORM_MAX_FIELD_LONG')),
-                'login' => array(__('FORM_LOGIN_TYPE_VALIDATION_TEXT'))
-            ),
-            'zfi_password' => array(
-                'required' => array(__('FORM_REQUIRED_FIELD')),
-                'min' => array(5, __('FORM_MIN_FIELD_LONG')),
-                'max' => array(20, __('FORM_MAX_FIELD_LONG')),
-                'login' => array(__('FORM_LOGIN_TYPE_VALIDATION_TEXT'))
-            ),
+            'zfi_login' => ['required', 'min' => 5, 'max' => 20, 'login'],
+            'zfi_password' => ['required', 'min' => 5, 'max' => 20, 'login'],
         );
 
         $params = $request->request->all();

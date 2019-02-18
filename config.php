@@ -7,7 +7,7 @@ class ZFIConfig
     private $dbLogin     = 'uchifeek_zfi2';
     private $dbPassword  = 'o5K9LzFhGi60';
 
-    private $langDefault = 'ua'; // en, ua
+    private $langDefault = 'ru'; // en, ua
 
     // авторизация доступна только по реферальным ссылкам
     public $isRegisterRefferal = true;

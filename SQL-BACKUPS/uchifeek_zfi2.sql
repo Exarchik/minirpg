@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: uchifeek.mysql.ukraine.com.ua
--- Время создания: Фев 18 2019 г., 00:46
+-- Время создания: Фев 18 2019 г., 11:34
 -- Версия сервера: 5.7.16-10-log
 -- Версия PHP: 7.0.33
 
@@ -51,7 +51,10 @@ INSERT INTO `lang_data` (`id`, `ident`, `value`) VALUES
 (10, 'FORM_MIN_FIELD_LONG', '{\"en\": \"The field must be at least %s long\", \"ru\": \"Поле должно быть длинной не менее %s\", \"ua\": \"Поле має бути довжиною не менше %s\"}'),
 (11, 'FORM_MAX_FIELD_LONG', '{\"en\": \"The field must be no more than %s long\", \"ru\": \"Поле должно быть длинной не более %s\", \"ua\": \"Поле має бути довжиною не більше %s\"}'),
 (12, 'FORM_REMEMBER_ME', '{\"en\": \"Rememeber me\", \"ru\": \"Запомни меня\", \"ua\": \"Запам\'ятай мене\"}'),
-(13, 'FORM_LOGIN_TYPE_VALIDATION_TEXT', '{\"en\": \"The field can contain only Latin letters, numbers, hyphens and underscores\", \"ru\": \"Поле может содержать только латиницу, цифры, дефис и нижнее подчеркивание\", \"ua\": \"Поле може містити тільки латиницю, цифри, дефіс та нижнє підкреслювання\"}');
+(13, 'FORM_LOGIN_TYPE_VALIDATION_TEXT', '{\"en\": \"The field can contain only Latin letters, numbers, hyphens and underscores\", \"ru\": \"Поле может содержать только латиницу, цифры, дефис и нижнее подчеркивание\", \"ua\": \"Поле може містити тільки латиницю, цифри, дефіс та нижнє підкреслювання\"}'),
+(14, 'LOG_OUT', '{\"en\": \"Log out\", \"ru\": \"Выйти\", \"ua\": \"Вийти\"}'),
+(15, 'YOU_ARE_WELCOME', '{\"en\": \"You are welcome\", \"ru\": \"Добро пожаловать\", \"ua\": \"Ласкаво просимо\"}'),
+(16, 'FORM_ERROR_ACCOUNT_DOES_NOT_EXIST', '{\"en\": \"Account does not exist\", \"ru\": \"Такой учетной записи не существует\", \"ua\": \"Такого аккаунту не існує\"}');
 
 -- --------------------------------------------------------
 
@@ -126,7 +129,7 @@ ALTER TABLE `users_roles`
 -- AUTO_INCREMENT для таблицы `lang_data`
 --
 ALTER TABLE `lang_data`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
