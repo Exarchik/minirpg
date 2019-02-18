@@ -7,6 +7,7 @@ use Symfony\Component\Config\Loader\LoaderInterface;
 use ZFI\Users;
 
 require MAIN_LIBS.'/data/Users.php';
+require MAIN_LIBS.'/data/RefferalHash.php';
 require MAIN_LIBS.'/Validator.php';
 
 class AppKernel extends Kernel

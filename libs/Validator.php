@@ -2,7 +2,9 @@
 
 class Validator
 {
-    protected $allowedTypes = array('required', 'min', 'max', 'login', 'fio');
+    protected $currentValues = array();
+
+    protected $allowedTypes = array('required', 'min', 'max', 'login', 'fio', 'identical');
 
     protected $cyrillicSings = 'абвгдеёжзийклмнопрстуфхцчшщьъыэюяіїґАБВГДЕЁЖЗИЙКЛМНОПРАСТУФХЦЧШЩЬЪЫЭЮЯІЇҐ';
 
@@ -21,36 +23,48 @@ class Validator
                 continue;
             }
             switch ($type) {
+                // поле недолжно быть пустым
                 case 'required':
                     $msg = !empty($data[0]) ? $data[0] : __('FORM_REQUIRED_FIELD');
                     if (empty($value)) {
                         $result[] = $msg;
                     }
                     break;
+                // минимум % знаков
                 case 'min':
                     $msg = !empty($data[1]) ? $data[1] : __('FORM_MIN_FIELD_LONG');
                     if (mb_strlen($value) < $data[0]) {
                         $result[] = sprintf($msg, $data[0]);
                     }
                     break;
+                // максимум % знаков
                 case 'max':
                     $msg = !empty($data[1]) ? $data[1] : __('FORM_MAX_FIELD_LONG');
                     if (mb_strlen($value) > $data[0]) {
                         $result[] = sprintf($msg, $data[0]);
                     }
                     break;
+                // проверка логина только латиница, цифры, дефис и нижнее подчеркивание
                 case 'login':
                     $msg = !empty($data[0]) ? $data[0] : __('FORM_LOGIN_TYPE_VALIDATION_TEXT');
                     if (!preg_match('/^[a-z\d_-]+$/i', $value)) {
                         $result[] = $msg;
                     }
                     break;
+                // все доступные буквы латиница и кирилица
                 case 'fio':
                     $msg = !empty($data[0]) ? $data[0] : __('FORM_FIO_TYPE_VALIDATION_TEXT');
                     if (!preg_match('/^[\sa-z'.$this->cyrillicSings.']+$/i', $value)) {
                         $result[] = $msg;
                     }
-                    break;   
+                    break;
+                // когда нужно совпадение по указаному значению в другом поле (например для паролей)
+                case 'identical':
+                    $msg = !empty($data[1]) ? $data[1] : __('FORM_FIELD_NOT_IDENTICAL');
+                    if ($value != $this->currentValues[$data[0]]) {
+                        $result[] = $msg;
+                    }
+                    break;
                 default:
                     break;
             }
@@ -61,6 +75,7 @@ class Validator
 
     public function validateProcess($values, $validationData)
     {
+        $this->currentValues = $values;
         $result = array();
         foreach ($validationData as $key => $data) {
             if (isset($values[$key])) {

@@ -17,6 +17,7 @@ class MainController extends ZFIController
             'zfi_fio' => ['required', 'fio', 'max' => 100],
             'zfi_login' => ['required', 'min' => 5, 'max' => 20, 'login'],
             'zfi_password' => ['required', 'min' => 8, 'max' => 20, 'login'],
+            'zfi_password_repeat' => ['required', 'identical' => 'zfi_password'],
         ),
     );
 
@@ -63,22 +64,29 @@ class MainController extends ZFIController
 
     public function registerAction(Request $request)
     {
+        $refferalHash = false;
         if (\App::getConfig()->isRegisterRefferal) {
             $refferalHash = $request->query->get('ref', null);
-            if (is_null($refferalHash)) {
-                $this->addError('Регистрация доступна только по реферальной ссылке');
+            $errors = \ZFI\RefferalHash::checkHashRegister($refferalHash);
+
+            if (!empty($errors)) {
+                $this->addError($errors);
                 return $this->render('default.tpl');
             }
-        } else {
-            $refferalHash = true;
         }
-        return $this->render('users/register.tpl');
+
+        $params = array('ref_link' => $refferalHash);
+
+        return $this->render('users/register.tpl', $params);
     }
 
     public function jsonValidationAction($actionType, Request $request)
     {
         $validator = new \Validator();
 
-        return $this->json($validator->validateProcess($request->request->all(), $this->validationData[$actionType]));
+        return $this->json($validator->validateProcess(
+            $request->request->all(),
+            $this->validationData[$actionType]
+        ));
     }
 }

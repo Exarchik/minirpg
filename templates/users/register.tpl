@@ -14,10 +14,18 @@
                     <div class="invalid-feedback"></div>
                 </div>
                 <div class="form-group">
+                    <label for="zfi_password_repeat">{__('PASSWORD_REPEAT')}</label>
+                    <input required type="password" name="zfi_password_repeat" class="form-control" id="zfi_password_repeat" placeholder="{__('PASSWORD_REPEAT')}">
+                    <div class="invalid-feedback"></div>
+                </div>
+                <div class="form-group">
                     <label for="zfi_fio">{__('YOUR_NAME')}</label>
                     <input required type="name" name="zfi_fio" class="form-control" id="zfi_fio" placeholder="{__('YOUR_NAME')}">
                     <div class="invalid-feedback"></div>
                 </div>
+                {if $ref_link}
+                <input type="hidden" id="ref_link" name="ref_link" value="{$ref_link}" />
+                {/if}
                 <button type="submit" class="btn btn-outline-primary">{__('SIGN_UP')}</button>
             </form>
         </div>
