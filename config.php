@@ -2,12 +2,20 @@
 
 class ZFIConfig
 {
-    public $dbHost      = 'uchifeek.mysql.tools';
-    public $dbName      = 'uchifeek_zfi2';
-    public $dbLogin     = 'uchifeek_zfi2';
-    public $dbPassword  = 'o5K9LzFhGi60';
+    private $dbHost      = 'uchifeek.mysql.tools';
+    private $dbName      = 'uchifeek_zfi2';
+    private $dbLogin     = 'uchifeek_zfi2';
+    private $dbPassword  = 'o5K9LzFhGi60';
 
-    public $langDefault = 'ru'; // en, ua
+    private $langDefault = 'ru'; // en, ua
+
+    public function getDBData() {
+        return array($this->dbHost, $this->dbName, $this->dbLogin, $this->dbPassword);
+    }
+
+    public function getDefaultLang() {
+        return $this->langDefault;
+    }
 }
 
 $config = new ZFIConfig();

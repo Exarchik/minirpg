@@ -2,6 +2,8 @@
 
 namespace ZFI;
 
+use Symfony\Component\HttpFoundation\Session\Session;
+
 class Users
 {
     public $id;
@@ -48,5 +50,16 @@ class Users
         }
 
         return true;
+    }
+
+    public function auth($login, $pass)
+    {
+        $session = new Session();
+        $userData = \App::getPDO()->getAssoc("SELECT login, id, password FROM users WHERE login = ".\App::getPDO()->quote($login));
+        if (md5($pass) === $userData[$login]['password']) {
+            $session->set('login', $login);
+            return true;
+        }
+        return false;
     }
 }

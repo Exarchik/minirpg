@@ -13,7 +13,7 @@ class App
         global $config;
 
         if (is_null(static::$db)) {
-            static::$db = new PDODecorator($config->dbHost, $config->dbName, $config->dbLogin, $config->dbPassword);
+            static::$db = new PDODecorator(...$config->getDBData());
         }
 
         return static::$db;
@@ -24,7 +24,7 @@ class App
         global $config;
 
         if (is_null(static::$lang)) {
-            static::$lang = new Language(self::getPDO(), $config->langDefault);
+            static::$lang = new Language(self::getPDO(), $config->getDefaultLang());
         }
 
         return static::$lang;

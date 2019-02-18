@@ -6,5 +6,6 @@ define('MAIN_LIBS', MAIN_DIR.'/libs');
 define('MAIN_TEMPLATES', MAIN_DIR.'/templates');
 
 define('BASE_PATH', $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['SERVER_NAME']);
+define('BASE_URL', '/web'); 
 
 define('BOOTSTRAP_VERSION', '4.3.1');

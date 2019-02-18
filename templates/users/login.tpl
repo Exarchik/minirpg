@@ -1,7 +1,7 @@
 <div class='container'>
     <div class='row justify-content-md-center'>
         <div class='col-md-auto' style='min-width:50%'>
-            <form method="post" id="login-form" class="needs-validation" novalidate>
+            <form method="post" action="{$.const.BASE_URL}/login" id="login-form" class="needs-validation" novalidate>
                 <h2>{__('AUTHORIZATION')}</h2>
                 <div class="form-group">
                     <label for="zfiLogin">{__('LOGIN')}</label>

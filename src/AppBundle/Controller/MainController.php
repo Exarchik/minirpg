@@ -10,15 +10,43 @@ class MainController extends ZFIController
 {
     public function loginAction(Request $request)
     {
+        $users = $this->get('zfi.users');
+        $session = $this->get('session');
         $params = array();
+
+        if (!is_null($session->get('login'))) {
+            return $this->redirectToRoute('logout_page');
+        }
 
         if ($request->isMethod('post')) {
             $users = $this->get('zfi.users');
+            $login = $request->get('zfi_login', null);
+            $pass = $request->get('zfi_password', null);
 
-            $this->addMessage("Введены след. данные: Логин: {$_REQUEST['zfi_login']} и пароль: {$_REQUEST['zfi_password']} ");
+            if (!$users->auth($login, $pass)) {
+                $this->addError("Логин или пароль введены не верно!");
+            } else {
+                return $this->redirectToRoute('default_page');
+            }
         }
 
         return $this->render('users/login.tpl', $params);
+    }
+
+    public function logoutAction(Request $request)
+    {
+        $users = $this->get('zfi.users');
+        $session = $this->get('session');
+
+        if (is_null($session->get('login'))) {
+            return $this->redirectToRoute('login_page');
+        }
+
+        if ($request->isMethod('post')) {
+            $session->remove('login');
+            return $this->redirectToRoute('default_page');
+        }
+        return $this->render('users/logout.tpl');
     }
 
     public function jsonAction(Request $request)
