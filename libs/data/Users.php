@@ -10,9 +10,21 @@ class Users
 
     public $data;
 
+    public $is_admin = false;
+    public $is_superadmin = false;
+
     public function getData(int $id)
     {
-        $this->data = \App::getPDO()->getAssoc("SELECT id, login, password, username, is_active, role_id FROM users WHERE id = {$id}");
+        $sql = "SELECT u.login, u.username, u.is_active, u.role_id, ur.code
+                FROM users AS u
+                JOIN users_roles AS ur ON u.role_id = ur.id
+                WHERE u.id = {$id}";
+        $this->data = \App::getPDO()->getRow($sql);
+        if (!empty($this->data)) {
+            $this->id = $id;
+            $this->is_admin = in_array($this->data['code'], ['ZFI_ADMIN', 'ZFI_SUPERADMIN']) ? true : false;
+            $this->is_superadmin = in_array($this->data['code'], ['ZFI_SUPERADMIN']) ? true : false;
+        }
         return !empty($this->data) ? $this->data : false;
     }
 
@@ -61,7 +73,7 @@ class Users
         $session = new Session();
         $userData = \App::getPDO()->getAssoc("SELECT login, id, password FROM users WHERE login = ".\App::getPDO()->quote($login));
         if (md5($pass) === $userData[$login]['password']) {
-            $session->set('login', $login);
+            $session->set('ZFIUD', base64_encode($login.":".$userData[$login]['id']));
             return true;
         }
         return false;

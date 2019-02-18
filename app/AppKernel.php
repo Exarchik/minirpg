@@ -4,9 +4,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Config\Loader\LoaderInterface;
 
-use ZFI\Users;
-
-require MAIN_LIBS.'/data/Users.php';
 require MAIN_LIBS.'/data/RefferalHash.php';
 require MAIN_LIBS.'/Validator.php';
 
@@ -17,7 +14,7 @@ class AppKernel extends Kernel
         parent::initializeContainer();
 
         $this->container->set('zfi.db', \App::getPDO());
-        $this->container->set('zfi.users', new Users());
+        $this->container->set('zfi.users', \App::getUsers());
     }
 
     public function registerBundles()

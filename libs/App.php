@@ -7,6 +7,7 @@ class App
 {
     static $db = null;
     static $lang = null;
+    static $users = null;
     static $config = null;
 
     static public function getConfig()
@@ -27,6 +28,21 @@ class App
         }
 
         return static::$db;
+    }
+
+    static public function getUsers($cryptedUserData = null)
+    {
+        if (is_null(static::$users)) {
+            static::$users = new \ZFI\Users();
+        }
+        
+        if (is_null($cryptedUserData)) {
+            return static::$users;
+        }
+        list($userLogin, $userId) = explode(':', base64_decode($cryptedUserData));
+        static::$users->getData($userId);
+
+        return static::$users;
     }
 
     static public function getLang()
