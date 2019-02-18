@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: uchifeek.mysql.ukraine.com.ua
--- Время создания: Фев 18 2019 г., 11:34
+-- Время создания: Фев 18 2019 г., 16:26
 -- Версия сервера: 5.7.16-10-log
 -- Версия PHP: 7.0.33
 
@@ -54,7 +54,37 @@ INSERT INTO `lang_data` (`id`, `ident`, `value`) VALUES
 (13, 'FORM_LOGIN_TYPE_VALIDATION_TEXT', '{\"en\": \"The field can contain only Latin letters, numbers, hyphens and underscores\", \"ru\": \"Поле может содержать только латиницу, цифры, дефис и нижнее подчеркивание\", \"ua\": \"Поле може містити тільки латиницю, цифри, дефіс та нижнє підкреслювання\"}'),
 (14, 'LOG_OUT', '{\"en\": \"Log out\", \"ru\": \"Выйти\", \"ua\": \"Вийти\"}'),
 (15, 'YOU_ARE_WELCOME', '{\"en\": \"You are welcome\", \"ru\": \"Добро пожаловать\", \"ua\": \"Ласкаво просимо\"}'),
-(16, 'FORM_ERROR_ACCOUNT_DOES_NOT_EXIST', '{\"en\": \"Account does not exist\", \"ru\": \"Такой учетной записи не существует\", \"ua\": \"Такого аккаунту не існує\"}');
+(16, 'FORM_ERROR_ACCOUNT_DOES_NOT_EXIST', '{\"en\": \"Account does not exist\", \"ru\": \"Такой учетной записи не существует\", \"ua\": \"Такого аккаунту не існує\"}'),
+(17, 'REGISTRATION', '{\"en\": \"Registration\", \"ru\": \"Регистрация\", \"ua\": \"Реєстрація\"}'),
+(18, 'SIGN_UP', '{\"en\": \"Sign up\", \"ru\": \"Зарегистрироваться\", \"ua\": \"Зареєструватись\"}'),
+(19, 'YOUR_NAME', '{\"en\": \"Your name\", \"ru\": \"Ваше имя\", \"ua\": \"Ваше ім\'я\"}'),
+(20, 'FORM_FIO_TYPE_VALIDATION_TEXT', '{\"en\": \"Only letters are available\", \"ru\": \"Доступны только буквы\", \"ua\": \"Доступні лише літери\"}'),
+(21, 'REF_LINK_REGISTER_ONLY_BY', '{\"en\": \"Registration is available only by referral link\", \"ru\": \"Регистрация доступна только по реферальной ссылке\", \"ua\": \"Реєстрація доступна тільки за реферальним посиланням\"}'),
+(22, 'REF_LINK_NOT_AVAILABLE', '{\"en\": \"The referral link does not exist or is not available\", \"ru\": \"Реферальная ссылка не существует или недоступна\", \"ua\": \"Реферальне посилання недоступне або не існує\"}'),
+(23, 'PASSWORD_REPEAT', '{\"en\": \"Repeat password\", \"ru\": \"Повторить пароль\", \"ua\": \"Повторити пароль\"}'),
+(24, 'FORM_FIELD_NOT_IDENTICAL', '{\"en\": \"Values do not match\", \"ru\": \"Значения не совпадают\", \"ua\": \"Значення не співпадають\"}');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `refferal_hash`
+--
+
+CREATE TABLE `refferal_hash` (
+  `id` int(11) NOT NULL,
+  `hash` varchar(40) NOT NULL,
+  `type` varchar(40) NOT NULL,
+  `options` varchar(100) DEFAULT NULL,
+  `id_user` int(11) DEFAULT NULL,
+  `is_active` int(11) NOT NULL DEFAULT '1'
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `refferal_hash`
+--
+
+INSERT INTO `refferal_hash` (`id`, `hash`, `type`, `options`, `id_user`, `is_active`) VALUES
+(1, '24d4594d40c0ce3d8a7ec7e6a333f739', 'register', NULL, NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -76,8 +106,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `login`, `password`, `username`, `is_active`, `role_id`) VALUES
-(1, 'empty', 'a2e4822a98337283e39f7b60acf85ec9', 'empty', 1, 1),
-(2, 'empty2', '085724c672c3bc054d1c266613d17803', 'empty2', 1, 1);
+(1, 'empty', '7d665d9fa18a26df451d111b34afd89f', 'empty', 1, 1),
+(2, 'empty2', '7d665d9fa18a26df451d111b34afd89f', 'empty2', 1, 1),
+(3, 'exarchik', '4761436adfd1810131941e5ab48a3478', 'Экзарыч', 1, 3);
 
 -- --------------------------------------------------------
 
@@ -97,7 +128,8 @@ CREATE TABLE `users_roles` (
 
 INSERT INTO `users_roles` (`id`, `name`, `code`) VALUES
 (1, 'Пользователь', 'ZFI_USER'),
-(2, 'Админ', 'ZFI_ADMIN');
+(2, 'Админ', 'ZFI_ADMIN'),
+(3, 'Суперадмин', 'ZFI_SUPERADMIN');
 
 --
 -- Индексы сохранённых таблиц
@@ -107,6 +139,12 @@ INSERT INTO `users_roles` (`id`, `name`, `code`) VALUES
 -- Индексы таблицы `lang_data`
 --
 ALTER TABLE `lang_data`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Индексы таблицы `refferal_hash`
+--
+ALTER TABLE `refferal_hash`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -129,19 +167,25 @@ ALTER TABLE `users_roles`
 -- AUTO_INCREMENT для таблицы `lang_data`
 --
 ALTER TABLE `lang_data`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+
+--
+-- AUTO_INCREMENT для таблицы `refferal_hash`
+--
+ALTER TABLE `refferal_hash`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT для таблицы `users_roles`
 --
 ALTER TABLE `users_roles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
