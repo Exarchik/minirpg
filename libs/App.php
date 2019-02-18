@@ -7,13 +7,23 @@ class App
 {
     static $db = null;
     static $lang = null;
+    static $config = null;
 
-    static public function getPDO()
+    static public function getConfig()
     {
         global $config;
 
+        if (is_null(static::$config)) {
+            static::$config = $config;
+        }
+
+        return static::$config;
+    }
+
+    static public function getPDO()
+    {
         if (is_null(static::$db)) {
-            static::$db = new PDODecorator(...$config->getDBData());
+            static::$db = new PDODecorator(...self::getConfig()->getDBData());
         }
 
         return static::$db;
@@ -21,10 +31,8 @@ class App
 
     static public function getLang()
     {
-        global $config;
-
         if (is_null(static::$lang)) {
-            static::$lang = new Language(self::getPDO(), $config->getDefaultLang());
+            static::$lang = new Language(self::getPDO(), self::getConfig()->getDefaultLang());
         }
 
         return static::$lang;

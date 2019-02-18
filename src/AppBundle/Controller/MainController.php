@@ -24,7 +24,7 @@ class MainController extends ZFIController
             $pass = $request->get('zfi_password', null);
 
             if (!$users->auth($login, $pass)) {
-                $this->addError("Логин или пароль введены не верно!");
+                $this->addError(__('FORM_ERROR_ACCOUNT_DOES_NOT_EXIST').'!');
             } else {
                 return $this->redirectToRoute('default_page');
             }
@@ -47,6 +47,17 @@ class MainController extends ZFIController
             return $this->redirectToRoute('default_page');
         }
         return $this->render('users/logout.tpl');
+    }
+
+    public function registerAction(Request $request)
+    {
+        if (\App::getConfig()->isRegisterRefferal) {
+            $referalHash = $request->query->get('ref', null);
+            if (is_null($referalHash)) {
+                $this->addError('Регистрация доступна только по реферальной ссылке');
+                return $this->render('default.tpl');
+            }
+        }
     }
 
     public function jsonAction(Request $request)

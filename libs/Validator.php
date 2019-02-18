@@ -2,10 +2,16 @@
 
 class Validator
 {
+    protected $allowedTypes = array('required', 'min', 'max', 'login');
+
     public function validate($value, $validate)
     {
         $result = [];
         foreach ($validate as $type => $data) {
+            $data = is_array($data) ? $data : array($data);
+            if (!in_array($type, $this->allowedTypes)) {
+                continue;
+            }
             switch ($type) {
                 case 'required':
                     if (empty($value)) {

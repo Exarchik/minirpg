@@ -16,7 +16,10 @@ class DefaultController extends ZFIController
 
         #$users = $this->get('zfi.users');
         #$result = $users->add(['login' => 'empty', 'password' => '34234234']);
-        $this->addMessage(__('YOU_ARE_WELCOME').', '.$session->get('login').'!');
+        $msg = !is_null($session->get('login')) 
+            ? __('YOU_ARE_WELCOME').', '.$session->get('login').'!'
+            : "<a href='".BASE_URL."/login'>".__('AUTHORIZATION')."</a>";
+        $this->addMessage($msg);
 
         $data = [0,1,2,3,4];
 

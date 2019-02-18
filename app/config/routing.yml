@@ -7,6 +7,9 @@ login_page:
 logout_page:
     path:      /logout
     defaults:  { _controller: AppBundle:Main:logout}
+register_page:
+    path:      /register
+    defaults:  { _controller: AppBundle:Main:register}
 login_json:
     path:      /login/json
     defaults:  { _controller: AppBundle:Main:json}
