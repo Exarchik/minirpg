@@ -49,6 +49,10 @@ class Users
             return $errors;
         }
 
+        $fields = array_keys($data);
+        $sql = "INSERT INTO `users` (".join(', ', $fields).")
+                VALUES (".join(', ', \App::getPDO()->quoteAll($data)).")";
+        print_r([$sql]);
         return true;
     }
 

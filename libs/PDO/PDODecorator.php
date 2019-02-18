@@ -53,6 +53,15 @@ class PDODecorator
         return $data;
     }
 
+    public function quoteAll($data)
+    {
+        $result = array();
+        foreach ($data as $key => $value) {
+            $result[$key] = $this->quote($value);
+        }
+        return $result;
+    }
+
     public function getOne($sql)
     {
         return $this->getAll($sql, 'one');

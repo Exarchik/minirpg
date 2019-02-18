@@ -15,13 +15,18 @@ class RefferalHash
     {
         $errors = array();
         if (is_null($hash) || empty($hash)) {
-            $errors[] = __('REF_LINK_REGISTER_ONLY_BY');
+            return __('REF_LINK_REGISTER_ONLY_BY');
         }
 
         $hash = self::getHashData($hash);
-        if (empty($hash) || $hash['type'] != 'register') {
-            $errors[] = __('REF_LINK_NOT_AVAILABLE');
+        if (!isset($hash) || empty($hash) || $hash['type'] != 'register') {
+            return __('REF_LINK_NOT_AVAILABLE');
         }
         return $errors;
+    }
+
+    public static function killHash($hash)
+    {
+        
     }
 }

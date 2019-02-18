@@ -15,7 +15,7 @@ class MainController extends ZFIController
         ),
         'register' => array(
             'zfi_fio' => ['required', 'fio', 'max' => 100],
-            'zfi_login' => ['required', 'min' => 5, 'max' => 20, 'login'],
+            'zfi_login' => ['required', 'min' => 5, 'max' => 20, 'login', 'unique' => array('users.login', 'THIS_LOGIN_IS_ALREADY_RESERVED')],
             'zfi_password' => ['required', 'min' => 8, 'max' => 20, 'login'],
             'zfi_password_repeat' => ['required', 'identical' => 'zfi_password'],
         ),
@@ -65,14 +65,26 @@ class MainController extends ZFIController
     public function registerAction(Request $request)
     {
         $refferalHash = false;
+        $errors = array();
         if (\App::getConfig()->isRegisterRefferal) {
             $refferalHash = $request->query->get('ref', null);
+            $refferalHash = !is_null($refferalHash) ? $refferalHash : $request->request->get('ref_link', null);
             $errors = \ZFI\RefferalHash::checkHashRegister($refferalHash);
 
             if (!empty($errors)) {
                 $this->addError($errors);
                 return $this->render('default.tpl');
             }
+        }
+
+        if ($request->isMethod('post')) {
+            $users = $this->get('zfi.users');
+
+            $users->add(array(
+                'login' => $request->request->get('zfi_login'),
+                'password' => md5($request->request->get('zfi_password')),
+                'username' => $request->request->get('zfi_fio')
+            ));
         }
 
         $params = array('ref_link' => $refferalHash);
