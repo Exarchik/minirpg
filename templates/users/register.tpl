@@ -4,16 +4,21 @@
             <form method="post" action="{$.const.BASE_URL}/register" id="login-form" class="needs-validation" novalidate>
                 <h2>{__('REGISTRATION')}</h2>
                 <div class="form-group">
-                    <label for="zfiLogin">{__('LOGIN')}</label>
+                    <label for="zfi_login">{__('LOGIN')}</label>
                     <input required type="login" name="zfi_login" class="form-control" id="zfi_login" placeholder="{__('LOGIN')}">
                     <div class="invalid-feedback"></div>
                 </div>
                 <div class="form-group">
-                    <label for="zfiPassword">{__('PASSWORD')}</label>
+                    <label for="zfi_password">{__('PASSWORD')}</label>
                     <input required type="password" name="zfi_password" class="form-control" id="zfi_password" placeholder="{__('PASSWORD')}">
                     <div class="invalid-feedback"></div>
                 </div>
-                <button type="submit" class="btn btn-outline-primary">{__('REGISTER_ME')}</button>
+                <div class="form-group">
+                    <label for="zfi_fio">{__('YOUR_NAME')}</label>
+                    <input required type="name" name="zfi_fio" class="form-control" id="zfi_fio" placeholder="{__('YOUR_NAME')}">
+                    <div class="invalid-feedback"></div>
+                </div>
+                <button type="submit" class="btn btn-outline-primary">{__('SIGN_UP')}</button>
             </form>
         </div>
     </div>

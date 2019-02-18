@@ -2,7 +2,9 @@
 
 class Validator
 {
-    protected $allowedTypes = array('required', 'min', 'max', 'login');
+    protected $allowedTypes = array('required', 'min', 'max', 'login', 'fio');
+
+    protected $cyrillicSings = 'абвгдеёжзийклмнопрстуфхцчшщьъыэюяіїґАБВГДЕЁЖЗИЙКЛМНОПРАСТУФХЦЧШЩЬЪЫЭЮЯІЇҐ';
 
     public function validate($value, $validate)
     {
@@ -27,22 +29,28 @@ class Validator
                     break;
                 case 'min':
                     $msg = !empty($data[1]) ? $data[1] : __('FORM_MIN_FIELD_LONG');
-                    if (strlen($value) < $data[0]) {
+                    if (mb_strlen($value) < $data[0]) {
                         $result[] = sprintf($msg, $data[0]);
                     }
                     break;
                 case 'max':
                     $msg = !empty($data[1]) ? $data[1] : __('FORM_MAX_FIELD_LONG');
-                    if (strlen($value) > $data[0]) {
+                    if (mb_strlen($value) > $data[0]) {
                         $result[] = sprintf($msg, $data[0]);
                     }
                     break;
                 case 'login':
                     $msg = !empty($data[0]) ? $data[0] : __('FORM_LOGIN_TYPE_VALIDATION_TEXT');
-                    if (!preg_match('/^[a-z\d_-]{5,20}$/i', $value)) {
+                    if (!preg_match('/^[a-z\d_-]+$/i', $value)) {
                         $result[] = $msg;
                     }
-                    break;    
+                    break;
+                case 'fio':
+                    $msg = !empty($data[0]) ? $data[0] : __('FORM_FIO_TYPE_VALIDATION_TEXT');
+                    if (!preg_match('/^[\sa-z'.$this->cyrillicSings.']+$/i', $value)) {
+                        $result[] = $msg;
+                    }
+                    break;   
                 default:
                     break;
             }

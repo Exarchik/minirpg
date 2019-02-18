@@ -14,6 +14,7 @@ class MainController extends ZFIController
             'zfi_password' => ['required', 'min' => 8, 'max' => 20, 'login'],
         ),
         'register' => array(
+            'zfi_fio' => ['required', 'fio', 'max' => 100],
             'zfi_login' => ['required', 'min' => 5, 'max' => 20, 'login'],
             'zfi_password' => ['required', 'min' => 8, 'max' => 20, 'login'],
         ),
