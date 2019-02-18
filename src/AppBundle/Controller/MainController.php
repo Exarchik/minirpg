@@ -8,6 +8,17 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class MainController extends ZFIController
 {
+    public $validationData = array(
+        'login' => array(
+            'zfi_login' => ['required', 'min' => 5, 'max' => 20, 'login'],
+            'zfi_password' => ['required', 'min' => 8, 'max' => 20, 'login'],
+        ),
+        'register' => array(
+            'zfi_login' => ['required', 'min' => 5, 'max' => 20, 'login'],
+            'zfi_password' => ['required', 'min' => 8, 'max' => 20, 'login'],
+        ),
+    );
+
     public function loginAction(Request $request)
     {
         $users = $this->get('zfi.users');
@@ -52,24 +63,21 @@ class MainController extends ZFIController
     public function registerAction(Request $request)
     {
         if (\App::getConfig()->isRegisterRefferal) {
-            $referalHash = $request->query->get('ref', null);
-            if (is_null($referalHash)) {
+            $refferalHash = $request->query->get('ref', null);
+            if (is_null($refferalHash)) {
                 $this->addError('Регистрация доступна только по реферальной ссылке');
                 return $this->render('default.tpl');
             }
+        } else {
+            $refferalHash = true;
         }
+        return $this->render('users/register.tpl');
     }
 
-    public function jsonAction(Request $request)
+    public function jsonValidationAction($actionType, Request $request)
     {
-        $validationData = array(
-            'zfi_login' => ['required', 'min' => 5, 'max' => 20, 'login'],
-            'zfi_password' => ['required', 'min' => 5, 'max' => 20, 'login'],
-        );
-
-        $params = $request->request->all();
         $validator = new \Validator();
 
-        return $this->json($validator->validateProcess($params, $validationData));
+        return $this->json($validator->validateProcess($request->request->all(), $this->validationData[$actionType]));
     }
 }

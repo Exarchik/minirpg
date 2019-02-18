@@ -10,6 +10,8 @@ logout_page:
 register_page:
     path:      /register
     defaults:  { _controller: AppBundle:Main:register}
-login_json:
-    path:      /login/json
-    defaults:  { _controller: AppBundle:Main:json}
+main_json:
+    path:      /json-valid/{actionType}
+    defaults:  { _controller: AppBundle:Main:jsonValidation}
+    requirements:
+        actionType: '\w+'

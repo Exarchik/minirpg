@@ -1,8 +1,8 @@
 <div class='container'>
     <div class='row justify-content-md-center'>
         <div class='col-md-auto' style='min-width:50%'>
-            <form method="post" action="{$.const.BASE_URL}/login" id="login-form" class="needs-validation" novalidate>
-                <h2>{__('AUTHORIZATION')}</h2>
+            <form method="post" action="{$.const.BASE_URL}/register" id="login-form" class="needs-validation" novalidate>
+                <h2>{__('REGISTRATION')}</h2>
                 <div class="form-group">
                     <label for="zfiLogin">{__('LOGIN')}</label>
                     <input required type="login" name="zfi_login" class="form-control" id="zfi_login" placeholder="{__('LOGIN')}">
@@ -13,11 +13,7 @@
                     <input required type="password" name="zfi_password" class="form-control" id="zfi_password" placeholder="{__('PASSWORD')}">
                     <div class="invalid-feedback"></div>
                 </div>
-                <div class="form-group form-check">
-                    <input type="checkbox" name="zfi_check" class="form-check-input" id="zfiCheck">
-                    <label class="form-check-label" for="zfiCheck">{__('FORM_REMEMBER_ME')}</label>
-                </div>
-                <button type="submit" class="btn btn-outline-primary">{__('LOG_IN')}</button>
+                <button type="submit" class="btn btn-outline-primary">{__('REGISTER_ME')}</button>
             </form>
         </div>
     </div>
@@ -25,7 +21,7 @@
 {ignore}
 <script>
     var form = document.querySelector('.needs-validation');
-    var jsonUrl = "{/ignore}{$.const.BASE_URL}{ignore}/json-valid/login"; 
+    var jsonUrl = "{/ignore}{$.const.BASE_URL}{ignore}/json-valid/register";
 
     form.addEventListener('submit', function(event) {
         event.preventDefault();
