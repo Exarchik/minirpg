@@ -34,7 +34,7 @@
 {ignore}
 <script>
     var form = document.querySelector('.needs-validation');
-    var jsonUrl = "{/ignore}{$.const.BASE_URL}{ignore}/json-valid/register";
+    var jsonUrl = "{/ignore}{$.const.BASE_URL}{ignore}/json/valid/register";
 
     form.addEventListener('submit', function(event) {
         event.preventDefault();

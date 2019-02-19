@@ -28,6 +28,8 @@ function basicDisplay($content, $template = false, $vars = array())
     $tpl = getTemplateHandle();
     
     $vars['content'] = $content;
+    $vars['current_language'] = \App::getConfig()->getCurrentLang();
+    $vars['lang_selector'] = \App::getLang()->getLanguageList();
 
     echo $tpl->fetch($template, $vars);
     exit();

@@ -12,21 +12,24 @@ class ZFIConfig
     // авторизация доступна только по реферальным ссылкам
     public $isRegisterRefferal = true;
 
-    public function getDBData() {
+    public function getDBData()
+    {
         return array($this->dbHost, $this->dbName, $this->dbLogin, $this->dbPassword);
     }
 
-    public function getDefaultLang() {
-        return $this->langDefault;
+    public function getCurrentLang()
+    {
+        $session = \App::getSession();
+        return !empty($session['language']) ? $session['language'] : $this->langDefault;
     }
 
     public function __debugInfo()
-     {
+    {
         return array(
             'langDefault' => $this->langDefault,
             'isRegisterRefferal' => $this->isRegisterRefferal,
         );
-     }
+    }
 }
 
 $config = new ZFIConfig();

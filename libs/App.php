@@ -61,7 +61,7 @@ class App
     static public function getLang()
     {
         if (is_null(static::$lang)) {
-            static::$lang = new Language(self::getPDO(), self::getConfig()->getDefaultLang());
+            static::$lang = new Language(self::getPDO(), self::getConfig()->getCurrentLang());
         }
 
         return static::$lang;

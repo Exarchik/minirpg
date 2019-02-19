@@ -108,4 +108,9 @@ class MainController extends ZFIController
             $this->validationData[$actionType]
         ));
     }
+
+    public function jsonLanguageAction($language)
+    {
+        return $this->json(array('result' => \App::getLang()->setDefaultLang($language)));
+    }
 }
