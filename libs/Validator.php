@@ -5,13 +5,14 @@ class Validator
     protected $currentValues = array();
 
     protected $allowedTypes = array(
-        'required', 'min', 'max', 'login', 'fio', 'identical', 'unique'
+        'required', 'min', 'max', 'login', 'alphanum', 'fio', 'identical', 'unique'
     );
 
     protected $cyrillicSings = 'абвгдеёжзийклмнопрстуфхцчшщьъыэюяіїґАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЪЫЭЮЯІЇҐ';
 
     public function validate($value, $validate)
     {
+        $validate = is_array($validate) ? $validate : array($validate);
         $result = [];
         foreach ($validate as $type => $data) {
             // валидация по умолчанию, если передаем только тип

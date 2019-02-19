@@ -10,13 +10,13 @@ class MainController extends ZFIController
 {
     public $validationData = array(
         'login' => array(
-            'zfi_login' => ['required', 'min' => 5, 'max' => 20, 'login'],
-            'zfi_password' => ['required', 'min' => 8, 'max' => 20, 'login'],
+            'zfi_login' => ['required', 'login', 'min' => 5, 'max' => 20],
+            'zfi_password' => ['required', 'login', 'min' => 8, 'max' => 20],
         ),
         'register' => array(
             'zfi_fio' => ['required', 'fio', 'max' => 100],
-            'zfi_login' => ['required', 'min' => 5, 'max' => 20, 'login', 'unique' => array('users.login', 'THIS_LOGIN_IS_ALREADY_RESERVED')],
-            'zfi_password' => ['required', 'min' => 8, 'max' => 20, 'login'],
+            'zfi_login' => ['required', 'login', 'min' => 5, 'max' => 20, 'unique' => array('users.login', 'THIS_LOGIN_IS_ALREADY_RESERVED')],
+            'zfi_password' => ['required', 'login', 'min' => 8, 'max' => 20],
             'zfi_password_repeat' => ['required', 'identical' => 'zfi_password'],
         ),
     );
@@ -74,6 +74,7 @@ class MainController extends ZFIController
         if (\App::getConfig()->isRegisterRefferal) {
             $refferalHash = $request->query->get('ref', null);
             $refferalHash = !is_null($refferalHash) ? $refferalHash : $request->request->get('ref_link', null);
+
             $errors = \ZFI\RefferalHash::checkHashRegister($refferalHash);
 
             if (!empty($errors)) {
@@ -90,6 +91,7 @@ class MainController extends ZFIController
                 'password' => md5($request->request->get('zfi_password')),
                 'username' => $request->request->get('zfi_fio')
             ));
+
         }
 
         $params = array('ref_link' => $refferalHash);

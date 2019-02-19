@@ -14,6 +14,11 @@ class RefferalHash
     public static function checkHashRegister($hash)
     {
         $errors = array();
+
+        $validator = new \Validator();
+        // хэш должен содержать только латиницу и цифры
+        $hash = $validator->validate($hash, 'alphanum') ? $hash : false;
+
         if (is_null($hash) || empty($hash)) {
             return __('REF_LINK_REGISTER_ONLY_BY');
         }
