@@ -19,6 +19,10 @@ class MainController extends ZFIController
             'zfi_password' => ['required', 'login', 'min' => 8, 'max' => 20],
             'zfi_password_repeat' => ['required', 'identical' => 'zfi_password'],
         ),
+        // lang_% в самом languageFormAction
+        'languageForm' => array(
+            'zfi_ident' => ['required', 'ident', 'unique' => 'lang_data.ident'],
+        )
     );
 
     public function loginAction(Request $request)
@@ -106,8 +110,40 @@ class MainController extends ZFIController
         return $this->render('users/register.tpl', $params);
     }
 
+    public function languageFormAction(Request $request)
+    {
+        if (!\App::getUsers()->is_superadmin) {
+            return $this->json(false);
+        }
+        $langList = \App::getLang()->getLanguageList();
+
+        $params = array(
+           'language_idents' => $langList,
+        );
+
+        if ($request->isMethod('post')) {
+            $values = array(
+                "ident" => \App::getPDO()->quote(textToIdent($request->get('zfi_ident'))),
+            );
+            $langData = array();
+            foreach (array_keys($langList) as $ident) {
+                $langData[$ident] = $request->get('term_'.$ident, '');
+            }
+            $values["value"] = \App::getPDO()->quote(json_encode($langData));
+
+            $sql = "INSERT INTO `lang_data` (".join(', ', array_keys($values)).") VALUES (".join(', ', $values).")";
+            \App::getPDO()->query($sql);
+
+            $this->addMessage(__('LANGUAGE_IDENT_SUCCESSFULLY_INSERTED'));
+        }
+
+        return $this->render('superadmin/language.form.tpl', $params);
+    }
+
     public function jsonValidationAction($actionType, Request $request)
     {
+        $this->addSpecificValidData($actionType);
+
         if (!$request->isXmlHttpRequest()) {
             return $this->json(false);
         }
@@ -125,5 +161,19 @@ class MainController extends ZFIController
             return $this->json(false);
         }
         return $this->json(array('result' => \App::getLang()->setDefaultLang($language)));
+    }
+
+    protected function addSpecificValidData($type)
+    {
+        switch ($type) {
+            case 'languageForm':
+                $langIdents = \App::getLang()->getLanguageListIdents();
+                foreach($langIdents as $ident) {
+                    $this->validationData[$type]['term_'.$ident] = ['required', 'text', 'max' => 250];
+                }
+            break;
+            default:
+            break;
+        }
     }
 }

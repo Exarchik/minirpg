@@ -10,6 +10,9 @@ logout_page:
 register_page:
     path:      /register
     defaults:  { _controller: AppBundle:Main:register}
+language_form:
+    path:      /language/form
+    defaults:  { _controller: AppBundle:Main:languageForm}
 json_valid:
     path:      /json/valid/{actionType}
     defaults:  { _controller: AppBundle:Main:jsonValidation}

@@ -5,7 +5,7 @@ class Validator
     protected $currentValues = array();
 
     protected $allowedTypes = array(
-        'required', 'min', 'max', 'login', 'alphanum', 'fio', 'identical', 'unique'
+        'required', 'min', 'max', 'login', 'ident', 'alphanum', 'fio', 'text', 'identical', 'unique'
     );
 
     protected $cyrillicSings = 'абвгдеёжзийклмнопрстуфхцчшщьъыэюяіїґАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЪЫЭЮЯІЇҐ';
@@ -54,6 +54,13 @@ class Validator
                         $result[] = __($msg);
                     }
                     break;
+                // проверка идента только латиница, пробел, цифры, дефис и нижнее подчеркивание
+                case 'ident':
+                    $msg = !empty($data[0]) ? $data[0] : 'FORM_IDENT_TYPE_VALIDATION_TEXT';
+                    if (!preg_match('/^[a-z\d\s_-]+$/i', $value)) {
+                        $result[] = __($msg);
+                    }
+                    break;
                 // толко латиница и цифры без пробелов и прочего (для проверка хеша например)
                 case 'alphanum':
                     $msg = !empty($data[0]) ? $data[0] : 'FORM_ERROR';
@@ -68,6 +75,13 @@ class Validator
                         $result[] = __($msg);
                     }
                     break;
+                // все доступные буквы латиница и кирилица, цифры, дефис, нижнее подчеркивание, точки и запятые
+                case 'text':
+                    $msg = !empty($data[0]) ? $data[0] : 'FORM_FIO_TYPE_VALIDATION_TEXT_2';
+                    if (!preg_match('/^[\s-_,\.a-z0-9'.$this->cyrillicSings.']+$/i', $value)) {
+                        $result[] = __($msg);
+                    }
+                    break;    
                 // когда нужно совпадение по указаному значению в другом поле (например для паролей)
                 case 'identical':
                     $msg = !empty($data[1]) ? $data[1] : 'FORM_FIELD_NOT_IDENTICAL';

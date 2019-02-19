@@ -45,3 +45,9 @@ function basicDisplay($content, $template = false, $vars = array())
     echo $tpl->fetch($template, $vars);
     exit();
 }
+
+function textToIdent($text)
+{
+    $text = str_replace(array(' ','-'), '_', trim($text));
+    return mb_strtoupper($text);
+}
