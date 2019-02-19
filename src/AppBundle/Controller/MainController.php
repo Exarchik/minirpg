@@ -122,8 +122,18 @@ class MainController extends ZFIController
         );
 
         if ($request->isMethod('post')) {
+            $validator = new \Validator();
+            $realIdent = textToIdent($request->get('zfi_ident'));
+
+            $errors = $validator->validate($realIdent, array('unique' => 'lang_data.ident'));
+
+            if ($errors !== true) {
+                $this->addError($errors);
+                return $this->render('superadmin/language.form.tpl', $params);
+            }
+
             $values = array(
-                "ident" => \App::getPDO()->quote(textToIdent($request->get('zfi_ident'))),
+                "ident" => \App::getPDO()->quote($realIdent),
             );
             $langData = array();
             foreach (array_keys($langList) as $ident) {
