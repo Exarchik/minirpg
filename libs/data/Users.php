@@ -67,7 +67,7 @@ class Users
         $sql = "INSERT INTO `users` (".join(', ', $fields).")
                 VALUES (".join(', ', \App::getPDO()->quoteAll($data)).")";
         \App::getPDO()->query($sql);
-        
+
         $this->lastInsertUserId = \App::getPDO()->lastInsertId();
         return true;
     }

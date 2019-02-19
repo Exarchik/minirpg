@@ -17,7 +17,7 @@ class RefferalHash
 
         $validator = new \Validator();
         // хэш должен содержать только латиницу и цифры
-        $hash = $validator->validate($hash, 'alphanum') ? $hash : false;
+        $hash = $validator->validate($hash, 'alphanum') === true ? $hash : false;
 
         if (is_null($hash) || empty($hash)) {
             return __('REF_LINK_REGISTER_ONLY_BY');
@@ -35,7 +35,7 @@ class RefferalHash
     {
         $validator = new \Validator();
         // хэш должен содержать только латиницу и цифры
-        $hash = $validator->validate($hash, 'alphanum') ? $hash : false;
+        $hash = $validator->validate($hash, 'alphanum') === true ? $hash : false;
 
         if (!$hash) {
             return false;

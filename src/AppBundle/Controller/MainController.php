@@ -96,6 +96,9 @@ class MainController extends ZFIController
             if ($isRegisterRefferal) {
                 \ZFI\RefferalHash::killHash($refferalHash, $users->lastInsertUserId);
             }
+
+            $this->addFlash('notice', __('NOW_YOU_CAN_LOG_IN_WITH_YOUR_ACCOUNT'));
+            return $this->redirectToRoute('login_page');
         }
 
         $params = array('ref_link' => $refferalHash);
@@ -105,6 +108,9 @@ class MainController extends ZFIController
 
     public function jsonValidationAction($actionType, Request $request)
     {
+        if (!$request->isXmlHttpRequest()) {
+            return $this->json(false);
+        }
         $validator = new \Validator();
 
         return $this->json($validator->validateProcess(
@@ -113,8 +119,11 @@ class MainController extends ZFIController
         ));
     }
 
-    public function jsonLanguageAction($language)
+    public function jsonLanguageAction($language, Request $request)
     {
+        if (!$request->isXmlHttpRequest()) {
+            return $this->json(false);
+        }
         return $this->json(array('result' => \App::getLang()->setDefaultLang($language)));
     }
 }

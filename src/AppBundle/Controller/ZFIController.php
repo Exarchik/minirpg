@@ -34,5 +34,5 @@ class ZFIController extends Controller
         $params = array_merge($params, array('layout' => $this->params));
 
         return parent::render($template, $params);
-    }
+    }  
 }

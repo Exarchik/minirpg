@@ -34,13 +34,14 @@
                 </div>
             </div>
         </div>
+        {set $flashes = __flash()}
         <div class='container-fluid errors'>
-            {foreach $errors as $error}
+            {foreach array_merge($errors, $flashes['error']) as $error}
                 <div class="alert alert-danger" role="alert">{$error}</div>
             {/foreach}
         </div>
         <div class='container-fluid success'>
-            {foreach $messages as $message}
+            {foreach array_merge($messages, $flashes['notice']) as $message}
                 <div class="alert alert-success" role="alert">{$message}</div>
             {/foreach}
         </div>

@@ -10,6 +10,17 @@ function addFenomModifiersAndFunctions($fenom)
 
 }
 
+// пока не знаю как использовать в Феноме флеш-сообщения, буду юзать этот метод
+function __flash()
+{
+    $flashMessages = \App::getSession()['_symfony_flashes'];
+    // удаляем сообщения из сессии, непонятно почему они скапливаются
+    \App::getSession()['_symfony_flashes'] = [];
+    $flashMessages['notice'] = isset($flashMessages['notice']) ? $flashMessages['notice'] : [];
+    $flashMessages['error'] = isset($flashMessages['error']) ? $flashMessages['error'] : [];
+    return $flashMessages;
+}
+
 function getTemplateHandle(string $tplPath = MAIN_TEMPLATES)
 {
     $fenom = Fenom\Extra::factory($tplPath, "/tmp/", array('disable_cache' => true));

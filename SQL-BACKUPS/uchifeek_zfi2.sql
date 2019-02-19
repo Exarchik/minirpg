@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: uchifeek.mysql.ukraine.com.ua
--- Время создания: Фев 19 2019 г., 14:27
+-- Время создания: Фев 19 2019 г., 16:01
 -- Версия сервера: 5.7.16-10-log
 -- Версия PHP: 7.0.33
 
@@ -63,7 +63,8 @@ INSERT INTO `lang_data` (`id`, `ident`, `value`) VALUES
 (22, 'REF_LINK_NOT_AVAILABLE', '{\"en\": \"The referral link does not exist or is not available\", \"ru\": \"Реферальная ссылка не существует или недоступна\", \"ua\": \"Реферальне посилання недоступне або не існує\"}'),
 (23, 'PASSWORD_REPEAT', '{\"en\": \"Repeat password\", \"ru\": \"Повторить пароль\", \"ua\": \"Повторити пароль\"}'),
 (24, 'FORM_FIELD_NOT_IDENTICAL', '{\"en\": \"Values do not match\", \"ru\": \"Значения не совпадают\", \"ua\": \"Значення не співпадають\"}'),
-(25, 'FORM_FIELD_NOT_UNIQUE', '{\"en\": \"Value is not unique\", \"ru\": \"Значение не уникально\", \"ua\": \"Значення не унікальне\"}');
+(25, 'FORM_FIELD_NOT_UNIQUE', '{\"en\": \"Value is not unique\", \"ru\": \"Значение не уникально\", \"ua\": \"Значення не унікальне\"}'),
+(26, 'NOW_YOU_CAN_LOG_IN_WITH_YOUR_ACCOUNT', '{\"en\": \"Now You can log in with your account\", \"ru\": \"Теперь Вы можете зайти под своей учетной записью\", \"ua\": \"Тепер Ви можете зайти під своїм обліковим записом\"}');
 
 -- --------------------------------------------------------
 
@@ -168,7 +169,7 @@ ALTER TABLE `users_roles`
 -- AUTO_INCREMENT для таблицы `lang_data`
 --
 ALTER TABLE `lang_data`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT для таблицы `refferal_hash`
@@ -180,7 +181,7 @@ ALTER TABLE `refferal_hash`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT для таблицы `users_roles`
