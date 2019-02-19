@@ -14,7 +14,6 @@ jQuery(function() {
        jQuery.ajax({
             method: "POST",
             url: BASE_URL + '/json/lang/' + jQuery(this).val(),
-            data: jQuery(form).serializeArray()
         })
         .done(function(response) {
             if (response.result == true) {
