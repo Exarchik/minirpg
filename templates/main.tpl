@@ -20,7 +20,9 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{$.const.BASE_URL}">Home</a></li>
-                            <li class="breadcrumb-item"><a href="{$.const.BASE_URL}">Library</a></li>
+                            {if $user->is_superadmin}
+                            <li class="breadcrumb-item"><a href="{$.const.BASE_URL}/language/form">Lang Form</a></li>
+                            {/if}
                             <li class="breadcrumb-item active" aria-current="page">Data</li>
                         </ol>
                     </nav>

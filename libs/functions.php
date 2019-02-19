@@ -39,6 +39,7 @@ function basicDisplay($content, $template = false, $vars = array())
     $tpl = getTemplateHandle();
     
     $vars['content'] = $content;
+    $vars['user'] = \App::getUsers();
     $vars['current_language'] = \App::getConfig()->getCurrentLang();
     $vars['lang_selector'] = \App::getLang()->getLanguageList();
 
