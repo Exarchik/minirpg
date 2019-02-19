@@ -35,7 +35,7 @@ class App
         if (is_null(static::$users)) {
             static::$users = new \ZFI\Users();
         }
-        
+
         if (is_null($cryptedUserData)) {
             return static::$users;
         }

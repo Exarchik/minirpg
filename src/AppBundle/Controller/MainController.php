@@ -25,7 +25,9 @@ class MainController extends ZFIController
     {
         $users = $this->get('zfi.users');
         $session = $this->get('session');
-        $params = array();
+        $params = array(
+            'isRegisterRefferal' => \App::getConfig()->isRegisterRefferal,
+        );
 
         if (!is_null($session->get('ZFIUD'))) {
             return $this->redirectToRoute('logout_page');

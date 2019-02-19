@@ -17,6 +17,11 @@
                     <input type="checkbox" name="zfi_check" class="form-check-input" id="zfi_check">
                     <label class="form-check-label" for="zfi_check">{__('FORM_REMEMBER_ME')}</label>
                 </div>
+                {if !$isRegisterRefferal}
+                <div class="form-group">
+                    <a href="{$.const.BASE_URL}/register">{__('REGISTRATION')}</a>
+                </div>
+                {/if}
                 <button type="submit" class="btn btn-outline-primary">{__('LOG_IN')}</button>
             </form>
         </div>
