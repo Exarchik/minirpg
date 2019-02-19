@@ -11,12 +11,13 @@ class DefaultController extends ZFIController
     public function indexAction(Request $request)
     {
         #$db = $this->get('zfi.db');
-        $session = $this->get('session');
-        $user = \App::getUsers($session->get('ZFIUD'));
+        #$session = $this->get('session');
+        $session = \App::getSession();
+        $user = \App::getUsers();
         $params = array();
 
         #$result = $users->add(['login' => 'empty', 'password' => '34234234']);
-        $msg = !is_null($session->get('ZFIUD')) 
+        $msg = !is_null($session['ZFIUD']) 
             ? __('YOU_ARE_WELCOME').', '.$user->data['username'].'!'.($user->is_admin ? ' <b>(Админ)</b>':'')
             : "<a href='".BASE_URL."/login'>".__('AUTHORIZATION')."</a>";
         $this->addMessage($msg);

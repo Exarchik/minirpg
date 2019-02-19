@@ -18,6 +18,8 @@ require __DIR__.'/../config.php';
 
 require MAIN_LIBS.'/data/Error.php';
 require MAIN_LIBS.'/data/Users.php';
+require MAIN_LIBS.'/data/Session.php';
+
 require MAIN_LIBS.'/functions.php';
 require MAIN_LIBS.'/App.php';
 

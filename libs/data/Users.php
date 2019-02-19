@@ -70,10 +70,10 @@ class Users
 
     public function auth($login, $pass)
     {
-        $session = new Session();
+        $session = \App::getSession();
         $userData = \App::getPDO()->getAssoc("SELECT login, id, password FROM users WHERE login = ".\App::getPDO()->quote($login));
         if (md5($pass) === $userData[$login]['password']) {
-            $session->set('ZFIUD', base64_encode($login.":".$userData[$login]['id']));
+            $session['ZFIUD'] = base64_encode($login.":".$userData[$login]['id']);
             return true;
         }
         return false;

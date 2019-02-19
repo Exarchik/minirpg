@@ -24,12 +24,12 @@ class MainController extends ZFIController
     public function loginAction(Request $request)
     {
         $users = $this->get('zfi.users');
-        $session = $this->get('session');
+        $session = \App::getSession();
         $params = array(
             'isRegisterRefferal' => \App::getConfig()->isRegisterRefferal,
         );
 
-        if (!is_null($session->get('ZFIUD'))) {
+        if (!empty($session['ZFIUD'])) {
             return $this->redirectToRoute('logout_page');
         }
 
@@ -50,14 +50,14 @@ class MainController extends ZFIController
 
     public function logoutAction(Request $request)
     {
-        $session = $this->get('session');
+        $session = \App::getSession();
 
-        if (is_null($session->get('ZFIUD'))) {
+        if (empty($session['ZFIUD'])) {
             return $this->redirectToRoute('login_page');
         }
 
         if ($request->isMethod('post')) {
-            $session->remove('ZFIUD');
+            unset($session['ZFIUD']);
             return $this->redirectToRoute('default_page');
         }
         return $this->render('users/logout.tpl');
@@ -67,6 +67,9 @@ class MainController extends ZFIController
     {
         $refferalHash = false;
         $errors = array();
+
+        $session = \App::getSession();
+
         // в конфиге включена регистрация по реферальной ссылке?
         if (\App::getConfig()->isRegisterRefferal) {
             $refferalHash = $request->query->get('ref', null);
