@@ -13,6 +13,8 @@ class Users
     public $is_admin = false;
     public $is_superadmin = false;
 
+    public $lastInsertUserId = null;
+
     public function getData(int $id)
     {
         $sql = "SELECT u.login, u.username, u.is_active, u.role_id, ur.code
@@ -64,7 +66,9 @@ class Users
         $fields = array_keys($data);
         $sql = "INSERT INTO `users` (".join(', ', $fields).")
                 VALUES (".join(', ', \App::getPDO()->quoteAll($data)).")";
-        print_r([$sql]);
+        \App::getPDO()->query($sql);
+        
+        $this->lastInsertUserId = \App::getPDO()->lastInsertId();
         return true;
     }
 

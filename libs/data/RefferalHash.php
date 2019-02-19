@@ -30,8 +30,26 @@ class RefferalHash
         return $errors;
     }
 
-    public static function killHash($hash)
+    // "убиваем" реферальный хэш и указываем ИД юзера который им воспользовался
+    public static function killHash($hash, $userId = null)
     {
-        
+        $validator = new \Validator();
+        // хэш должен содержать только латиницу и цифры
+        $hash = $validator->validate($hash, 'alphanum') ? $hash : false;
+
+        if (!$hash) {
+            return false;
+        }
+
+        // пречем хеш
+        $sqlValues = array("is_active = 0");
+        // и указываем ИД юзера, если есть
+        if (!is_null($userId)) {
+            $sqlValues[] = "id_user = {$userId}";
+        }
+
+        $sql = "UPDATE `refferal_hash` SET ".join(', ', $sqlValues)." WHERE hash = ".\App::getPDO()->quote($hash);
+        \App::getPDO()->query($sql);
+        return true;
     }
 }

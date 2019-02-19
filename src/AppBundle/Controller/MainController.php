@@ -69,9 +69,10 @@ class MainController extends ZFIController
         $errors = array();
 
         $session = \App::getSession();
+        $isRegisterRefferal = \App::getConfig()->isRegisterRefferal;
 
         // в конфиге включена регистрация по реферальной ссылке?
-        if (\App::getConfig()->isRegisterRefferal) {
+        if ($isRegisterRefferal) {
             $refferalHash = $request->query->get('ref', null);
             $refferalHash = !is_null($refferalHash) ? $refferalHash : $request->request->get('ref_link', null);
 
@@ -91,7 +92,10 @@ class MainController extends ZFIController
                 'password' => md5($request->request->get('zfi_password')),
                 'username' => $request->request->get('zfi_fio')
             ));
-
+            // в конфиге включена регистрация по реферальной ссылке? "убиваем" ссылку
+            if ($isRegisterRefferal) {
+                \ZFI\RefferalHash::killHash($refferalHash, $users->lastInsertUserId);
+            }
         }
 
         $params = array('ref_link' => $refferalHash);
