@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: uchifeek.mysql.ukraine.com.ua
--- Время создания: Фев 19 2019 г., 16:01
+-- Время создания: Фев 19 2019 г., 17:59
 -- Версия сервера: 5.7.16-10-log
 -- Версия PHP: 7.0.33
 
@@ -64,7 +64,14 @@ INSERT INTO `lang_data` (`id`, `ident`, `value`) VALUES
 (23, 'PASSWORD_REPEAT', '{\"en\": \"Repeat password\", \"ru\": \"Повторить пароль\", \"ua\": \"Повторити пароль\"}'),
 (24, 'FORM_FIELD_NOT_IDENTICAL', '{\"en\": \"Values do not match\", \"ru\": \"Значения не совпадают\", \"ua\": \"Значення не співпадають\"}'),
 (25, 'FORM_FIELD_NOT_UNIQUE', '{\"en\": \"Value is not unique\", \"ru\": \"Значение не уникально\", \"ua\": \"Значення не унікальне\"}'),
-(26, 'NOW_YOU_CAN_LOG_IN_WITH_YOUR_ACCOUNT', '{\"en\": \"Now You can log in with your account\", \"ru\": \"Теперь Вы можете зайти под своей учетной записью\", \"ua\": \"Тепер Ви можете зайти під своїм обліковим записом\"}');
+(26, 'NOW_YOU_CAN_LOG_IN_WITH_YOUR_ACCOUNT', '{\"en\": \"Now You can log in with your account\", \"ru\": \"Теперь Вы можете зайти под своей учетной записью\", \"ua\": \"Тепер Ви можете зайти під своїм обліковим записом\"}'),
+(28, 'ADD_TERM_TO_DICTIONARY', '{\"en\": \"Add term to dictionary\", \"ru\": \"Добавить термин в словарь\", \"ua\": \"Додати термін у словник\"}'),
+(29, 'IDENT', '{\"en\": \"Ident\", \"ru\": \"Идентификатор\", \"ua\": \"Ідентифікатор\"}'),
+(30, 'LANGUAGE_IDENT_SUCCESSFULLY_INSERTED', '{\"en\": \"Ident has been successfully added\", \"ru\": \"Идентификатор был успешно добавлен\", \"ua\": \"Ідентифікатор було успішно додано\"}'),
+(31, 'FORM_IDENT_TYPE_VALIDATION_TEXT', '{\"en\": \"The field can contain only Latin letters, spaces, numbers, hyphens and underscores\", \"ru\": \"Поле может содержать только латиницу, пробелы, цифры, дефис и нижнее подчеркивание\", \"ua\": \"Поле може містити тільки латиницю, пробіл, цифри, дефіс та нижнє підкреслювання\"}'),
+(32, 'FORM_IDENT_TYPE_VALIDATION_TEXT', '{\"en\": \"The field can contain only Latin letters, spaces, numbers, hyphens and underscores\", \"ru\": \"Поле может содержать только латиницу, пробелы, цифры, дефис и нижнее подчеркивание\", \"ua\": \"Поле може містити тільки латиницю, пробіл, цифри, дефіс та нижнє підкреслювання\"}'),
+(33, 'LANGUAGE_FORM_IDENT_HELPER', '{\"en\": \"All characters will be changed to uppercase, spaces to underscore\", \"ru\": \"Все символы будут изменены на uppercase, пробелы на нижнее подчеркивание\", \"ua\": \"Всі символи будуть змінені на uppercase, пробіли на нижнє підкреслення\"}'),
+(34, 'LANGUAGE', '{\"en\": \"Language\", \"ru\": \"Язык\", \"ua\": \"Мова\"}');
 
 -- --------------------------------------------------------
 
@@ -169,7 +176,7 @@ ALTER TABLE `users_roles`
 -- AUTO_INCREMENT для таблицы `lang_data`
 --
 ALTER TABLE `lang_data`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT для таблицы `refferal_hash`
