@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: uchifeek.mysql.ukraine.com.ua
--- Время создания: Фев 18 2019 г., 16:36
+-- Время создания: Фев 19 2019 г., 14:27
 -- Версия сервера: 5.7.16-10-log
 -- Версия PHP: 7.0.33
 
@@ -85,7 +85,7 @@ CREATE TABLE `refferal_hash` (
 --
 
 INSERT INTO `refferal_hash` (`id`, `hash`, `type`, `options`, `id_user`, `is_active`) VALUES
-(1, '24d4594d40c0ce3d8a7ec7e6a333f739', 'register', NULL, NULL, 1);
+(1, '24d4594d40c0ce3d8a7ec7e6a333f739', 'register', NULL, 0, 1);
 
 -- --------------------------------------------------------
 
@@ -180,7 +180,7 @@ ALTER TABLE `refferal_hash`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT для таблицы `users_roles`
