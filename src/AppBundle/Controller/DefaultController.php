@@ -12,6 +12,7 @@ class DefaultController extends ZFIController
     {
         #$db = $this->get('zfi.db');
         #$session = $this->get('session');
+
         $session = \App::getSession();
         $user = \App::getUsers();
         $params = array();

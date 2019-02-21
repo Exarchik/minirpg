@@ -4,6 +4,7 @@
         <title>{$title}</title>
         <script>
             var BASE_URL = '{$.const.BASE_URL}';
+            {$invalid_feedback}
         </script>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
         <link rel="stylesheet" href="{$.const.BASE_PATH}/templates/css/bootstrap/{$.const.BOOTSTRAP_VERSION}/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -50,5 +51,6 @@
         <div class="container-fluid">
             {$content}
         </div>
+        <script src="{$.const.BASE_PATH}/templates/js/if.js"></script>
     </body>
 </html>

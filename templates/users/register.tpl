@@ -6,22 +6,22 @@
                 <div class="form-group">
                     <label for="zfi_login">{__('LOGIN')}</label>
                     <input required type="login" name="zfi_login" class="form-control" id="zfi_login" placeholder="{__('LOGIN')}">
-                    <div class="invalid-feedback"></div>
+                    <div class="invalid-feedback" id="if-zfi_login"></div>
                 </div>
                 <div class="form-group">
                     <label for="zfi_password">{__('PASSWORD')}</label>
                     <input required type="password" name="zfi_password" class="form-control" id="zfi_password" placeholder="{__('PASSWORD')}">
-                    <div class="invalid-feedback"></div>
+                    <div class="invalid-feedback" id="if-zfi_password"></div>
                 </div>
                 <div class="form-group">
                     <label for="zfi_password_repeat">{__('PASSWORD_REPEAT')}</label>
                     <input required type="password" name="zfi_password_repeat" class="form-control" id="zfi_password_repeat" placeholder="{__('PASSWORD_REPEAT')}">
-                    <div class="invalid-feedback"></div>
+                    <div class="invalid-feedback" id="if-zfi_password_repeat"></div>
                 </div>
                 <div class="form-group">
                     <label for="zfi_fio">{__('YOUR_NAME')}</label>
                     <input required type="name" name="zfi_fio" class="form-control" id="zfi_fio" placeholder="{__('YOUR_NAME')}">
-                    <div class="invalid-feedback"></div>
+                    <div class="invalid-feedback" id="if-zfi_fio"></div>
                 </div>
                 {if $ref_link}
                 <input type="hidden" id="ref_link" name="ref_link" value="{$ref_link}" />
@@ -34,31 +34,8 @@
 {ignore}
 <script>
     var form = document.querySelector('.needs-validation');
-    var jsonUrl = "{/ignore}{$.const.BASE_URL}{ignore}/json/valid/register";
+    var jsonUrl = "{/ignore}{$.const.BASE_URL}{ignore}/register";
 
-    form.addEventListener('submit', function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        jQuery.ajax({
-            method: "POST",
-            url: jsonUrl,
-            data: jQuery(form).serializeArray()
-        })
-        .done(function(result) {
-            var resultSuccess = true;
-            for (var key in result) {
-                if (result[key] != true) {
-                    resultSuccess = false;
-                    setInvalid('#'+key);
-                    jQuery('#'+key).parent().find('.invalid-feedback').html(result[key][0]);
-                } else {
-                    setValid('#'+key);
-                }
-            }
-            if (resultSuccess) {
-                jQuery(form).submit();
-            }
-        });
-    })
+    formAjaxValidatione(form, jsonUrl);
 </script>
 {/ignore}

@@ -9,24 +9,29 @@ use Symfony\Component\Routing\Annotation\Route;
 class MainController extends ZFIController
 {
     public $validationData = array(
-        'login' => array(
+        'app.main.login' => array(
             'zfi_login' => ['required', 'login', 'min' => 5, 'max' => 20],
             'zfi_password' => ['required', 'login', 'min' => 8, 'max' => 20],
         ),
-        'register' => array(
+        'app.main.register' => array(
             'zfi_fio' => ['required', 'fio', 'max' => 100],
             'zfi_login' => ['required', 'login', 'min' => 5, 'max' => 20, 'unique' => array('users.login', 'THIS_LOGIN_IS_ALREADY_RESERVED')],
             'zfi_password' => ['required', 'login', 'min' => 8, 'max' => 20],
             'zfi_password_repeat' => ['required', 'identical' => 'zfi_password'],
         ),
-        // lang_% в самом languageFormAction
-        'languageForm' => array(
+        // lang_% в addSpecificValidData
+        'app.main.languageform' => array(
             'zfi_ident' => ['required', 'ident', 'unique' => 'lang_data.ident'],
         )
     );
 
     public function loginAction(Request $request)
     {
+        $valiData = $this->validate($request);
+        if ($this->isJsonResponse($valiData)) {
+            return $valiData;
+        }
+
         $users = $this->get('zfi.users');
         $session = \App::getSession();
         $params = array(
@@ -37,13 +42,13 @@ class MainController extends ZFIController
             return $this->redirectToRoute('logout_page');
         }
 
-        if ($request->isMethod('post')) {
+        if ($request->isMethod('post') && $valiData === true) {
             $users = $this->get('zfi.users');
             $login = $request->get('zfi_login', null);
             $pass = $request->get('zfi_password', null);
 
             if (!$users->auth($login, $pass)) {
-                $this->addError(__('FORM_ERROR_ACCOUNT_DOES_NOT_EXIST').'!');
+                $this->addInvalidFeedback(array('zfi_login' => __('FORM_ERROR_ACCOUNT_DOES_NOT_EXIST').'!'));
             } else {
                 return $this->redirectToRoute('default_page');
             }
@@ -75,6 +80,11 @@ class MainController extends ZFIController
         $session = \App::getSession();
         $isRegisterRefferal = \App::getConfig()->isRegisterRefferal;
 
+        $valiData = $this->validate($request);
+        if ($this->isJsonResponse($valiData)) {
+            return $valiData;
+        }
+
         // в конфиге включена регистрация по реферальной ссылке?
         if ($isRegisterRefferal) {
             $refferalHash = $request->query->get('ref', null);
@@ -88,7 +98,7 @@ class MainController extends ZFIController
             }
         }
 
-        if ($request->isMethod('post')) {
+        if ($request->isMethod('post') && $valiData === true) {
             $users = $this->get('zfi.users');
 
             $users->add(array(
@@ -115,13 +125,19 @@ class MainController extends ZFIController
         if (!\App::getUsers()->is_superadmin) {
             return $this->json(false);
         }
+
+        $valiData = $this->validate($request);
+        if ($this->isJsonResponse($valiData)) {
+            return $valiData;
+        }
+
         $langList = \App::getLang()->getLanguageList();
 
         $params = array(
            'language_idents' => $langList,
         );
 
-        if ($request->isMethod('post')) {
+        if ($request->isMethod('post') && $valiData === true) {
             $validator = new \Validator();
             $realIdent = textToIdent($request->get('zfi_ident'));
 
@@ -165,6 +181,7 @@ class MainController extends ZFIController
         ));
     }
 
+    // переключение языков
     public function jsonLanguageAction($language, Request $request)
     {
         if (!$request->isXmlHttpRequest()) {
@@ -173,13 +190,13 @@ class MainController extends ZFIController
         return $this->json(array('result' => \App::getLang()->setDefaultLang($language)));
     }
 
-    protected function addSpecificValidData($type)
+    protected function addSpecificValidData($formAlias)
     {
-        switch ($type) {
-            case 'languageForm':
+        switch ($formAlias) {
+            case 'app.main.languageform':
                 $langIdents = \App::getLang()->getLanguageListIdents();
                 foreach($langIdents as $ident) {
-                    $this->validationData[$type]['term_'.$ident] = ['required', 'text', 'max' => 250];
+                    $this->validationData[$formAlias]['term_'.$ident] = ['required', 'text', 'max' => 250];
                 }
             break;
             default:

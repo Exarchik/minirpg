@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: uchifeek.mysql.ukraine.com.ua
--- Время создания: Фев 19 2019 г., 17:59
+-- Время создания: Фев 21 2019 г., 23:27
 -- Версия сервера: 5.7.16-10-log
 -- Версия PHP: 7.0.33
 
@@ -69,7 +69,6 @@ INSERT INTO `lang_data` (`id`, `ident`, `value`) VALUES
 (29, 'IDENT', '{\"en\": \"Ident\", \"ru\": \"Идентификатор\", \"ua\": \"Ідентифікатор\"}'),
 (30, 'LANGUAGE_IDENT_SUCCESSFULLY_INSERTED', '{\"en\": \"Ident has been successfully added\", \"ru\": \"Идентификатор был успешно добавлен\", \"ua\": \"Ідентифікатор було успішно додано\"}'),
 (31, 'FORM_IDENT_TYPE_VALIDATION_TEXT', '{\"en\": \"The field can contain only Latin letters, spaces, numbers, hyphens and underscores\", \"ru\": \"Поле может содержать только латиницу, пробелы, цифры, дефис и нижнее подчеркивание\", \"ua\": \"Поле може містити тільки латиницю, пробіл, цифри, дефіс та нижнє підкреслювання\"}'),
-(32, 'FORM_IDENT_TYPE_VALIDATION_TEXT', '{\"en\": \"The field can contain only Latin letters, spaces, numbers, hyphens and underscores\", \"ru\": \"Поле может содержать только латиницу, пробелы, цифры, дефис и нижнее подчеркивание\", \"ua\": \"Поле може містити тільки латиницю, пробіл, цифри, дефіс та нижнє підкреслювання\"}'),
 (33, 'LANGUAGE_FORM_IDENT_HELPER', '{\"en\": \"All characters will be changed to uppercase, spaces to underscore\", \"ru\": \"Все символы будут изменены на uppercase, пробелы на нижнее подчеркивание\", \"ua\": \"Всі символи будуть змінені на uppercase, пробіли на нижнє підкреслення\"}'),
 (34, 'LANGUAGE', '{\"en\": \"Language\", \"ru\": \"Язык\", \"ua\": \"Мова\"}');
 
@@ -93,7 +92,7 @@ CREATE TABLE `refferal_hash` (
 --
 
 INSERT INTO `refferal_hash` (`id`, `hash`, `type`, `options`, `id_user`, `is_active`) VALUES
-(1, '24d4594d40c0ce3d8a7ec7e6a333f739', 'register', NULL, 0, 1);
+(1, '24d4594d40c0ce3d8a7ec7e6a333f739', 'register', NULL, 26, 1);
 
 -- --------------------------------------------------------
 
@@ -148,7 +147,8 @@ INSERT INTO `users_roles` (`id`, `name`, `code`) VALUES
 -- Индексы таблицы `lang_data`
 --
 ALTER TABLE `lang_data`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `ident` (`ident`);
 
 --
 -- Индексы таблицы `refferal_hash`
@@ -176,7 +176,7 @@ ALTER TABLE `users_roles`
 -- AUTO_INCREMENT для таблицы `lang_data`
 --
 ALTER TABLE `lang_data`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT для таблицы `refferal_hash`
@@ -188,7 +188,7 @@ ALTER TABLE `refferal_hash`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT для таблицы `users_roles`
