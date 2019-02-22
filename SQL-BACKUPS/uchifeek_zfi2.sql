@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: uchifeek.mysql.ukraine.com.ua
--- Время создания: Фев 21 2019 г., 23:27
+-- Время создания: Фев 22 2019 г., 23:29
 -- Версия сервера: 5.7.16-10-log
 -- Версия PHP: 7.0.33
 
@@ -70,7 +70,11 @@ INSERT INTO `lang_data` (`id`, `ident`, `value`) VALUES
 (30, 'LANGUAGE_IDENT_SUCCESSFULLY_INSERTED', '{\"en\": \"Ident has been successfully added\", \"ru\": \"Идентификатор был успешно добавлен\", \"ua\": \"Ідентифікатор було успішно додано\"}'),
 (31, 'FORM_IDENT_TYPE_VALIDATION_TEXT', '{\"en\": \"The field can contain only Latin letters, spaces, numbers, hyphens and underscores\", \"ru\": \"Поле может содержать только латиницу, пробелы, цифры, дефис и нижнее подчеркивание\", \"ua\": \"Поле може містити тільки латиницю, пробіл, цифри, дефіс та нижнє підкреслювання\"}'),
 (33, 'LANGUAGE_FORM_IDENT_HELPER', '{\"en\": \"All characters will be changed to uppercase, spaces to underscore\", \"ru\": \"Все символы будут изменены на uppercase, пробелы на нижнее подчеркивание\", \"ua\": \"Всі символи будуть змінені на uppercase, пробіли на нижнє підкреслення\"}'),
-(34, 'LANGUAGE', '{\"en\": \"Language\", \"ru\": \"Язык\", \"ua\": \"Мова\"}');
+(34, 'LANGUAGE', '{\"en\": \"Language\", \"ru\": \"Язык\", \"ua\": \"Мова\"}'),
+(41, 'ZFI', '{\"en\": \"ZFI\", \"ru\": \"ЗФИ\", \"ua\": \"ЗФІ\"}'),
+(42, 'ADMIN_MENU', '{\"en\": \"Admin Menu\", \"ru\": \"Меню Админа\", \"ua\": \"Меню Адміна\"}'),
+(43, 'LANG_FORM', '{\"en\": \"Language Form\", \"ru\": \"Языковая Форма\", \"ua\": \"Мовна Форма\"}'),
+(44, 'PROFILE', '{\"en\": \"Profile\", \"ru\": \"Профиль\", \"ua\": \"Профіль\"}');
 
 -- --------------------------------------------------------
 
@@ -176,7 +180,7 @@ ALTER TABLE `users_roles`
 -- AUTO_INCREMENT для таблицы `lang_data`
 --
 ALTER TABLE `lang_data`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT для таблицы `refferal_hash`

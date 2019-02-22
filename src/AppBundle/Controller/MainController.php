@@ -184,7 +184,7 @@ class MainController extends ZFIController
     // переключение языков
     public function jsonLanguageAction($language, Request $request)
     {
-        if (!$request->isXmlHttpRequest()) {
+        if (!$request->isXmlHttpRequest() || strlen($language) != 2) {
             return $this->json(false);
         }
         return $this->json(array('result' => \App::getLang()->setDefaultLang($language)));
