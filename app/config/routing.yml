@@ -23,3 +23,7 @@ json_language:
     defaults:  { _controller: AppBundle:Main:jsonLanguage}
     requirements:
         language: '\w+'
+        
+user_profile:
+    path:       /profile
+    defaults:  { _controller: AppBundle:User:profile}

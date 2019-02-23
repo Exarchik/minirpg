@@ -10,7 +10,12 @@ class Users
 
     public $data;
 
+    // неавторизированный пользователь
+    public $is_guest = true;
+
+    // админ
     public $is_admin = false;
+    // супермадин 
     public $is_superadmin = false;
 
     public $lastInsertUserId = null;
@@ -24,6 +29,7 @@ class Users
         $this->data = \App::getPDO()->getRow($sql);
         if (!empty($this->data)) {
             $this->id = $id;
+            $this->is_guest = false;
             $this->is_admin = in_array($this->data['code'], ['ZFI_ADMIN', 'ZFI_SUPERADMIN']) ? true : false;
             $this->is_superadmin = in_array($this->data['code'], ['ZFI_SUPERADMIN']) ? true : false;
         }
