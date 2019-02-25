@@ -1,16 +1,40 @@
 <?php
 
+function parseDsn($dsn)
+{   
+    $parsedDsn = parse_url($dsn);
+    $parsedDsn['database'] = str_replace('/', '', $parsedDsn['path']);
+    unset($parsedDsn['path']);
+    
+    return $parsedDsn;
+}
+
 class ZFIConfig
 {
-    private $dbHost      = 'uchifeek.mysql.tools';
-    private $dbName      = 'uchifeek_zfi2';
-    private $dbLogin     = 'uchifeek_zfi2';
-    private $dbPassword  = 'o5K9LzFhGi60';
+    private $dbHost;
+    private $dbName;
+    private $dbLogin;
+    private $dbPassword;
+
+    private $dsn = null;
 
     private $langDefault = 'ru'; // en, ua
 
     // авторизация доступна только по реферальным ссылкам
     public $isRegisterRefferal = true;
+
+    public function __construct($dsn = null)
+    {
+        $this->dsn = !is_null($dsn) ? $dsn : DSN;
+        $dbConfigData = parseDsn($this->dsn);
+        
+        if (is_array($dbConfigData) && !empty($dbConfigData)) {
+            $this->dbHost = $dbConfigData['host'];
+            $this->dbName = $dbConfigData['database'];
+            $this->dbLogin = $dbConfigData['user'];
+            $this->dbPassword = $dbConfigData['pass'];
+        }
+    }
 
     public function getDBData()
     {
@@ -32,4 +56,4 @@ class ZFIConfig
     }
 }
 
-$config = new ZFIConfig();
+$config = new ZFIConfig(DSN);
