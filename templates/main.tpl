@@ -54,7 +54,7 @@
                                     </a>
                                     <div class="dropdown-menu" aria-labelledby="profileMenu">
                                         <a class="dropdown-item" href="{$.const.BASE_URL}/profile">{__('PROFILE')}</a>
-                                        <a class="dropdown-item" href="{$.const.BASE_URL}/logout">{__('LOG_OUT')}</a>
+                                        <a class="dropdown-item" href="{$.const.BASE_URL}/logout/quick">{__('LOG_OUT')}</a>
                                     </div>
                                 </li>
                                 {/if}

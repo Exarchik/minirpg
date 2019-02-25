@@ -57,7 +57,7 @@ class MainController extends ZFIController
         return $this->render('users/login.tpl', $params);
     }
 
-    public function logoutAction(Request $request)
+    public function logoutAction($type, Request $request)
     {
         $session = \App::getSession();
 
@@ -65,7 +65,7 @@ class MainController extends ZFIController
             return $this->redirectToRoute('login_page');
         }
 
-        if ($request->isMethod('post')) {
+        if ($request->isMethod('post') || $type == 'quick') {
             unset($session['ZFIUD']);
             return $this->redirectToRoute('default_page');
         }

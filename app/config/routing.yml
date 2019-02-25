@@ -5,8 +5,10 @@ login_page:
     path:      /login
     defaults:  { _controller: AppBundle:Main:login}
 logout_page:
-    path:      /logout
-    defaults:  { _controller: AppBundle:Main:logout}
+    path:      /logout/{type}
+    defaults:  { _controller: AppBundle:Main:logout, type: simple}
+    requirements:
+        type: 'simple|quick'
 register_page:
     path:      /register
     defaults:  { _controller: AppBundle:Main:register}
