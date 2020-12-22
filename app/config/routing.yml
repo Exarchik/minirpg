@@ -1,6 +1,12 @@
 default_page:
     path:      /
     defaults:  { _controller: AppBundle:Default:index}
+hotline_parcer_page:
+    path:      /hotline_parcer
+    defaults:  { _controller: AppBundle:Default:hotlineParcer}
+hotline_viewer_page:
+    path:      /hotline_viewer
+    defaults:  { _controller: AppBundle:Default:hotlineViewer}
 login_page:
     path:      /login
     defaults:  { _controller: AppBundle:Main:login}
