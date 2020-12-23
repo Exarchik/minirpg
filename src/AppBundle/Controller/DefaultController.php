@@ -48,26 +48,46 @@ class DefaultController extends ZFIController
             return $this->json(false);
         }
 
+        // кол-во выводимых позиций
+        $numberOfData = 15; //100
+        // пропускать нули?
+        $skipZeros = true;
+
         // используем только N самых дешевых товаров
+        $lowPriceIds = [];
         $sql = "SELECT DISTINCT product_id
                 FROM `_hotline_parcer_data`
                 WHERE {$priceField} != 0
                 ORDER BY {$priceField} ASC, date DESC
-                LIMIT 10";
+                LIMIT {$numberOfData}";
         $lowPriceIds = $db->getCol($sql);
+
+        $sqlWhere = [
+            !empty($lowPriceIds) ? "hp.id IN (".join(',', $lowPriceIds).")" : "1",
+        ];
 
         $sql = "SELECT hp.id AS prodId, hd.date, hd.{$priceField} AS price
                 FROM `_hotline_parcer_data` AS hd
                     JOIN `_hotline_parcer_products` AS hp ON hp.id = hd.product_id
-                WHERE hp.id IN (".join(',', $lowPriceIds).")
+                WHERE ".join(" AND ", $sqlWhere)."
                 ORDER BY hp.id ASC, hd.date ASC";
         $minPricesData = $db->getAll($sql);
 
-        $sql = "SELECT DISTINCT hp.id AS prodId, CONCAT(hp.id, ') ', hp.name) AS name
+        /*$sql = "SELECT hp.id AS prodId, CONCAT(hp.id, ') ', COALESCE(hp.alias, hp.name)) AS name
                 FROM `_hotline_parcer_data` AS hd
                 JOIN `_hotline_parcer_products` AS hp ON hp.id = hd.product_id
-                WHERE hp.id IN (".join(',', $lowPriceIds).")
-                ORDER BY hp.id;";
+                WHERE ".join(" AND ", $sqlWhere)."
+                GROUP BY hp.id
+                ORDER BY hp.id";*/
+        $sql = "SELECT hp.id AS prodId, CONCAT(hp.id, ') ', COALESCE(hp.alias, hp.name), ' [', last_prices.price, ']') AS name
+                FROM `_hotline_parcer_data` AS hd
+                    LEFT JOIN (SELECT product_id, {$priceField} AS price
+                                FROM `_hotline_parcer_data`
+                                WHERE date = (SELECT MAX(date) FROM `_hotline_parcer_data`)) AS last_prices ON hd.product_id = last_prices.product_id
+                    JOIN `_hotline_parcer_products` AS hp ON hp.id = hd.product_id
+                WHERE ".join(" AND ", $sqlWhere)."
+                GROUP BY hp.id
+                ORDER BY hp.id";
         $prodNames = $db->getAssoc($sql);
 
         $minPricesChartData = [];
@@ -75,7 +95,9 @@ class DefaultController extends ZFIController
         foreach ($prodNames as $prodId => $name) {
             foreach ($minPricesData as $position) {
                 if (!isset($minPricesChartData[$position['date']][-1])) {
-                    $minPricesChartData[$position['date']][-1] = "new Date(".date("Y, m, d, H, i, s", strtotime($position['date'])).")";
+                    // фиксим js идиотизм - месяц 0..11 :(
+                    $jsMonth = intval(date("m", strtotime($position['date']))) - 1;
+                    $minPricesChartData[$position['date']][-1] = "new Date(".date("Y, {$jsMonth}, d, H, i, s", strtotime($position['date'])).")";
                 }
                 if ($position['price'] == 0) {
                     $prodIdHasZeroData[] = $position['prodId'];
@@ -85,11 +107,12 @@ class DefaultController extends ZFIController
         }
 
         // удаляем записи с "0"
-        
-        foreach (array_unique($prodIdHasZeroData) as $deleteProdId) {
-            unset($prodNames[$deleteProdId]);
-            foreach ($minPricesChartData as $date => $row) {
-                unset($minPricesChartData[$date][$deleteProdId]);
+        if ($skipZeros) {
+            foreach (array_unique($prodIdHasZeroData) as $deleteProdId) {
+                unset($prodNames[$deleteProdId]);
+                foreach ($minPricesChartData as $date => $row) {
+                    unset($minPricesChartData[$date][$deleteProdId]);
+                }
             }
         }
         
@@ -106,9 +129,10 @@ class DefaultController extends ZFIController
         }
 
         $params = [
-            'chartCaption' => $allowedPrices[$priceIdent]['caption'],
+            'type' => $priceIdent,
             'prodNames' => $prodNames,
             'minChartInfo' => $minPricesChartData,
+            'chartCaption' => $allowedPrices[$priceIdent]['caption'],
         ];
         return $this->render('tools/hotline-viewer.tpl', $params);
     }

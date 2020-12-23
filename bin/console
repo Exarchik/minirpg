@@ -11,14 +11,17 @@ use Symfony\Component\Debug\Debug;
 //umask(0000);
 
 set_time_limit(0);
+date_default_timezone_set('Europe/Kiev');
 
 require __DIR__.'/../vendor/autoload.php';
 require __DIR__.'/../const.php';
+require __DIR__.'/../db_config.php';
 require __DIR__.'/../config.php';
 
 require MAIN_LIBS.'/data/Error.php';
 require MAIN_LIBS.'/data/Users.php';
 require MAIN_LIBS.'/data/Session.php';
+require MAIN_LIBS.'/data/ExusParcer.php';
 
 require MAIN_LIBS.'/functions.php';
 require MAIN_LIBS.'/App.php';

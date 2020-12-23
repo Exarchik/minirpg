@@ -5,6 +5,7 @@ namespace AppBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
 
 // специальный файл контроллер - прокладка
 class ZFIController extends Controller
@@ -37,13 +38,13 @@ class ZFIController extends Controller
     }
 
     // измененный рендер
-    public function render($template, $params = array())
+    public function render($template, array $params = array(), Response $response = null)
     {
         $invalidFeedback = empty($this->params['invalid_feedback']) ? "false" : json_encode($this->params['invalid_feedback']);
         $this->params['invalid_feedback'] = "var invalidFeedback = {$invalidFeedback};";
         $params = array_merge($params, array('layout' => $this->params));
 
-        return parent::render($template, $params);
+        return parent::render($template, $params, $response);
     }
 
     protected function addSpecificValidData($formAlias)
