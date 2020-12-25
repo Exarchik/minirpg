@@ -29,13 +29,16 @@ class ExusParcer
                     $aClassName = $aElement->getAttribute('class');
                     $aUrl = $aElement->getAttribute('href');
 
-                    if (mb_strpos($dataTrackingId, 'catalog-') !== false && mb_strpos($aUrl, 'discussion') === false && empty($aClassName)) {
-                        $parsedData[$index] = [
-                            'name' => trim($aElement->nodeValue),
-                            'midPrice' => '0',
-                            'minPrice' => '0',
-                            'maxPrice' => '0',
-                        ];
+                    if (mb_strpos($dataTrackingId, 'catalog-') !== false
+                        && mb_strpos($aUrl, 'discussion') === false
+                        && mb_strpos($aUrl, '#sales') === false
+                        && empty($aClassName)) {
+                            $parsedData[$index] = [
+                                'name' => trim($aElement->nodeValue),
+                                'midPrice' => '0',
+                                'minPrice' => '0',
+                                'maxPrice' => '0',
+                            ];
                     }
                 }
 

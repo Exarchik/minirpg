@@ -49,16 +49,19 @@ class DefaultController extends ZFIController
         }
 
         // кол-во выводимых позиций
-        $numberOfData = 15; //100
+        $numberOfData = 15;//500;
         // пропускать нули?
-        $skipZeros = true;
+        $skipZeros = false;//true;
 
-        // используем только N самых дешевых товаров
+        // тянем все даты какие вообще возможны
+        $allDates = $db->getCol("SELECT DISTINCT date FROM _hotline_parcer_data ORDER BY date ASC");
+
+        // используем только N самых дешевых товаров по последней дате
         $lowPriceIds = [];
         $sql = "SELECT DISTINCT product_id
                 FROM `_hotline_parcer_data`
-                WHERE {$priceField} != 0
-                ORDER BY {$priceField} ASC, date DESC
+                WHERE {$priceField} != 0 AND date = (SELECT MAX(date) FROM `_hotline_parcer_data`)
+                ORDER BY {$priceField} ASC
                 LIMIT {$numberOfData}";
         $lowPriceIds = $db->getCol($sql);
 
@@ -73,12 +76,6 @@ class DefaultController extends ZFIController
                 ORDER BY hp.id ASC, hd.date ASC";
         $minPricesData = $db->getAll($sql);
 
-        /*$sql = "SELECT hp.id AS prodId, CONCAT(hp.id, ') ', COALESCE(hp.alias, hp.name)) AS name
-                FROM `_hotline_parcer_data` AS hd
-                JOIN `_hotline_parcer_products` AS hp ON hp.id = hd.product_id
-                WHERE ".join(" AND ", $sqlWhere)."
-                GROUP BY hp.id
-                ORDER BY hp.id";*/
         $sql = "SELECT hp.id AS prodId, CONCAT(hp.id, ') ', COALESCE(hp.alias, hp.name), ' [', last_prices.price, ']') AS name
                 FROM `_hotline_parcer_data` AS hd
                     LEFT JOIN (SELECT product_id, {$priceField} AS price
@@ -90,8 +87,27 @@ class DefaultController extends ZFIController
                 ORDER BY hp.id";
         $prodNames = $db->getAssoc($sql);
 
+        $pricesChartData = [];
         $minPricesChartData = [];
         $prodIdHasZeroData = [];
+        foreach ($allDates as $date) {
+            if (!isset($pricesChartData[$date][-1])) {
+                // фиксим js идиотизм - месяц 0..11 :(
+                $jsMonth = intval(date("m", strtotime($date))) - 1;
+                $pricesChartData[$date][-1] = "new Date(".date("Y, {$jsMonth}, d, H, i, s", strtotime($date)).")";
+            }
+            foreach ($prodNames as $prodId => $name) {
+                foreach ($minPricesData as $position) {
+                    if ($position['date'] == $date && $position['prodId'] == $prodId) {
+                        $pricesChartData[$date][$prodId] = $position['price'];
+                    }
+                }
+                if (!isset($pricesChartData[$date][$prodId])) {
+                    $pricesChartData[$date][$prodId] = 0;
+                }
+            }
+        }
+
         foreach ($prodNames as $prodId => $name) {
             foreach ($minPricesData as $position) {
                 if (!isset($minPricesChartData[$position['date']][-1])) {
@@ -105,6 +121,10 @@ class DefaultController extends ZFIController
                 $minPricesChartData[$position['date']][$position['prodId']] = $position['price'];
             }
         }
+
+        /*echo '<pre>';
+        print_r($minPricesChartData);
+        echo '</pre>';*/
 
         // удаляем записи с "0"
         if ($skipZeros) {
@@ -128,10 +148,15 @@ class DefaultController extends ZFIController
             $minPricesChartData[$date] = "[".join(", ", $row)."],";
         }
 
+        foreach ($pricesChartData as $date => $row) {
+            $pricesChartData[$date] = "[".join(", ", $row)."],";
+        }
+
         $params = [
             'type' => $priceIdent,
             'prodNames' => $prodNames,
-            'minChartInfo' => $minPricesChartData,
+            //'minChartInfo' => $minPricesChartData,
+            'minChartInfo' => $pricesChartData,
             'chartCaption' => $allowedPrices[$priceIdent]['caption'],
         ];
         return $this->render('tools/hotline-viewer.tpl', $params);
@@ -152,7 +177,7 @@ class DefaultController extends ZFIController
 
         $parsedData = [];
         if ($testDomParser) {
-            $parseLink = "https://hotline.ua/sr/?q=3060+ti";
+            $parseLink = "https://hotline.ua/computer/videokarty/?q=3060+ti";
 
             $xml = new DOMDocument();
             $xml->loadHTMLFile($parseLink);

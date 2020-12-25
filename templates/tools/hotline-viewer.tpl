@@ -69,9 +69,9 @@ function drawChart() {
         {if $type == 'max'}<b>Максимальные цены</b>{else}<a href="{$.const.BASE_URL}/hotline_viewer?type=max">Максимальные цены</a>{/if}
     </div>
     <div class="row justify-content-md-center">
-        <div id="hotline-lines" style="width:1400px; height:600px"></div>
+        <div id="hotline-lines" style="width:1400px; height:720px"></div>
     </div>
     <!--<div class="row justify-content-md-center">
-        <div id="curve_chart" style="width: 1500px; height: 800px"></div>
+        <div id="curve_chart" style="width: 1500px; height: 1200px"></div>
     </div>-->
 </div>
