@@ -44,12 +44,20 @@ class DefaultController extends ZFIController
         $priceIdent = isset($allowedPrices[$priceIdent]) ? $priceIdent : 'min';
         $priceField = isset($allowedPrices[$priceIdent]) ? $allowedPrices[$priceIdent]['field'] : $allowedPrices['min']['field'];
 
+        $productId = $request->query->get('pid', 'all');
+
+        $productPricesFieldsList = [
+            1000 => 'min_price',
+            2000 => 'mid_price',
+            3000 => 'max_price',
+        ];
+
         if (!$user->is_superadmin) {
             return $this->json(false);
         }
 
         // кол-во выводимых позиций
-        $numberOfData = 15;//500;
+        $numberOfData = 17;//500;
         // пропускать нули?
         $skipZeros = false;//true;
 
@@ -58,9 +66,11 @@ class DefaultController extends ZFIController
 
         // используем только N самых дешевых товаров по последней дате
         $lowPriceIds = [];
-        $sql = "SELECT DISTINCT product_id
+        $sql = "SELECT product_id
                 FROM `_hotline_parcer_data`
-                WHERE {$priceField} != 0 AND date = (SELECT MAX(date) FROM `_hotline_parcer_data`)
+                WHERE date = (SELECT MAX(date) FROM `_hotline_parcer_data`)
+                GROUP BY product_id
+                HAVING SUM({$priceField}) != 0
                 ORDER BY {$priceField} ASC
                 LIMIT {$numberOfData}";
         $lowPriceIds = $db->getCol($sql);
@@ -69,22 +79,52 @@ class DefaultController extends ZFIController
             !empty($lowPriceIds) ? "hp.id IN (".join(',', $lowPriceIds).")" : "1",
         ];
 
-        $sql = "SELECT hp.id AS prodId, hd.date, hd.{$priceField} AS price
-                FROM `_hotline_parcer_data` AS hd
-                    JOIN `_hotline_parcer_products` AS hp ON hp.id = hd.product_id
-                WHERE ".join(" AND ", $sqlWhere)."
-                ORDER BY hp.id ASC, hd.date ASC";
+        if ($productId == 'all') {
+            $sql = "SELECT hp.id AS prodId, hd.date, hd.{$priceField} AS price
+                    FROM `_hotline_parcer_data` AS hd
+                        JOIN `_hotline_parcer_products` AS hp ON hp.id = hd.product_id
+                    WHERE ".join(" AND ", $sqlWhere)."
+                    ORDER BY hp.id ASC, hd.date ASC";
+        } else {
+            $sqlList = [];
+
+            foreach ($productPricesFieldsList as $index => $priceField) {
+                $sqlList[] = "SELECT hp.id + {$index} AS prodId, hd.date, hd.{$priceField} AS price
+                                FROM `_hotline_parcer_data` AS hd
+                                    JOIN `_hotline_parcer_products` AS hp ON hp.id = hd.product_id
+                                WHERE hp.id = {$productId}
+                                ORDER BY hp.id ASC, hd.date ASC";
+            }
+
+            $sql = "(" . join(") UNION (", $sqlList) . ")";
+        }
         $minPricesData = $db->getAll($sql);
 
-        $sql = "SELECT hp.id AS prodId, CONCAT(hp.id, ') ', COALESCE(hp.alias, hp.name), ' [', last_prices.price, ']') AS name
-                FROM `_hotline_parcer_data` AS hd
-                    LEFT JOIN (SELECT product_id, {$priceField} AS price
-                                FROM `_hotline_parcer_data`
-                                WHERE date = (SELECT MAX(date) FROM `_hotline_parcer_data`)) AS last_prices ON hd.product_id = last_prices.product_id
-                    JOIN `_hotline_parcer_products` AS hp ON hp.id = hd.product_id
-                WHERE ".join(" AND ", $sqlWhere)."
-                GROUP BY hp.id
-                ORDER BY hp.id";
+        
+        if ($productId == 'all') {
+            $sql = "SELECT hp.id AS prodId, CONCAT(hp.id, ') ', COALESCE(hp.alias, hp.name), ' [', last_prices.price, ']') AS name
+                    FROM `_hotline_parcer_data` AS hd
+                        LEFT JOIN (SELECT product_id, {$priceField} AS price
+                                    FROM `_hotline_parcer_data`
+                                    WHERE date = (SELECT MAX(date) FROM `_hotline_parcer_data`)) AS last_prices ON hd.product_id = last_prices.product_id
+                        JOIN `_hotline_parcer_products` AS hp ON hp.id = hd.product_id
+                    WHERE ".join(" AND ", $sqlWhere)."
+                    GROUP BY hp.id
+                    ORDER BY hp.id";
+        } else {
+            $sqlList = [];
+
+            foreach ($productPricesFieldsList as $index => $priceField) {
+                $sqlList[] = "SELECT hp.id + {$index}, CONCAT(hp.id, ') min - ', COALESCE(hp.alias, hp.name), ' [', last_prices.price, ']') AS name
+                                FROM `_hotline_parcer_products` AS hp
+                                    LEFT JOIN (SELECT product_id, {$priceField} AS price
+                                                FROM `_hotline_parcer_data`
+                                                WHERE date = (SELECT MAX(date) FROM `_hotline_parcer_data`)) AS last_prices ON hp.id = last_prices.product_id
+                                WHERE hp.id = {$productId}";
+            }
+
+            $sql = "(" . join(") UNION (", $sqlList) . ")";
+        }
         $prodNames = $db->getAssoc($sql);
 
         $pricesChartData = [];
@@ -102,8 +142,8 @@ class DefaultController extends ZFIController
                         $pricesChartData[$date][$prodId] = $position['price'];
                     }
                 }
-                if (!isset($pricesChartData[$date][$prodId])) {
-                    $pricesChartData[$date][$prodId] = 0;
+                if (!isset($pricesChartData[$date][$prodId]) || $pricesChartData[$date][$prodId] == 0) {
+                    $pricesChartData[$date][$prodId] = 'null';
                 }
             }
         }
@@ -121,10 +161,6 @@ class DefaultController extends ZFIController
                 $minPricesChartData[$position['date']][$position['prodId']] = $position['price'];
             }
         }
-
-        /*echo '<pre>';
-        print_r($minPricesChartData);
-        echo '</pre>';*/
 
         // удаляем записи с "0"
         if ($skipZeros) {
