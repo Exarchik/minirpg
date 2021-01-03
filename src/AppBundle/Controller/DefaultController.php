@@ -33,24 +33,61 @@ class DefaultController extends ZFIController
     {
         $db = \App::getPDO();
         $user = \App::getUsers();
+        /*
+         * Зарезервированные переменные _GET
+         * pid = ИД товара в int, 0 - если нужен весь список товаров | PRODUCT_ID
+         * type = тип поля для графика по всем товарам (min/mid/max) | PRICE_IDENT
+         * points = кол-во точек для разбития графика 0 - все точки  | AMOUNT_OF_POINTS
+         */
 
         $allowedPrices = [
             'min' => ['field' => 'min_price', 'caption' => 'Минимальная цена'],
             'mid' => ['field' => 'mid_price', 'caption' => 'Средняя цена'],
             'max' => ['field' => 'max_price', 'caption' => 'Максимальная цена'],
         ];
-
-        $priceIdent = $request->query->get('type', 'min');
-        $priceIdent = isset($allowedPrices[$priceIdent]) ? $priceIdent : 'min';
-        $priceField = isset($allowedPrices[$priceIdent]) ? $allowedPrices[$priceIdent]['field'] : $allowedPrices['min']['field'];
-
-        $productId = $request->query->get('pid', 'all');
-
+        // спец таблица с доп ИД и полями цен для случая с одним товаром
         $productPricesFieldsList = [
-            1000 => 'min_price',
-            2000 => 'mid_price',
-            3000 => 'max_price',
+            1000 => ['field' => 'min_price', 'caption' => 'Мин. цена'],
+            2000 => ['field' => 'mid_price', 'caption' => 'Сред. цена'],
+            3000 => ['field' => 'max_price', 'caption' => 'Макс. цена'],
         ];
+
+        // тип цены (мин, сред, макс)
+        $PRICE_IDENT = $request->query->get('type', 'min');
+        $PRICE_IDENT = isset($allowedPrices[$PRICE_IDENT]) ? $PRICE_IDENT : 'min';
+        // название поля для указанной цены
+        $priceField = isset($allowedPrices[$PRICE_IDENT]) ? $allowedPrices[$PRICE_IDENT]['field'] : $allowedPrices['min']['field'];
+
+        // кол-во точек на которое будет разбиваться график для каждого товара (+1 последняя точка)
+        $AMOUNT_OF_POINTS = (int)$request->query->get('points', '0');
+
+        // продукт ИД - all если нужны все товары
+        $PRODUCT_ID = (int)$request->query->get('pid', '0');
+
+        // минимальная сущестующая в БД цена
+        $minDataTime = $db->getOne("SELECT MIN(date) FROM _hotline_parcer_data") ?: '1970-01-01 00:00:00';
+        // цена от
+        $dateFrom = $request->query->get('from', $minDataTime);
+        // цена до
+        $dateTo = $request->query->get('to', date('Y-m-d H:i:s'));
+        // цена от в Юниксдате
+        $uDateFrom = strtotime($dateFrom);
+        // цена до в Юниксдате
+        $uDateTo = strtotime($dateTo);
+
+        // список дат расчитыанных с помощью указанного кол-ва точек
+        $datesList = [];
+        if ($AMOUNT_OF_POINTS > 0) {
+            // кол-во секунд которое будет потрачено на каждый шаг
+            $stepBySeconds = $AMOUNT_OF_POINTS > 0 ? (int)(($uDateTo - $uDateFrom) / $AMOUNT_OF_POINTS) : 0;
+
+            for ($i = 0; $i <= $AMOUNT_OF_POINTS; $i++) {
+                $datesList[] = date('Y-m-d H:i:s', strtotime($dateFrom." + ".($i * $stepBySeconds)." seconds"));
+            }
+        }
+
+        $dateFrom = date('Y-m-d H:i:s', $uDateFrom);
+        $dateTo = date('Y-m-d H:i:s', $uDateTo);
 
         if (!$user->is_superadmin) {
             return $this->json(false);
@@ -61,8 +98,29 @@ class DefaultController extends ZFIController
         // пропускать нули?
         $skipZeros = false;//true;
 
+        $fromUnixTime = strtotime($dateFrom);
+        $toUnixTime = strtotime($dateTo);
+
         // тянем все даты какие вообще возможны
-        $allDates = $db->getCol("SELECT DISTINCT date FROM _hotline_parcer_data ORDER BY date ASC");
+        $allDates = [];
+        $_allDates = $db->getCol("SELECT DISTINCT date FROM _hotline_parcer_data WHERE date BETWEEN ".$db->quote($dateFrom)." AND ".$db->quote($dateTo)." ORDER BY date ASC");
+        if ($AMOUNT_OF_POINTS > 0) {
+            foreach ($datesList as $dateINeed) {
+                $minTmpUDate = 100000;
+                $minTmpDate = date('Y-m-d H:i:s');
+                foreach ($_allDates as $dateIHave) {
+                    $absDate = abs(strtotime($dateIHave) - strtotime($dateINeed));
+                    if ($absDate < $minTmpUDate) {
+                        $minTmpUDate = $absDate;
+                        $minTmpDate = $dateIHave;
+                    }
+                }
+                $allDates[] = $minTmpDate;
+            }
+            array_unique($allDates);
+        } else {
+            $allDates = $_allDates;
+        }
 
         // используем только N самых дешевых товаров по последней дате
         $lowPriceIds = [];
@@ -79,7 +137,7 @@ class DefaultController extends ZFIController
             !empty($lowPriceIds) ? "hp.id IN (".join(',', $lowPriceIds).")" : "1",
         ];
 
-        if ($productId == 'all') {
+        if ($PRODUCT_ID == 0) {
             $sqlPrices = "SELECT hp.id AS prodId, hd.date, hd.{$priceField} AS price
                     FROM `_hotline_parcer_data` AS hd
                         JOIN `_hotline_parcer_products` AS hp ON hp.id = hd.product_id
@@ -99,19 +157,19 @@ class DefaultController extends ZFIController
             $sqlPricesList = [];
             $sqlNamesList = [];
 
-            foreach ($productPricesFieldsList as $index => $priceField) {
-                $sqlPricesList[] = "SELECT hp.id + {$index} AS prodId, hd.date, hd.{$priceField} AS price
+            foreach ($productPricesFieldsList as $index => $priceFieldData) {
+                $sqlPricesList[] = "SELECT hp.id + {$index} AS prodId, hd.date, hd.{$priceFieldData['field']} AS price
                                 FROM `_hotline_parcer_data` AS hd
                                     JOIN `_hotline_parcer_products` AS hp ON hp.id = hd.product_id
-                                WHERE hp.id = {$productId}
+                                WHERE hp.id = {$PRODUCT_ID}
                                 ORDER BY hp.id ASC, hd.date ASC";
 
-                $sqlNamesList[] = "SELECT hp.id + {$index}, CONCAT(hp.id, ') min - ', COALESCE(hp.alias, hp.name), ' [', last_prices.price, ']') AS name
+                $sqlNamesList[] = "SELECT hp.id + {$index}, CONCAT(hp.id, ') {$priceFieldData['caption']} - ', COALESCE(hp.alias, hp.name), ' [', last_prices.price, ']') AS name
                                     FROM `_hotline_parcer_products` AS hp
-                                        LEFT JOIN (SELECT product_id, {$priceField} AS price
+                                        LEFT JOIN (SELECT product_id, {$priceFieldData['field']} AS price
                                                     FROM `_hotline_parcer_data`
                                                     WHERE date = (SELECT MAX(date) FROM `_hotline_parcer_data`)) AS last_prices ON hp.id = last_prices.product_id
-                                    WHERE hp.id = {$productId}";
+                                    WHERE hp.id = {$PRODUCT_ID}";
             }
 
             $sqlPrices = "(" . join(") UNION (", $sqlPricesList) . ")";
@@ -157,22 +215,14 @@ class DefaultController extends ZFIController
         }
 
         // удаляем записи с "0"
-        if ($skipZeros) {
+        /*if ($skipZeros) {
             foreach (array_unique($prodIdHasZeroData) as $deleteProdId) {
                 unset($prodNames[$deleteProdId]);
                 foreach ($minPricesChartData as $date => $row) {
                     unset($minPricesChartData[$date][$deleteProdId]);
                 }
             }
-        }
-        
-
-        /*echo '<pre>';
-        print_r($prodNames);
-        print_r($minPricesChartData);
-        print_r(array_unique($prodIdHasZeroData));
-        echo '</pre>';
-        die;*/
+        }*/
 
         foreach ($minPricesChartData as $date => $row) {
             $minPricesChartData[$date] = "[".join(", ", $row)."],";
@@ -183,11 +233,11 @@ class DefaultController extends ZFIController
         }
 
         $params = [
-            'type' => $priceIdent,
+            'type' => $PRICE_IDENT,
             'prodNames' => $prodNames,
             //'minChartInfo' => $minPricesChartData,
             'minChartInfo' => $pricesChartData,
-            'chartCaption' => $allowedPrices[$priceIdent]['caption'],
+            'chartCaption' => $allowedPrices[$PRICE_IDENT]['caption'],
         ];
         return $this->render('tools/hotline-viewer.tpl', $params);
     }
@@ -263,15 +313,15 @@ class DefaultController extends ZFIController
                     continue;
                 }
 
-                $productId = $db->getOne("SELECT id FROM _hotline_parcer_products WHERE name = '".$position['name']."'");
-                if (empty($productId)) {
+                $productParcerId = $db->getOne("SELECT id FROM _hotline_parcer_products WHERE name = '".$position['name']."'");
+                if (empty($productParcerId)) {
                     $sql = "INSERT INTO _hotline_parcer_products (name) VALUES ('".$position['name']."')";
                     $db->query($sql);
-                    $productId = $db->lastInsertId();
+                    $productParcerId = $db->lastInsertId();
                 }
 
                 $values = [
-                    'product_id' => $productId,
+                    'product_id' => $productParcerId,
                     'date' => $zfiDate,
                     'min_price' => $position['minPrice'] ?: $position['midPrice'],
                     'max_price' => $position['maxPrice'] ?: $position['midPrice'],
