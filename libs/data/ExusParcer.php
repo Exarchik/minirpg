@@ -97,7 +97,6 @@ class ExusParcer
 
         $minPrice = $db->getOne("SELECT MIN(min_price) FROM _hotline_parcer_data WHERE min_price > 0 AND date = ".$db->quote($currentHourDate));
 
-        //return "Data Parced Successfully! MIN PRICE: {$minPrice} грн.";
-        return "Дата аналізу: {$currentHourDate}.\n\rДані було успішно проаналізовано! Мінімальная знайдена ціна: {$minPrice} грн.";
+        return "Результат аналізу:\n\rДата аналізу: {$currentHourDate}.\n\rДані було успішно проаналізовано! Мінімальна знайдена ціна: {$minPrice} грн.";
     }
 }

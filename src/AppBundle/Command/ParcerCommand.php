@@ -32,8 +32,7 @@ class ParcerCommand extends ContainerAwareCommand
         $parcer = new ExusParcer();
         $result = $parcer->execute();
 
-        $text = "Результат аналізу:\n\r".$result;
-
-        $output->writeln($text);
+        // Результат аналізу
+        $output->writeln($result);
     }
 }
