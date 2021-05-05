@@ -257,7 +257,7 @@ class DefaultController extends ZFIController
 
         $parsedData = [];
         if ($testDomParser) {
-            $parseLink = "https://hotline.ua/computer/videokarty/?q=3060+ti";
+            $parseLink = "https://hotline.ua/computer/videokarty/?q=rtx+3060";
 
             $xml = new DOMDocument();
             $xml->loadHTMLFile($parseLink);

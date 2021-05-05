@@ -7,7 +7,7 @@ use DOMDocument;
 class ExusParcer
 {
     //protected $url = "https://hotline.ua/sr/?q=3060+ti";
-    protected $url = "https://hotline.ua/computer/videokarty/?q=3060+ti";
+    protected $url = "https://hotline.ua/computer/videokarty/?q=rtx+3060";
 
     public function execute()
     {
@@ -95,6 +95,9 @@ class ExusParcer
 
         //print_r([$sql]);
 
-        return "Data Parced Successfully!";
+        $minPrice = $db->getOne("SELECT MIN(min_price) FROM _hotline_parcer_data WHERE min_price > 0 AND date = ".$db->quote($currentHourDate));
+
+        //return "Data Parced Successfully! MIN PRICE: {$minPrice} грн.";
+        return "Дата аналізу: {$currentHourDate}.\n\rДані було успішно проаналізовано! Мінімальная знайдена ціна: {$minPrice} грн.";
     }
 }
