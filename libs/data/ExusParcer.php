@@ -93,12 +93,14 @@ class ExusParcer
         $sql = "INSERT INTO _hotline_parcer_data (".join(', ', array_keys($values)).")  VALUES (".join('), (', $sqlValues).")";
         $db->query($sql);
 
-        $sql = "SELECT COALESCE(pd.alias, pd.name) AS caption, MIN(d.min_price) as min_price
-                FROM _hotline_parcer_data AS d
-                JOIN _hotline_parcer_products AS pd ON d.product_id = pd.id
-                WHERE min_price > 0 AND date = ".$db->quote($currentHourDate);
-        $resultData = $db->getRow($sql);
+        $sql = "SELECT product_id, min_price FROM _hotline_parcer_data
+                WHERE date = ".$db->quote($currentHourDate)."
+                ORDER BY min_price ASC
+                LIMIT 1";
+        $minData = $db->getRow($sql);
 
-        return "Результат аналізу:\n\rДата аналізу: {$currentHourDate}.\n\rДані було успішно проаналізовано! Мінімальна знайдена ціна: {$resultData['caption']} ({$resultData['min_price']} грн.)";
+        $productCaption = $db->getOne("SELECT COALESCE(alias, name) AS caption FROM _hotline_parcer_products WHERE id = {$minData['product_id']}");
+
+        return "Результат аналізу:\n\rДата аналізу: {$currentHourDate}.\n\rДані було успішно проаналізовано! Мінімальна знайдена ціна: {$productCaption} ({$minData['min_price']} грн.)";
     }
 }
