@@ -34,31 +34,6 @@ function drawChart() {
 
     chart.draw(data, google.charts.Line.convertOptions(options));
 }
-
-/*
-  google.charts.load('current', {'packages':['corechart']});
-  google.charts.setOnLoadCallback(drawChart2);
-
-  function drawChart2() {
-    var data = new google.visualization.DataTable();
-    data.addColumn('datetime', 'Price Time');
-    {/ignore}{foreach $prodNames as $name}{"data.addColumn('number', '{$name}');\n"}{/foreach}{ignore}
-
-    data.addRows([
-        {/ignore}{foreach $minChartInfo as $date => $row}{$row}{/foreach}{ignore}
-    ]);
-
-    var options = {
-      title: 'Company Performance',
-      curveType: 'function',
-      legend: { position: 'right' }
-    };
-
-    var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
-
-    chart.draw(data, options);
-  }
-*/
 {/ignore}
 </script>
 
@@ -71,7 +46,4 @@ function drawChart() {
     <div class="row justify-content-md-center">
         <div id="hotline-lines" style="width:1400px; height:720px"></div>
     </div>
-    <!--<div class="row justify-content-md-center">
-        <div id="curve_chart" style="width: 1500px; height: 1200px"></div>
-    </div>-->
 </div>

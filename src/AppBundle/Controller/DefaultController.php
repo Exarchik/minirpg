@@ -135,6 +135,7 @@ class DefaultController extends ZFIController
 
         $sqlWhere = [
             !empty($lowPriceIds) ? "hp.id IN (".join(',', $lowPriceIds).")" : "1",
+            "hd.date BETWEEN CAST('{$dateFrom}' AS DATE) AND CAST('{$dateTo}' AS DATE)"
         ];
 
         if ($PRODUCT_ID == 0) {
@@ -214,16 +215,6 @@ class DefaultController extends ZFIController
             }
         }
 
-        // удаляем записи с "0"
-        /*if ($skipZeros) {
-            foreach (array_unique($prodIdHasZeroData) as $deleteProdId) {
-                unset($prodNames[$deleteProdId]);
-                foreach ($minPricesChartData as $date => $row) {
-                    unset($minPricesChartData[$date][$deleteProdId]);
-                }
-            }
-        }*/
-
         foreach ($minPricesChartData as $date => $row) {
             $minPricesChartData[$date] = "[".join(", ", $row)."],";
         }
@@ -235,7 +226,6 @@ class DefaultController extends ZFIController
         $params = [
             'type' => $PRICE_IDENT,
             'prodNames' => $prodNames,
-            //'minChartInfo' => $minPricesChartData,
             'minChartInfo' => $pricesChartData,
             'chartCaption' => $allowedPrices[$PRICE_IDENT]['caption'],
         ];
