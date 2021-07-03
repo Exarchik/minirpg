@@ -33,6 +33,9 @@ class ExusParcer
                         && mb_strpos($aUrl, 'discussion') === false
                         && mb_strpos($aUrl, '#sales') === false
                         && empty($aClassName)) {
+                            if (mb_strpos($aElement->nodeValue, 'Ð') !== false) {
+                                continue;
+                            }
                             $parsedData[$index] = [
                                 'name' => trim($aElement->nodeValue),
                                 'midPrice' => '0',
