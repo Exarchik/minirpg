@@ -38,7 +38,7 @@ class Users
 
     public function isLoginExist(string $login)
     {
-        $sql = "SELECT id FROM users WHERE login = ".\App::getPDO()->quote($login);
+        $sql = "SELECT id FROM users WHERE login = " . \App::getPDO()->quote($login);
         if (\App::getPDO()->getOne($sql)) {
             return true;
         }
@@ -70,8 +70,8 @@ class Users
         }
 
         $fields = array_keys($data);
-        $sql = "INSERT INTO `users` (".join(', ', $fields).")
-                VALUES (".join(', ', \App::getPDO()->quoteAll($data)).")";
+        $sql = "INSERT INTO `users` (" . join(', ', $fields) . ")
+                VALUES (" . join(', ', \App::getPDO()->quoteAll($data)) . ")";
         \App::getPDO()->query($sql);
 
         $this->lastInsertUserId = \App::getPDO()->lastInsertId();
@@ -81,9 +81,9 @@ class Users
     public function auth($login, $pass)
     {
         $session = \App::getSession();
-        $userData = \App::getPDO()->getAssoc("SELECT login, id, password FROM users WHERE login = ".\App::getPDO()->quote($login));
+        $userData = \App::getPDO()->getAssoc("SELECT login, id, password FROM users WHERE login = " . \App::getPDO()->quote($login));
         if (md5($pass) === $userData[$login]['password']) {
-            $session['ZFIUD'] = base64_encode($login.":".$userData[$login]['id']);
+            $session['ZFIUD'] = base64_encode($login . ":" . $userData[$login]['id']);
             return true;
         }
         return false;

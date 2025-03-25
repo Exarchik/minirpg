@@ -48,7 +48,7 @@ class MainController extends ZFIController
             $pass = $request->get('zfi_password', null);
 
             if (!$users->auth($login, $pass)) {
-                $this->addInvalidFeedback(array('zfi_login' => __('FORM_ERROR_ACCOUNT_DOES_NOT_EXIST').'!'));
+                $this->addInvalidFeedback(array('zfi_login' => __('FORM_ERROR_ACCOUNT_DOES_NOT_EXIST') . '!'));
             } else {
                 return $this->redirectToRoute('default_page');
             }
@@ -153,11 +153,11 @@ class MainController extends ZFIController
             );
             $langData = array();
             foreach (array_keys($langList) as $ident) {
-                $langData[$ident] = $request->get('term_'.$ident, '');
+                $langData[$ident] = $request->get('term_' . $ident, '');
             }
             $values["value"] = \App::getPDO()->quote(json_encode($langData));
 
-            $sql = "INSERT INTO `lang_data` (".join(', ', array_keys($values)).") VALUES (".join(', ', $values).")";
+            $sql = "INSERT INTO `lang_data` (" . join(', ', array_keys($values)) . ") VALUES (" . join(', ', $values) . ")";
             \App::getPDO()->query($sql);
 
             $this->addMessage(__('LANGUAGE_IDENT_SUCCESSFULLY_INSERTED'));
@@ -196,7 +196,7 @@ class MainController extends ZFIController
             case 'app.main.languageform':
                 $langIdents = \App::getLang()->getLanguageListIdents();
                 foreach($langIdents as $ident) {
-                    $this->validationData[$formAlias]['term_'.$ident] = ['required', 'text', 'max' => 250];
+                    $this->validationData[$formAlias]['term_' . $ident] = ['required', 'text', 'max' => 250];
                 }
             break;
             default:

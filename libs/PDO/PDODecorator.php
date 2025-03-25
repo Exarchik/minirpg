@@ -6,7 +6,7 @@ class PDODecorator
 
     public function __construct($host, $dbname, $login, $pass)
     {
-        $dsn = 'mysql:dbname='.$dbname.';host='.$host;
+        $dsn = 'mysql:dbname=' . $dbname . ';host=' . $host;
         try {
             $this->db = new PDO($dsn, $login, $pass);
         } catch (PDOException $e) {

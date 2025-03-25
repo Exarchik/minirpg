@@ -71,14 +71,14 @@ class Validator
                 // все доступные буквы латиница и кирилица
                 case 'fio':
                     $msg = !empty($data[0]) ? $data[0] : 'FORM_FIO_TYPE_VALIDATION_TEXT';
-                    if (!preg_match('/^[\sa-z'.$this->cyrillicSings.']+$/i', $value)) {
+                    if (!preg_match('/^[\sa-z' . $this->cyrillicSings . ']+$/i', $value)) {
                         return __($msg);
                     }
                     break;
                 // все доступные буквы латиница и кирилица, цифры, дефис, нижнее подчеркивание, точки и запятые
                 case 'text':
                     $msg = !empty($data[0]) ? $data[0] : 'FORM_FIO_TYPE_VALIDATION_TEXT_2';
-                    if (!preg_match('/^[\s-_,\.a-z0-9'.$this->cyrillicSings.']+$/i', $value)) {
+                    if (!preg_match('/^[\s-_,\.a-z0-9' . $this->cyrillicSings . ']+$/i', $value)) {
                         return __($msg);
                     }
                     break;    
@@ -128,7 +128,7 @@ class Validator
     protected function isUnique($value, $fieldParam)
     {
         list($tmpTable, $tmpField) = explode('.', $fieldParam);
-        $sql = "SELECT {$tmpField} FROM `{$tmpTable}` WHERE {$tmpField} = ".\App::getPDO()->quote($value);
+        $sql = "SELECT {$tmpField} FROM `{$tmpTable}` WHERE {$tmpField} = " . \App::getPDO()->quote($value);
         return empty(\App::getPDO()->getOne($sql));
     }
 }
