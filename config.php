@@ -18,7 +18,7 @@ class ZFIConfig
 
     private $dsn = null;
 
-    private $langDefault = 'ru'; // en, ua
+    private $langDefault = 'en'; // en, ua
 
     // авторизация доступна только по реферальным ссылкам
     public $isRegisterRefferal = true;
