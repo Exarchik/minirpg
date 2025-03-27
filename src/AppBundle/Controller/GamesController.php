@@ -10,6 +10,6 @@ class GamesController extends ZFIController
 {
     public function indexAction($gameType)
     {
-        return $this->render('games/' . $gameType . '.tpl', []);
+        return $this->render('games/' . $gameType . '.tpl', ['showNavigationBar' => false]);
     }
 }

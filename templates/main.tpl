@@ -20,6 +20,7 @@
             <div class="container-fluid breadcrumbs">
                 <div class="row">
                     <div class="col">
+                        {if $showNavigationBar}
                         <nav class="navbar navbar-expand-lg navbar-light bg-light">
                         {if !$user->is_guest}
                             <a class="navbar-brand" href="{$.const.BASE_URL}">{__('ZFI')}</a>
@@ -72,6 +73,7 @@
                             </ul>
                         </div>
                         </nav>
+                        {/if}
                     </div>
                 </div>
             </div>

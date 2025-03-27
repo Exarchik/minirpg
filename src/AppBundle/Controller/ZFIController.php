@@ -14,6 +14,7 @@ class ZFIController extends Controller
         'errors' => array(),
         'messages' => array(),
         'invalid_feedback' => array(),
+        'showNavigationBar' => true,
     );
     
     // добавляет ошибку в layout
@@ -42,6 +43,15 @@ class ZFIController extends Controller
     {
         $invalidFeedback = empty($this->params['invalid_feedback']) ? "false" : json_encode($this->params['invalid_feedback']);
         $this->params['invalid_feedback'] = "var invalidFeedback = {$invalidFeedback};";
+
+        // системні параметри додаєм у системних і прибираєм їх із списку
+        foreach ($this->params as $systemParamIdent => $systemParamValue) {
+            if (isset($params[$systemParamIdent])) {
+                $this->params[$systemParamIdent] = $params[$systemParamIdent];
+                unset($params[$systemParamIdent]);
+            }
+        }
+        // решту мержим
         $params = array_merge($params, array('layout' => $this->params));
 
         return parent::render($template, $params, $response);
