@@ -6,5 +6,6 @@
 <br>
 <br>[[ <a href="{$.const.BASE_URL}/games/labyrinth"> labyrinth </a>]]
 <br>[[ <a href="{$.const.BASE_URL}/games/protector"> protector </a>]]
+<br>[[ <a href="{$.const.BASE_URL}/games/minirpg"> minirpg </a>]]
 {/if}
 </div>

@@ -36,7 +36,7 @@ games:
     path:      /games/{gameType}
     defaults:  { _controller: AppBundle:Games:index}
     requirements:
-        gameType: 'labyrinth|protector|test'
+        gameType: 'labyrinth|protector|minirpg|test'
 
 user_profile:
     path:       /profile
