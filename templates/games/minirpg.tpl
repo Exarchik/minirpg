@@ -42,6 +42,9 @@
         .item { color: #ff5; }
         .sell { color: #fa0; }
         .artifact { color: #f8f; }
+        #enemy-emoji, #player-emoji {
+            position: relative;
+        }
         #battle-view {
             display: flex;
             justify-content: space-around;
@@ -230,6 +233,64 @@
             from { box-shadow: 0 0 5px #6600cc; }
             to { box-shadow: 0 0 20px #6600cc; }
         }
+        
+        /* Анімація атаки */
+        @keyframes shake {
+            0% { transform: translate(1px, 0); }
+            25% { transform: translate(-2px, 0); }
+            50% { transform: translate(2px, 0); }
+            75% { transform: translate(-1px, 0); }
+            100% { transform: translate(0, 0); }
+        }
+        .shake {
+            animation: shake 0.2s infinite;
+        }
+
+        .flash-red {
+            animation: flashRed 0.4s;
+        }
+        @keyframes flashRed {
+            0% { background-color: rgba(255,0,0,0.3); }
+            100% { background-color: transparent; }
+        }
+        
+        /* Стилі для анімації шкоди */
+        @keyframes popup {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+        
+        .event-popup {
+            font-size: 24px;
+            font-weight: bold;
+            animation: popup 1s forwards;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .event-popup-slow {
+            font-size: 24px;
+            font-weight: bold;
+            animation: popup 3s forwards;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .damage-popup {
+            color: #f00;
+        }
+
+        .heal-popup {
+            color: #0f0;
+        }
+
+        .gold-popup {
+            color: #ff0;
+        }
+
+        .xp-popup {
+            color: #88f;
+        }
     </style>
     <div id="game">
         <h1>🏰 Емодзі RPG з артефактами 🏰</h1>
@@ -243,7 +304,7 @@
                 
                 <div id="battle-view">
                     <div id="player-view">
-                        <div>🧙‍♂️</div>
+                        <div id="player-emoji">🧙‍♂️</div>
                         <div class="health-bar player-health">
                             <div class="health-fill" id="player-health-bar"></div>
                         </div>
@@ -447,6 +508,8 @@
             restBtn: document.getElementById('restBtn'),
             playerHealthBar: document.getElementById('player-health-bar'),
             playerXpBar: document.getElementById('player-xp-bar'),
+            playerView: document.getElementById('player-view'),
+            playerEmoji: document.getElementById('player-emoji'),
             enemyHealthBar: document.getElementById('enemy-health-bar'),
             enemyView: document.getElementById('enemy-view'),
             enemyEmoji: document.getElementById('enemy-emoji'),
@@ -625,6 +688,10 @@
                 const goldFound = Math.floor(Math.random() * 10 * player.level) + 5;
                 player.gold += goldFound;
                 addLog(`💰 Ви знайшли скарб і отримали ${goldFound} золота!`, 'loot');
+                showEventPopup(`+${goldFound}💰`, elements.playerEmoji, {
+                    color: '#ff0',
+                    fontSize: '20px'
+                });
                 
                 // Видаляємо скарб
                 gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
@@ -834,6 +901,10 @@
             player.inventory.splice(index, 1);
             
             addLog(`💰 Ви продали ${item.emoji} ${item.name} за ${sellPrice} золота`, 'sell');
+            showEventPopup(`+${sellPrice}💰`, elements.playerEmoji, {
+                color: '#ff0',
+                fontSize: '20px'
+            });
             updateStats();
             updateInventory();
         }
@@ -877,31 +948,6 @@
                 id: Date.now() + Math.floor(Math.random() * 1000)
             };
         }
-        
-        /*// Оновлюємо функцію генерації предметів
-        function generateItem(minRarity = 1) {
-            // 10% шанс отримати предмет (еліксири дуже рідкісні)
-            let randomTest = Math.random();
-            if (Math.random() > 0.75) return null;
-            
-            // Об'єднуємо всі типи предметів
-            const allItems = [...weapons, ...armors, ...artifacts, ...potions];
-            
-            // Фільтруємо за мінімальною рідкістю
-            const availableItems = allItems.filter(item => item.rarity >= minRarity);
-            
-            if (availableItems.length === 0) return null;
-            
-            // Вибираємо випадковий предмет
-            let randomItem = Math.floor(Math.random() * availableItems.length)
-            const itemTemplate = availableItems[randomItem];
-            
-            // Створюємо копію предмета
-            return {
-                ...itemTemplate,
-                id: Date.now() + Math.floor(Math.random() * 1000)
-            };
-        }*/
         
         // Оновлюємо функцію для використання предметів
         function useItem(index) {
@@ -1061,6 +1107,71 @@
             
             return enemy;
         }
+        
+        function animateAttack(targetEmoji, targetView) {
+            targetEmoji.classList.add('shake');
+            targetView.classList.add('flash-red');
+            setTimeout(() => {
+                targetEmoji.classList.remove('shake');
+                targetView.classList.remove('flash-red');
+            }, 400);
+        }
+        
+        // Універсальна функція для відображення анімації подій з підтримкою затримки
+        function showEventPopup(text, targetElement, options = {}) {
+            // Значення за замовчуванням
+            const defaultOptions = {
+                color: '#fff',
+                fontSize: '24px',
+                isCritical: false,
+                delay: 0,  // Затримка в мілісекундах (0 - без затримки)
+                popupType: 'normal', // Час існування сповіщення ('normal' - 1s, 'slow' - 3s)
+                horizontalOffset: 0, // Зсув точки спавна в px
+            };
+            
+            // Об'єднуємо передані параметри з параметрами за замовчуванням
+            options = { ...defaultOptions, ...options };
+            
+            // Функція, яка фактично створює і показує попап
+            const createPopup = () => {
+                const popupElement = document.createElement('div');
+                popupElement.className = options.popupType == 'slow' ? 'event-popup-slow' : 'event-popup';
+                popupElement.textContent = text;
+                
+                // Застосовуємо стилі
+                popupElement.style.color = options.color;
+                popupElement.style.fontSize = options.fontSize;
+                
+                if (options.isCritical) {
+                    popupElement.textContent += '💥';
+                    popupElement.style.fontWeight = 'bold';
+                    popupElement.style.textShadow = '0 0 5px gold';
+                }
+                
+                // Позиціонування
+                const rect = targetElement.getBoundingClientRect();
+                popupElement.style.position = 'absolute';
+                popupElement.style.left = `${options.horizontalOffset + rect.left + rect.width/2 - 20}px`;
+                popupElement.style.top = `${rect.top - 20}px`;
+                popupElement.style.zIndex = '1000';
+                popupElement.style.pointerEvents = 'none';
+                popupElement.style.animation = 'popup 1s forwards';
+                
+                document.body.appendChild(popupElement);
+                
+                // Видалення елемента після анімації
+                setTimeout(() => {
+                    popupElement.remove();
+                }, options.popupType == 'slow' ? 3000 : 1000);
+            };
+            
+            // Викликаємо створення попапу з затримкою або без
+            if (options.delay > 0) {
+                setTimeout(createPopup, options.delay);
+            } else {
+                createPopup();
+            }
+        }
 
         // Оновлена функція для битви з урахуванням здібностей монстрів
         function startBattle(enemy) {
@@ -1117,9 +1228,17 @@
                 if (!fastEnemyStatus) {
                     enemy.health -= playerDamage;
                     
+                    animateAttack(elements.enemyEmoji, elements.enemyView);
                     updateEnemyStats(enemy);
                     
+                    // Показуємо анімацію шкоди
                     if (playerDamage > 0) {
+                        //showDamage(playerDamage, elements.enemyEmoji, isCritical);
+                        showEventPopup(`-${playerDamage}`, elements.enemyEmoji, {
+                            color: '#f00',
+                            isCritical: isCritical
+                        });
+                        
                         addLog(`[${iteration}] 🗡️ Ви атакуєте ${enemy.emoji} ${enemy.type} і завдаєте ${playerDamage} шкоди.${critMessage}`, 'player', isCritical ? '#8b0303' : 'rgba(255, 255, 255, 0)');
                     }
                 } else {
@@ -1139,6 +1258,19 @@
                     player.gold += enemy.gold;
                     player.xp += enemy.xp;
                     addLog(`💰 Ви отримали ${enemy.gold} золота і ${enemy.xp} досвіду.`, 'loot');
+                    
+                    showEventPopup(`+${enemy.gold}💰`, elements.playerEmoji, {
+                        color: '#ff0',
+                        fontSize: '20px',
+                        delay: 500,
+                        horizontalOffset: -25
+                    });
+                    showEventPopup(`+${enemy.xp}📈`, elements.playerEmoji, {
+                        color: '#88f',
+                        fontSize: '18px',
+                        delay: 750,
+                        horizontalOffset: 15
+                    });
                     
                     // Перевірка на предмет
                     if (enemy.item) {
@@ -1200,6 +1332,14 @@
                     
                     player.health -= enemyDamage;
                     
+                    if (enemyDamage > 0) {
+                        showEventPopup(`-${enemyDamage}`, elements.playerEmoji, {
+                            color: '#f00',
+                        });
+                    }
+                    
+                    animateAttack(elements.playerEmoji, elements.playerView);
+                    
                     // Регенерація ворога
                     if (enemy.abilities.includes('regeneration') && Math.random() < 0.5) {
                         const healAmount = Math.floor(enemy.maxHealth * 0.1);
@@ -1214,6 +1354,11 @@
                     // Хижак
                     if (enemy.abilities.includes('predator') && Math.random() < 0.3) {
                         player.health -= enemyDamage;
+                        showEventPopup(`-${enemyDamage}`, elements.playerEmoji, {
+                            color: '#f00',
+                            delay: 200,
+                            horizontalOffset: 25
+                        });
                         addLog(`[${iteration}] 💥 ${enemy.emoji} ${enemy.type} атакує вас двічі і завдає ${enemyDamage} x 2 шкоди.`, 'enemy', 'black');
                     } else {
                         addLog(`[${iteration}] 💥 ${enemy.emoji} ${enemy.type} атакує вас і завдає ${enemyDamage} шкоди.`, 'enemy');
@@ -1304,6 +1449,14 @@
                 player.health += 5;  // Зменшено приріст здоров'я за рівень
                 
                 addLog(`✨ Вітаємо! Ви досягли ${player.level} рівня! Ваші характеристики зросли.`, 'system');
+                showEventPopup(`✨ ${player.level} ✨`, elements.playerEmoji, {
+                    color: '#ff0',
+                    fontSize: '20px',
+                    delay: 1000,
+                    horizontalOffset: -20,
+                    popupType: 'slow',
+                });
+
                 if (oldMaxHealth < player.maxHealth) {
                     addLog(`❤️ Ваше максимальне здоров'я збільшилось до ${player.maxHealth}`, 'system');
                 }
@@ -1321,8 +1474,13 @@
         function heal() {
             if (player.gold >= 10) {
                 player.gold -= 10;
+                const deltaHealth = player.maxHealth - player.health;
                 player.health = player.maxHealth;
                 addLog('💊 Ви повністю вилікувались!', 'system');
+                showEventPopup(`+${deltaHealth}💊`, elements.playerEmoji, {
+                    color: '#0f0',
+                    fontSize: '22px'
+                });
                 
                 // Оновлюємо health bar
                 elements.playerHealthBar.style.width = '100%';
