@@ -417,6 +417,10 @@
             background: rgba(0, 0, 0, 0.3);
             border-radius: 3px;
         }
+
+        .emoji-replaced {
+            /*image-rendering: pixelated;*/
+        }
     </style>
     <div id="game">
         <h1>🏰 Емодзі RPG з артефактами 🏰</h1>
@@ -437,14 +441,20 @@
                 
                 <div id="battle-view">
                     <div id="player-view">
-                        <div id="player-emoji">🧙‍♂️</div>
+                        <div id="player-emoji">
+                            <span class="emoji-replace" data-emoji="🧙‍♂️" data-size="64px">🧙‍♂️</span>
+                        </div>
                         <div class="health-bar player-health">
                             <div class="health-fill" id="player-health-bar"></div>
                         </div>
                         <div class="xp-bar player-xp">
                             <div class="xp-fill" id="player-xp-bar"></div>
                         </div>
-                        <div class="stats">АТК: <span id="attack-display">10</span> | ЗАХ: <span id="defense-display">5</span> | ❤️: <span id="max-health-display">100</span></div>
+                        <div class="stats">
+                            <span class="emoji-replace" data-emoji="⚔️" data-size="20px">АТК</span>: <span id="attack-display">10</span> | 
+                            <span class="emoji-replace" data-emoji="🛡️" data-size="20px">ЗАХ</span>: <span id="defense-display">5</span> | 
+                            <span class="emoji-replace" data-emoji="❤️" data-size="20px">❤️</span>: <span id="max-health-display">100</span>
+                        </div>
                     </div>
                     <div id="vs">⚔️</div>
                     <div id="enemy-view" style="display: block;">
@@ -452,7 +462,11 @@
                         <div class="health-bar">
                             <div class="health-fill" id="enemy-health-bar"></div>
                         </div>
-                        <div class="stats" id="enemy-stats">АТК: ? | ЗАХ: ? | ❤️: 0</div>
+                        <div class="stats" id="enemy-stats">
+                            <span class="emoji-replace" data-emoji="⚔️" data-size="20px">АТК</span>: ? |
+                            <span class="emoji-replace" data-emoji="🛡️" data-size="20px">ЗАХ</span>: ? |
+                            <span class="emoji-replace" data-emoji="❤️" data-size="20px">❤️</span>: 0
+                        </div>
                     </div>
                 </div>
                 
@@ -537,6 +551,27 @@
                 return maxHealth;
             }
         };
+
+        // бібліотека емоджі
+        const emojiReplacer = [
+            { type: '❤️', image: 'health.png' },
+            { type: '⚔️', image: 'attack.png' },
+            { type: '🛡️', image: 'defense.png' },
+            { type: '🧙‍♂️', image: 'wizard.png' },
+        ];
+
+        function emojiReplace() {
+            document.querySelectorAll('.emoji-replace').forEach(el => {
+                const emoji = el.getAttribute('data-emoji');
+                const size = el.getAttribute('data-size') ? el.getAttribute('data-size') : '16px';
+                el.innerHTML = addEmoji(emoji, size);
+            });
+        }
+
+        function addEmoji(emoji = '❤️', size = '16px') {
+            let imgData = emojiReplacer.find(er => er.type == emoji);
+            return `<img class='emoji-replaced' src='/templates/img/${imgData.image}' width='${size}'/>`;
+        }
 
         // перешкоди
         const obstacles = [
@@ -775,7 +810,8 @@
                 }
                 
                 if (x === player.position.x && y === player.position.y) {
-                    cell.textContent = player.emoji;
+                    //cell.textContent = player.emoji;
+                    cell.innerHTML = addEmoji(player.emoji, '30px');
                     cell.classList.add('player-cell');
                     cell.id = 'player-on-map';
                     return;
@@ -1877,7 +1913,10 @@
         }
         
         function updateEnemyStats(enemy) {
-            elements.enemyStats.textContent = `АТК: ${enemy.attack} | ЗАХ: ${enemy.defense} | ❤: ${enemy.health >= 0 ? enemy.health : 0}/${enemy.maxHealth}`;
+            const attackEmoji = addEmoji('⚔️', '20px');
+            const defenseEmoji = addEmoji('🛡️', '20px');
+            const healthEmoji = addEmoji('❤️', '20px');
+            elements.enemyStats.innerHTML = `${attackEmoji}: ${enemy.attack} | ${defenseEmoji}: ${enemy.defense} | ${healthEmoji}: ${enemy.health >= 0 ? enemy.health : 0}/${enemy.maxHealth}`;
             
             // Оновлюємо health bar ворога
             const enemyHealthPercent = ((enemy.health >= 0 ? enemy.health : 0) / enemy.maxHealth) * 100;
@@ -2014,5 +2053,7 @@
         player.inventory.push({...armors[0]});  // Шкіряний жилет
         */
         updateInventory();
+
+        emojiReplace();
     </script>
     {/ignore}
