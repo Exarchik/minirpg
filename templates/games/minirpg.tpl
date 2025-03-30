@@ -26,6 +26,81 @@
         button:hover {
             background-color: #45a049;
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-content {
+            background-color: #333;
+            margin: 15% auto;
+            padding: 25px;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+            animation: modalWindowFadeIn 0.3s;
+            text-align: center;
+        }
+
+        .modal-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            margin-top: 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .modal-button:hover {
+            background-color: #45a049;
+        }
+
+        #modal-message {
+            margin: 20px 0;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #eee;
+        }
+
+        @keyframes modalWindowFadeIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #resurrectBtn {
+            background-color: #8B0000;
+            padding: 8px 15px;
+            margin: 5px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            display: none; /* Початково прихована */
+        }
+
+        #resurrectBtn:hover {
+            background-color: #A52A2A;
+        }
+
+        #resurrectBtn:active {
+            transform: scale(0.98);
+        }
+
         #log {
             height: 33vh;
             overflow-y: scroll;
@@ -170,15 +245,23 @@
         .map-cell:hover {
             background-color: #555;
         }
+        .visited-cell {
+            background-color: #3a3a3a;
+        }
         .player-cell {
             background-color: #55f;
         }
         .enemy-cell {
-            background-color: #f55;
+            background-color: rgb(255, 181, 85);
             animation: pulse 1.5s infinite;
         }
-        .visited-cell {
-            background-color: #3a3a3a;
+        .elite-cell {
+            background-color: rgb(240, 78, 78);
+            animation: pulse 1.5s infinite;
+        }
+        .boss-cell {
+            background-color: rgb(255, 0, 0);
+            animation: pulse 1.5s infinite;
         }
         .artifact-cell {
             background-color: #f8f;
@@ -304,9 +387,9 @@
         }
 
         /* Додаткові стилі для різних типів фруктів */
-        .fruit-cell[data-fruit="25"] { color: #ff5555; background-color: #ff5555; }
-        .fruit-cell[data-fruit="50"] { color: #ffaa00; background-color: #ffaa00; }
-        .fruit-cell[data-fruit="100"] { color: #55ff55; background-color: #55ff55; }
+        .fruit-cell[data-fruit="25"] { color: #ff555554; background-color: #ff555554; }
+        .fruit-cell[data-fruit="50"] { color: #ffaa0054; background-color: #ffaa0054; }
+        .fruit-cell[data-fruit="100"] { color: #55ff5554; background-color: #55ff5554; }
 
         /* Перешкоди */
         .obstacle-cell {
@@ -338,6 +421,13 @@
     <div id="game">
         <h1>🏰 Емодзі RPG з артефактами 🏰</h1>
         
+        <div id="game-modal" class="modal">
+            <div class="modal-content">
+                <p id="modal-message"></p>
+                <button id="modal-ok" class="modal-button">OK</button>
+            </div>
+        </div>
+
         <div class="flex-container">
             <div class="game-column">
                 <div id="map-container">
@@ -367,8 +457,8 @@
                 </div>
                 
                 <div id="controls">
-                    <button id="healBtn">💊 Лікуватися (10 золота)</button>
-                    <button id="restBtn">🛌 Відпочити</button>
+                    <button id="healBtn" style="display: none;">💊 Лікуватися (10 золота)</button>
+                    <button id="resurrectBtn" style="display: none;">💀 Воскреснути</button>
                 </div>
             </div>
             
@@ -534,7 +624,7 @@
         const potions = [
             { name: "Еліксир сили", emoji: "🧪", type: "potion_attack", description: "⚔️+1", effect: "attack", value: 1, rarity: 2, canSell: false },
             { name: "Еліксир захисту", emoji: "🧪", type: "potion_defense", description: "🛡+1", effect: "defense", value: 1, rarity: 2, canSell: false },
-            { name: "Еліксир життя", emoji: "🧪", type: "potion_health", description: "❤+5", effect: "maxHealth", value: 5, rarity: 2, canSell: false }
+            { name: "Еліксир життя", emoji: "🧪", type: "potion_health", description: "💖+5", effect: "maxHealth", value: 5, rarity: 2, canSell: false }
         ];
 
         // Здорове харчівництво ;)
@@ -582,7 +672,7 @@
             maxHealth: document.getElementById('max-health-display'),
             log: document.getElementById('log'),
             healBtn: document.getElementById('healBtn'),
-            restBtn: document.getElementById('restBtn'),
+            resurrectBtn: document.getElementById('resurrectBtn'),
             playerHealthBar: document.getElementById('player-health-bar'),
             playerXpBar: document.getElementById('player-xp-bar'),
             playerView: document.getElementById('player-view'),
@@ -612,7 +702,7 @@
                 gameMap[y] = [];
                 for (let x = 0; x < mapSize; x++) {
                     // 15% шанс на перешкоду (дерево або гора)
-                    const isObstacle = Math.random() < 0.15;
+                    const isObstacle = Math.random() < 0.1;
                     let cellContent;
                     
                     if (isObstacle) {
@@ -1001,7 +1091,7 @@
             }
             
             // Додаємо нові перешкоди
-            const newObstacles = Math.floor(mapSize * mapSize * 0.1); // 10% клітинок
+            const newObstacles = Math.floor(mapSize * mapSize * 0.07); // 7% клітинок
             for (let i = 0; i < newObstacles; i++) {
                 let x, y;
                 let attempts = 0;
@@ -1024,6 +1114,35 @@
                         emoji: obstacleType === 'tree' ? '🌳' : '🗻',
                         passable: false
                     };
+                }
+            }
+        }
+
+        // Функція для показу повідомлення
+        function showGameMessage(message, duration = 0) {
+            const modal = document.getElementById('game-modal');
+            const messageElement = document.getElementById('modal-message');
+            const okButton = document.getElementById('modal-ok');
+            
+            messageElement.innerHTML = message;
+            modal.style.display = 'block';
+            
+            // Обробник кнопки OK
+            okButton.onclick = function() {
+                modal.style.display = 'none';
+            }
+            
+            // Автозакриття через вказаний час (якщо duration > 0)
+            if (duration > 0) {
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, duration);
+            }
+            
+            // Закриття при кліку поза вікном
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
                 }
             }
         }
@@ -1163,8 +1282,8 @@
             
             // Оновлюємо здоров'я, якщо змінилось максимальне значення
             if (item.maxHealth) {
-                player.health += item.maxHealth;
-                player.health = Math.min(player.health, player.maxHealth);
+                //player.health += item.maxHealth;
+                //player.health = Math.min(player.health, player.maxHealth);
             }
             
             addLog(`✨ Ви екіпірували ${item.emoji} <strong>${item.name}</strong>!`, 'artifact');
@@ -1359,10 +1478,10 @@
             
             // Базова сила ворога залежить від рівня гравця
             const basePower = 2 + player.level;
-            let powerMultiplier = 1.5;
+            let powerMultiplier = 1.7;
             
-            if (enemy.elite) powerMultiplier = 2.3;
-            if (enemy.boss) powerMultiplier = 3.7;
+            if (enemy.elite) powerMultiplier = 2.6;
+            if (enemy.boss) powerMultiplier = 3.5;
             
             // Характеристики ворога
             enemy.health = Math.floor(basePower * powerMultiplier * (0.8 + Math.random() * 0.4));
@@ -1690,8 +1809,16 @@
                     }
 
                     updateStats();
+
+                    // Гравець - мрець
                     if (player.health <= 0) {
-                        addLog('💀 Ви померли! Спробуйте оновити гру.', 'system');
+                        elements.resurrectBtn.style.display = 'inline-block';
+                        addLog('💀 Ви загинули в бою з ${enemy.emoji} ${enemy.type}!', 'system');
+                        showGameMessage('💀 Ви загинули в бою! Натисніть "Воскреснути", щоб продовжити гру.', 0);
+
+                        showEventPopup(`💀`, document.getElementById('player-on-map'), {
+                            fontSize: '40px',
+                        });
                         return;
                     }
                     
@@ -1807,7 +1934,7 @@
                 const deltaHealth = player.maxHealth - player.health;
                 player.health = player.maxHealth;
                 addLog('💊 Ви повністю вилікувались!', 'system');
-                showEventPopup(`+${deltaHealth}❤️💊`, elements.playerEmoji, {
+                showEventPopup(`+${deltaHealth}❤️`, elements.playerEmoji, {
                     color: '#0f0',
                     fontSize: '22px'
                 });
@@ -1820,17 +1947,35 @@
             }
         }
 
-        // Відпочинок
-        function rest() {
-            if (player.health <= 0) {
-                addLog('📈 Ви втратили весь поточний досвід!', 'system', 'red');
-                player.xp = 0;
-            }
+        // Воскресіння
+        function resurrect() {
+            if (player.health > 0) return;
+
+            // Ховаємо кнопку воскресіння
+            elements.resurrectBtn.style.display = 'none';
+
+            const lostGold = Math.round(player.gold * 0.5);
+
+            addLog(`📈 Ви втратили ${player.xp} досвіду!`, 'system', 'red');
+            addLog(`💰 Ви втратили ${lostGold} золота!`, 'system', 'red');
+
+            /*showEventPopup(`-${player.xp}📈`, document.getElementById('player-on-map'), {
+                fontSize: '22px',
+                horizontalOffset: 20,
+            });
+            showEventPopup(`-${lostGold}💰`, document.getElementById('player-on-map'), {
+                fontSize: '22px',
+                delay: 200,
+                horizontalOffset: -50,
+            });*/
+            showGameMessage(`Ви втратили 📈 ${player.xp} досвіду і 💰 ${lostGold} золота!`, 0);
+
+            player.gold = player.gold - lostGold;
+            player.xp = 0;
             player.health = player.maxHealth;
-            addLog('🛌 Ви відпочили і повністю відновили здоров\'я!', 'system');
+            addLog('⚡ Ви воскресли і повністю відновили здоров\'я!', 'system');
             
             // Оновлюємо health bar
-            elements.playerHealthBar.style.width = '100%';
             updateStats();
             
             // Вороги також відпочивають (респавняться)
@@ -1838,12 +1983,11 @@
             respawnObstacles();
             spawnEnemies();
             updateMap();
-            //spawnArtifacts();
         }
 
         // Обробники подій
         elements.healBtn.addEventListener('click', heal);
-        elements.restBtn.addEventListener('click', rest);
+        elements.resurrectBtn.addEventListener('click', resurrect);
 
         // Глобальні функції для виклику з HTML
         window.equipItem = equipItem;
