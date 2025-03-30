@@ -226,12 +226,12 @@
         .potion-attack { color: #ff0; }
         .potion-defense { color: #0f0; }
         .potion-cell {
-            background-color: #330066;
+            background-color: #79c4f7;
             animation: potion-glow 1s infinite alternate;
         }
         @keyframes potion-glow {
-            from { box-shadow: 0 0 5px #6600cc; }
-            to { box-shadow: 0 0 20px #6600cc; }
+            from { box-shadow: 0 0 5px #79c4f7; }
+            to { box-shadow: 0 0 20px #79c4f7; }
         }
         
         /* Анімація атаки */
@@ -291,6 +291,49 @@
         .xp-popup {
             color: #88f;
         }
+
+        .fruit-cell {
+            animation: fruit-pulse 2s infinite;
+            border-radius: 50%;
+        }
+
+        @keyframes fruit-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 5px currentColor; }
+            50% { transform: scale(1.1); box-shadow: 0 0 15px currentColor; }
+            100% { transform: scale(1); box-shadow: 0 0 5px currentColor; }
+        }
+
+        /* Додаткові стилі для різних типів фруктів */
+        .fruit-cell[data-fruit="25"] { color: #ff5555; background-color: #ff5555; }
+        .fruit-cell[data-fruit="50"] { color: #ffaa00; background-color: #ffaa00; }
+        .fruit-cell[data-fruit="100"] { color: #55ff55; background-color: #55ff55; }
+
+        /* Перешкоди */
+        .obstacle-cell {
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .tree-cell {
+            background-color: #1a3a1a;
+            color: #2a8a2a;
+        }
+
+        .mountain-cell {
+            background-color: #3a3a3a;
+            color: #cccccc;
+        }
+
+        .obstacle-cell::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+        }
     </style>
     <div id="game">
         <h1>🏰 Емодзі RPG з артефактами 🏰</h1>
@@ -331,7 +374,7 @@
             
             <div class="game-column">
                 <div id="stats">
-                    <p>🏆 Рівень: <span id="level">1</span> | 💰 Золото: <span id="gold">0</span> | 📈 Досвід: <span id="xp">0</span>/<span id="xpToNext">100</span></p>
+                    <p>🏆 Рівень: <span id="level">1</span> | 💰 Золото: <span id="gold">0</span> | 📈 Досвід: <span id="xp">0</span>/<span id="xpToNext">50</span></p>
                 </div>
                 
                 <div id="equipment">
@@ -404,6 +447,12 @@
                 return maxHealth;
             }
         };
+
+        // перешкоди
+        const obstacles = [
+            { type: 'tree', emoji: '🌳', color: '#2a5a1a', name: 'Дерево' },
+            { type: 'mountain', emoji: '🗻', color: '#aaaaaa', name: 'Гора' }
+        ];
 
         // Оновлена база даних зброї з параметрами критичної шкоди
         const weapons = [
@@ -488,6 +537,34 @@
             { name: "Еліксир життя", emoji: "🧪", type: "potion_health", description: "❤+5", effect: "maxHealth", value: 5, rarity: 2, canSell: false }
         ];
 
+        // Здорове харчівництво ;)
+        const fruits = [
+            { 
+                name: "Яблуко", 
+                emoji: "🍎", 
+                healPercent: 0.25,  // 25% здоров'я
+                rarity: 1, 
+                type: "fruit",
+                color: "#ff5555"  // Червоний
+            },
+            { 
+                name: "Банан", 
+                emoji: "🍌",
+                healPercent: 0.5,   // 50% здоров'я
+                rarity: 2, 
+                type: "fruit",
+                color: "#ffeb3b"  // Жовтий
+            },
+            { 
+                name: "Виноград", 
+                emoji: "🍇", 
+                healPercent: 1.0,   // 100% здоров'я
+                rarity: 3, 
+                type: "fruit",
+                color: "#673ab7"  // Фіолетовий
+            }
+        ];
+
         // Карта гри
         const mapSize = 10;
         let gameMap = [];
@@ -534,16 +611,33 @@
             for (let y = 0; y < mapSize; y++) {
                 gameMap[y] = [];
                 for (let x = 0; x < mapSize; x++) {
-                    gameMap[y][x] = { 
-                        type: 'empty',
-                        emoji: emptyEmoji
-                    };
+                    // 15% шанс на перешкоду (дерево або гора)
+                    const isObstacle = Math.random() < 0.15;
+                    let cellContent;
+                    
+                    if (isObstacle) {
+                        const obstacleType = Math.random() < 0.7 ? 'tree' : 'mountain'; // 70% дерев, 30% гір
+                        cellContent = {
+                            type: 'obstacle',
+                            obstacle: obstacles.find(o => o.type === obstacleType),
+                            emoji: obstacleType === 'tree' ? '🌳' : '🗻',
+                            passable: false
+                        };
+                    } else {
+                        cellContent = { 
+                            type: 'empty',
+                            emoji: emptyEmoji,
+                            passable: true
+                        };
+                    }
+                    
+                    gameMap[y][x] = cellContent;
                     
                     const cell = document.createElement('div');
                     cell.className = 'map-cell';
                     cell.dataset.x = x;
                     cell.dataset.y = y;
-                    cell.textContent = emptyEmoji;
+                    cell.textContent = cellContent.emoji;
                     
                     cell.addEventListener('click', () => movePlayer(x, y));
                     
@@ -553,11 +647,14 @@
             
             // Початкова позиція гравця
             player.position = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
-            updateMap();
+
+            // Додаємо фруктові клітинки при отриманні рівня
+            spawnFruits();
             
             // Додаємо ворогів та артефакти на карту
             spawnEnemies();
             spawnArtifacts();
+            updateMap();
         }
 
         // Оновлена функція для відображення ворогів на карті
@@ -571,7 +668,17 @@
                 const y = parseInt(cell.dataset.y);
                 
                 cell.className = 'map-cell';
-                cell.textContent = emptyEmoji;
+                cell.textContent = gameMap[y][x].emoji;
+                cell.id = '';
+
+                if (gameMap[y][x].type === 'obstacle') {
+                    cell.classList.add('obstacle-cell');
+                    if (gameMap[y][x].obstacle.type === 'tree') {
+                        cell.classList.add('tree-cell');
+                    } else {
+                        cell.classList.add('mountain-cell');
+                    }
+                }
                 
                 if (visitedCells.has(`${x},${y}`)) {
                     cell.classList.add('visited-cell');
@@ -580,6 +687,7 @@
                 if (x === player.position.x && y === player.position.y) {
                     cell.textContent = player.emoji;
                     cell.classList.add('player-cell');
+                    cell.id = 'player-on-map';
                     return;
                 }
                 
@@ -603,6 +711,14 @@
                     }
                     return;
                 }
+
+                if (gameMap[y][x].type === 'fruit') {
+                    cell.textContent = gameMap[y][x].emoji;
+                    cell.classList.add('fruit-cell');
+                    cell.style.color = gameMap[y][x].color;
+                    cell.dataset.fruit = Math.floor(gameMap[y][x].fruit.healPercent * 100);
+                    return;
+                }
                 
                 if (visitedCells.has(`${x},${y}`)) {
                     cell.textContent = gameMap[y][x].emoji;
@@ -614,6 +730,12 @@
         function movePlayer(x, y) {
             if (player.health <= 0) {
                 addLog('💀 Ви мертві і не можете рухатись!', 'system');
+                return;
+            }
+
+            // Перевіряємо чи клітинка є перешкодою
+            if (gameMap[y][x].type === 'obstacle') {
+                addLog(`🚫 Не можна пройти: ${gameMap[y][x].obstacle.name}!`, 'system');
                 return;
             }
             
@@ -642,6 +764,11 @@
             // Перевіряємо чи є там артефакт
             if (gameMap[y][x].type === 'artifact') {
                 pickUpArtifact(x, y);
+                return;
+            }
+            // Перевіряємо чи є там фрукт
+            if (gameMap[y][x].type === 'fruit') {
+                pickUpFruit(x, y);
                 return;
             }
             
@@ -680,6 +807,36 @@
             updateInventory();
         }
 
+        function pickUpFruit(x, y) {
+            const fruit = gameMap[y][x].fruit;
+            const healAmount = Math.floor(player.maxHealth * fruit.healPercent);
+            const newHealth = Math.min(player.maxHealth, player.health + healAmount);
+            const actualHeal = newHealth - player.health;
+            
+            player.health = newHealth;
+            player.position = { x, y };
+            
+            // Анімація
+            showEventPopup(`+${actualHeal}❤️`, document.getElementById('player-on-map'), {
+                color: fruit.color,
+                fontSize: '24px'
+            });
+            
+            // Повідомлення з відсотком
+            let percentText = '';
+            if (fruit.healPercent === 0.25) percentText = ' (25%)';
+            else if (fruit.healPercent === 0.5) percentText = ' (50%)';
+            else percentText = ' (100%)';
+            
+            addLog(`🍏 Ви з'їли ${fruit.emoji} ${fruit.name} і відновили ${actualHeal} HP${percentText}!`, 'system');
+            
+            // Видаляємо фрукт з карти
+            gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
+            
+            updateStats();
+            updateMap();
+        }
+
         // Перевіряємо вміст клітинки
         function checkCellContent(x, y) {
             const cell = gameMap[y][x];
@@ -687,14 +844,15 @@
             if (cell.type === 'treasure') {
                 const goldFound = Math.floor(Math.random() * 10 * player.level) + 5;
                 player.gold += goldFound;
-                addLog(`💰 Ви знайшли скарб і отримали ${goldFound} золота!`, 'loot');
-                showEventPopup(`+${goldFound}💰`, elements.playerEmoji, {
+                addLog(`💰🎁 Ви знайшли скарб і отримали ${goldFound} золота!`, 'loot');
+                showEventPopup(`+${goldFound}💰🎁`, document.getElementById('player-on-map'), {
                     color: '#ff0',
                     fontSize: '20px'
                 });
                 
                 // Видаляємо скарб
                 gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
+                updateStats();
                 updateMap();
             }
         }
@@ -705,18 +863,25 @@
             
             for (let i = 0; i < enemyCount; i++) {
                 let x, y;
+                let attempts = 0;
+
                 do {
                     x = Math.floor(Math.random() * mapSize);
                     y = Math.floor(Math.random() * mapSize);
+
+                    attempts++;
+                    if (attempts > 100) break; // Захист від нескінченного циклу
                 } while (
                     (x === player.position.x && y === player.position.y) ||
                     enemies.some(e => e.position.x === x && e.position.y === y) ||
                     gameMap[y][x].type !== 'empty'
                 );
-                
-                const enemy = generateEnemy();
-                enemy.position = { x, y };
-                enemies.push(enemy);
+
+                if (attempts <= 100) {
+                    const enemy = generateEnemy();
+                    enemy.position = { x, y };
+                    enemies.push(enemy);
+                }
             }
         }
 
@@ -726,39 +891,141 @@
             
             for (let i = 0; i < artifactCount; i++) {
                 let x, y;
+                let attempts = 0;
+
                 do {
                     x = Math.floor(Math.random() * mapSize);
                     y = Math.floor(Math.random() * mapSize);
+
+                    attempts++;
+                    if (attempts > 100) break; // Захист від нескінченного циклу
                 } while (
                     (x === player.position.x && y === player.position.y) ||
                     enemies.some(e => e.position.x === x && e.position.y === y) ||
                     gameMap[y][x].type !== 'empty'
                 );
                 
-                const artifact = generateArtifact();
-                gameMap[y][x] = {
-                    type: 'artifact',
-                    emoji: artifact.emoji,
-                    artifact: artifact
-                };
+                if (attempts <= 100) {
+                    const artifact = generateArtifact();
+                    gameMap[y][x] = {
+                        type: 'artifact',
+                        emoji: artifact.emoji,
+                        artifact: artifact
+                    };
+                }
             }
             
             // Додаємо скарби
             for (let i = 0; i < 3; i++) {
                 let x, y;
+                let attempts = 0;
+
                 do {
                     x = Math.floor(Math.random() * mapSize);
                     y = Math.floor(Math.random() * mapSize);
+
+                    attempts++;
+                    if (attempts > 100) break; // Захист від нескінченного циклу
                 } while (
                     (x === player.position.x && y === player.position.y) ||
                     enemies.some(e => e.position.x === x && e.position.y === y) ||
                     gameMap[y][x].type !== 'empty'
                 );
                 
-                gameMap[y][x] = { type: 'treasure', emoji: '💰' };
+                if (attempts <= 100) {
+                    gameMap[y][x] = { type: 'treasure', emoji: '💰' };
+                }
             }
             
             updateMap();
+        }
+
+        function spawnFruits() {
+            // Кількість фруктів залежить від рівня
+            const fruitCount = 2 + Math.floor(player.level / 3);
+            
+            for (let i = 0; i < fruitCount; i++) {
+                let x, y;
+                let attempts = 0;
+
+                do {
+                    x = Math.floor(Math.random() * mapSize);
+                    y = Math.floor(Math.random() * mapSize);
+
+                    attempts++;
+                    if (attempts > 100) break; // Захист від нескінченного циклу
+                } while (
+                    (x === player.position.x && y === player.position.y) ||
+                    enemies.some(e => e.position.x === x && e.position.y === y) ||
+                    gameMap[y][x].type !== 'empty'
+                );
+                
+                if (attempts <= 100) {
+                    // Вибираємо фрукт з урахуванням рідкості (вищі рівні - кращі фрукти)
+                    const rarityRoll = Math.random();
+                    let fruitType;
+                    
+                    if (rarityRoll > 0.9 && player.level > 3) {       // 10% шанс на виноград (рівень > 3)
+                        fruitType = fruits.find(f => f.healPercent === 1.0);
+                    } else if (rarityRoll > 0.6) {                   // 30% шанс на банан
+                        fruitType = fruits.find(f => f.healPercent === 0.5);
+                    } else {                                         // 60% шанс на яблуко
+                        fruitType = fruits.find(f => f.healPercent === 0.25);
+                    }
+                    
+                    gameMap[y][x] = {
+                        type: 'fruit',
+                        emoji: fruitType.emoji,
+                        fruit: fruitType,
+                        color: fruitType.color  // Зберігаємо колір для анімації
+                    };
+                }
+            }
+            
+            addLog(`🍇 На карті з'явились корисні фрукти! Вони відновлять відсоток вашого здоров'я.`, 'system');
+            updateMap();
+        }
+
+        function respawnObstacles() {
+            // Видаляємо 20-30% старих перешкод
+            for (let y = 0; y < mapSize; y++) {
+                for (let x = 0; x < mapSize; x++) {
+                    if (gameMap[y][x].type === 'obstacle' && Math.random() < 0.25) {
+                        gameMap[y][x] = { 
+                            type: 'empty',
+                            emoji: emptyEmoji,
+                            passable: true
+                        };
+                    }
+                }
+            }
+            
+            // Додаємо нові перешкоди
+            const newObstacles = Math.floor(mapSize * mapSize * 0.1); // 10% клітинок
+            for (let i = 0; i < newObstacles; i++) {
+                let x, y;
+                let attempts = 0;
+                do {
+                    x = Math.floor(Math.random() * mapSize);
+                    y = Math.floor(Math.random() * mapSize);
+                    attempts++;
+                    if (attempts > 100) break;
+                } while (
+                    (x === player.position.x && y === player.position.y) ||
+                    enemies.some(e => e.position.x === x && e.position.y === y) ||
+                    gameMap[y][x].type !== 'empty'
+                );
+                
+                if (attempts <= 100) {
+                    const obstacleType = Math.random() < 0.7 ? 'tree' : 'mountain';
+                    gameMap[y][x] = {
+                        type: 'obstacle',
+                        obstacle: obstacles.find(o => o.type === obstacleType),
+                        emoji: obstacleType === 'tree' ? '🌳' : '🗻',
+                        passable: false
+                    };
+                }
+            }
         }
 
         // Додаємо повідомлення до журналу
@@ -770,8 +1037,32 @@
             if (alertColor) {
                 logEntry.style.backgroundColor = alertColor;
             }
+
+            // видаляємо старіші записи з логу
+            if (elements.log.children.length > 300) {
+                while (elements.log.children.length > 50) {
+                    elements.log.removeChild(elements.log.firstChild);
+                }
+            }
+
             elements.log.appendChild(logEntry);
             elements.log.scrollTop = elements.log.scrollHeight;
+        }
+
+        // функція розрахунку досвіду для рівня
+        function getXpByLevel(level) {
+            const baseXp = 50;
+            const growthRate = 1.5;
+            const rawXp = baseXp * Math.pow(growthRate, level - 1);
+
+            // Автоматичне округлення до приємного масштабу
+            let roundingStep = 10;
+            if (rawXp >= 1000) {
+                roundingStep = Math.pow(10, Math.floor(Math.log10(rawXp)));
+                if (rawXp < roundingStep * 2) roundingStep /= 10;
+            }
+
+            return Math.round(rawXp / roundingStep) * roundingStep;
         }
 
         // Оновлюємо статистику гравця на екрані
@@ -901,7 +1192,8 @@
             player.inventory.splice(index, 1);
             
             addLog(`💰 Ви продали ${item.emoji} ${item.name} за ${sellPrice} золота`, 'sell');
-            showEventPopup(`+${sellPrice}💰`, elements.playerEmoji, {
+            // сповіщення продажу
+            showEventPopup(`+${sellPrice}💰`, document.getElementById('player-on-map'), {
                 color: '#ff0',
                 fontSize: '20px'
             });
@@ -972,6 +1264,12 @@
                 // Якщо це не еліксир, екіпіруємо як звичайний предмет
                 equipItem(index);
                 return;
+            }
+
+            if (['potion_attack', 'potion_defense', 'potion_health'].includes(item.type)) {
+                showEventPopup(`${item.description}`, document.getElementById('player-on-map'), {
+                    color: '#f00',
+                });
             }
             
             // Видаляємо еліксир з інвентаря
@@ -1210,12 +1508,19 @@
                 // Модифікатори від здібностей ворога
                 if (enemy.abilities.includes('flying') && Math.random() < 0.25) {
                     addLog(`🦅 ${enemy.emoji} ${enemy.type} ухилився від вашої атаки!`, 'enemy');
+                    showEventPopup(`💨`, elements.enemyEmoji, {
+                        color: '#f00',
+                    });
                     playerDamage = 0;
                 }
                 
                 // Хвороба знижує атаку на 75% але лише не критичні
                 if (!isCritical && enemy.abilities.includes('disease') && Math.random() < 0.3) {
                     addLog(`🤢 ${enemy.emoji} ${enemy.type} послабив вашу атаку хворобою!`, 'enemy', '#124f12');
+                    showEventPopup(`🤢`, elements.enemyEmoji, {
+                        color: '#f00',
+                        horizontalOffset: -30
+                    });
                     playerDamage = Math.max(1, Math.round(playerDamage * 0.25));
                 }
                 
@@ -1259,13 +1564,13 @@
                     player.xp += enemy.xp;
                     addLog(`💰 Ви отримали ${enemy.gold} золота і ${enemy.xp} досвіду.`, 'loot');
                     
-                    showEventPopup(`+${enemy.gold}💰`, elements.playerEmoji, {
+                    showEventPopup(`+${enemy.gold}💰`, document.getElementById('player-on-map'), {
                         color: '#ff0',
                         fontSize: '20px',
                         delay: 500,
                         horizontalOffset: -25
                     });
-                    showEventPopup(`+${enemy.xp}📈`, elements.playerEmoji, {
+                    showEventPopup(`+${enemy.xp}📈`, document.getElementById('player-on-map'), {
                         color: '#88f',
                         fontSize: '18px',
                         delay: 750,
@@ -1310,12 +1615,21 @@
                     let enemyDamage = Math.max(1, enemy.attack - player.defense + Math.floor(Math.random() * 5) - 2);
                     
                     // Спеціальні атаки
-                    if (enemy.abilities.includes('strong')) {
+                    if (enemy.abilities.includes('strong') && Math.random() < 0.5) {
                         enemyDamage = Math.floor(enemyDamage * 1.3);
+                        showEventPopup(`💪`, elements.playerEmoji, {
+                            color: '#f00',
+                            horizontalOffset: 25
+                        });
                     }
                     if (enemy.abilities.includes('fire_breath') && Math.random() < 0.25) {
                         const fireDamage = Math.floor(enemyDamage * 0.5);
                         enemyDamage += fireDamage;
+                        showEventPopup(`+${fireDamage}🔥`, elements.enemyEmoji, {
+                            color: '#f00',
+                            delay: 200,
+                            horizontalOffset: 25
+                        });
                         addLog(`[${iteration}] 🔥 ${enemy.emoji} ${enemy.type} використовує вогняне дихання (+${fireDamage} шкоди)!`, 'enemy');
                     }
                     if (enemy.abilities.includes('poison') && Math.random() < 0.3) {
@@ -1327,7 +1641,12 @@
                         const suckDamage = Math.max(1, Math.floor(enemyDamage * 0.333));
                         player.health -= suckDamage;
                         enemy.health = Math.min(enemy.maxHealth, enemy.health + suckDamage);
+                        showEventPopup(`+${suckDamage}🩸`, elements.enemyEmoji, {
+                            color: '#f00',
+                            delay: 50,
+                        });
                         addLog(`[${iteration}] 🩸 ${enemy.emoji} ${enemy.type} п'є Вашу кров (-${suckDamage} життя)!`, 'enemy', '#470505');
+                        updateEnemyStats(enemy);
                     }
                     
                     player.health -= enemyDamage;
@@ -1344,7 +1663,13 @@
                     if (enemy.abilities.includes('regeneration') && Math.random() < 0.5) {
                         const healAmount = Math.floor(enemy.maxHealth * 0.1);
                         enemy.health = Math.min(enemy.maxHealth, enemy.health + healAmount);
+                        showEventPopup(`+${healAmount}💚`, elements.enemyEmoji, {
+                            color: '#0f0',
+                            delay: 200,
+                            horizontalOffset: 25
+                        });
                         addLog(`💚 ${enemy.emoji} ${enemy.type} відновлює ${healAmount} здоров'я!`, 'enemy');
+                        updateEnemyStats(enemy);
                     }
                     
                     // Оновлюємо health bar гравця
@@ -1442,14 +1767,14 @@
             if (player.xp >= player.xpToNext) {
                 player.level++;
                 player.xp -= player.xpToNext;
-                player.xpToNext = Math.floor(player.xpToNext * 1.4);  // Зменшено множник досвіду
+                player.xpToNext = getXpByLevel(player.level);//Math.floor(player.xpToNext * 1.4);  // Зменшено множник досвіду
                 player.baseAttack += 1;  // Зменшено приріст атаки за рівень
                 player.baseDefense += 1; // Зменшено приріст захисту за рівень
                 const oldMaxHealth = player.maxHealth;
                 player.health += 5;  // Зменшено приріст здоров'я за рівень
                 
                 addLog(`✨ Вітаємо! Ви досягли ${player.level} рівня! Ваші характеристики зросли.`, 'system');
-                showEventPopup(`✨ ${player.level} ✨`, elements.playerEmoji, {
+                showEventPopup(`✨ ${player.level} ✨`, document.getElementById('player-on-map'), {
                     color: '#ff0',
                     fontSize: '20px',
                     delay: 1000,
@@ -1460,6 +1785,11 @@
                 if (oldMaxHealth < player.maxHealth) {
                     addLog(`❤️ Ваше максимальне здоров'я збільшилось до ${player.maxHealth}`, 'system');
                 }
+                // заліковуємо рани
+                player.health = player.maxHealth;
+
+                // Додаємо фруктові клітинки при отриманні рівня
+                spawnFruits();
                 updateStats();
                 
                 // Оновлюємо карту з новими ворогами та артефактами
@@ -1477,7 +1807,7 @@
                 const deltaHealth = player.maxHealth - player.health;
                 player.health = player.maxHealth;
                 addLog('💊 Ви повністю вилікувались!', 'system');
-                showEventPopup(`+${deltaHealth}💊`, elements.playerEmoji, {
+                showEventPopup(`+${deltaHealth}❤️💊`, elements.playerEmoji, {
                     color: '#0f0',
                     fontSize: '22px'
                 });
@@ -1505,6 +1835,7 @@
             
             // Вороги також відпочивають (респавняться)
             enemies = [];
+            respawnObstacles();
             spawnEnemies();
             updateMap();
             //spawnArtifacts();
