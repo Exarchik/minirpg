@@ -169,6 +169,12 @@
             background-color: #252525;
             border-radius: 5px;
         }
+        /*.inventory-item > div {
+            display: inline-block;
+        }*/
+        .item-desc {
+            padding-left: 5px;
+        }
         .item-slot {
             display: inline-block;
             margin: 5px;
@@ -177,6 +183,7 @@
             border-radius: 3px;
             cursor: pointer;
             position: relative;
+            text-align: center;
         }
         .item-slot:hover {
             background-color: #555;
@@ -188,11 +195,12 @@
         .item-actions {
             display: none;
             position: absolute;
-            top: 30px;
+            top: 80%;
             left: 0;
             background-color: #555;
             border-radius: 3px;
             z-index: 10;
+            border: 1px #009fff solid;
         }
         .item-slot:hover .item-actions {
             display: block;
@@ -219,6 +227,15 @@
             min-width: 60px;
             text-align: center;
         }
+        /*.equipment-slot {
+            display: block;
+            padding: 5px 5px 25px 5px;
+            background-color: #3a3a3a;
+            border-radius: 3px;
+            min-width: 60px;
+            text-align: center;
+            position: relative;
+        }*/
         #map-container {
             margin: 15px 0;
             position: relative;
@@ -291,6 +308,16 @@
             font-size: 12px;
             color: #f8f;
         }
+        /*.artifact-bonus {
+            font-size: 16px;
+            color: #ffffff;
+            position: absolute;
+            display: block;
+            bottom: 2px;
+            width: 100%;
+            text-shadow: 2px 2px #000;
+            padding-right: 10px;
+        }*/
         
         /* Стилі для критичної шкоди */
         .critical-hit {
@@ -455,8 +482,13 @@
                             <span class="emoji-replace" data-emoji="🛡️" data-size="20px">ЗАХ</span>: <span id="defense-display">5</span> | 
                             <span class="emoji-replace" data-emoji="❤️" data-size="20px">❤️</span>: <span id="max-health-display">100</span>
                         </div>
+                        <div id="stats" class="stats">
+                            <span class="emoji-replace" data-emoji="👑" data-size="20px">👑</span>: <span id="level">1</span> |
+                            <span class="emoji-replace" data-emoji="💰" data-size="20px">💰</span>: <span id="gold">0</span> |
+                            <span class="emoji-replace" data-emoji="📈" data-size="20px">📈</span>: <span id="xp">0</span>/<span id="xpToNext">50</span>
+                        </div>
                     </div>
-                    <div id="vs">⚔️</div>
+                    <div id="vs"><span class="emoji-replace" data-emoji="⚔️" data-size="64px">⚔️</span></div>
                     <div id="enemy-view" style="display: block;">
                         <div id="enemy-emoji">👤</div>
                         <div class="health-bar">
@@ -477,10 +509,6 @@
             </div>
             
             <div class="game-column">
-                <div id="stats">
-                    <p>🏆 Рівень: <span id="level">1</span> | 💰 Золото: <span id="gold">0</span> | 📈 Досвід: <span id="xp">0</span>/<span id="xpToNext">50</span></p>
-                </div>
-                
                 <div id="equipment">
                     <div>⚔️ Зброя: <span id="weapon-slot" class="equipment-slot">Пусто</span></div>
                     <div>🛡️ Броня: <span id="armor-slot" class="equipment-slot">Пусто</span></div>
@@ -554,10 +582,102 @@
 
         // бібліотека емоджі
         const emojiReplacer = [
+                // базові
             { type: '❤️', image: 'health.png' },
             { type: '⚔️', image: 'attack.png' },
             { type: '🛡️', image: 'defense.png' },
+            { type: '👑', image: 'crown.png' },
+            { type: '📈', image: 'xp.png' },
             { type: '🧙‍♂️', image: 'wizard.png' },
+            { type: '🍎', image: 'red-apple.png' },
+                // фрукти
+            { type: '🍌', image: 'banana.png' },
+            { type: '🍇', image: 'grapes.png' },
+            { type: '💰', image: 'money-sack.png' },
+                // weapon
+            { type: '🗡', subtype: 1, image: 'wooden-sword.png' },
+            { type: '🔪', subtype: 1, image: 'weapon-dagger.png' },
+            { type: '🏏', subtype: 3, image: 'weapon-club.png' },
+            { type: '🪓', subtype: 4, image: 'weapon-axe.png' },
+            { type: '🔱', subtype: 5, image: 'weapon-spear.png' },
+            { type: '🗡️', subtype: 6, image: 'weapon-sword.png' },
+            { type: '🏏', subtype: 7, image: 'weapon-flail.png' },
+            { type: '🔨', subtype: 8, image: 'weapon-hammer.png' },
+            { type: '🏹', subtype: 9, image: 'weapon-bow.png' },
+            { type: '🎯', subtype: 10, image: 'weapon-crossbow.png' },
+            { type: '🗡', subtype: 11, image: 'weapon-katana.png' },
+            { type: '🗡🔥', subtype: 12, image: 'weapon-firesword.png' },
+            { type: '🗡✨', subtype: 13, image: 'weapon-myth-sword.png' },
+                // броня
+            { type: '🥼', subtype: 1, image: 'armor-cloak.png' },
+            { type: '🧥', subtype: 2, image: 'leather-armor.png' },
+            { type: '⛓️', subtype: 3, image: 'armor-chainmail.png' },
+            { type: '⛓️', subtype: 4, image: 'scale-armour.png' },
+            { type: '🛡️🛡️', subtype: 5, image: 'armor-cuirass.png' },
+            { type: '🛡️🛡️', subtype: 6, image: 'plate-armor.png' },
+            { type: '🛡️👑', subtype: 7, image: 'armor-of-myth.png' },
+            { type: '🐉⛓️', subtype: 8, image: 'dragon-armor.png' },
+            { type: '🛡️🌟', subtype: 9, image: 'legendary-armor.png' },
+            { type: '🛡️✨', subtype: 10, image: 'elven-armor.png' },
+                // кільця
+            { type: '💍', subtype: 1, image: 'copper-ring.png' },
+            { type: '💍', subtype: 2, image: 'silver-ring.png' },
+            { type: '💍', subtype: 3, image: 'ring-of-strength.png' },
+            { type: '💍', subtype: 4, image: 'ring-of-defense.png' },
+            { type: '💍', subtype: 5, image: 'ring-of-warrior.png' },
+            { type: '💍', subtype: 6, image: 'ring-of-wizard.png' },
+            { type: '💍🌟', subtype: 7, image: 'ring-of-titan.png' },
+            { type: '💍🐉', subtype: 8, image: 'ring-of-dragon.png' },
+            { type: '💍✨', subtype: 9, image: 'ring-of-immortality.png' },
+                // Амулети
+            { type: '📿', subtype: 1, image: 'wooden-amulet.png' },
+            { type: '📿', subtype: 2, image: 'amulet-of-health.png' },
+            { type: '📿', subtype: 3, image: 'amulet-of-warrior.png' },
+            { type: '📿', subtype: 4, image: 'amulet-of-wisdom.png' },
+            { type: '📿', subtype: 5, image: 'amulet-of-berserk.png' },
+            { type: '📿', subtype: 6, image: 'amulet-of-protection.png' },
+            { type: '📿', subtype: 7, image: 'amulet-of-balanse.png' },
+            { type: '📿🌟', subtype: 8, image: 'amulet-of-immortality.png' },
+            { type: '📿🔥', subtype: 9, image: 'amulet-of-phoenix.png' },
+                // книги
+            { type: '📖', image: 'book.png' },
+                // релікти
+            { type: '🏆', subtype: 1, image: 'relic-01.png' },
+            { type: '🏆', subtype: 2, image: 'relic-02.png' },
+            { type: '🏆', subtype: 3, image: 'relic-03.png' },
+            { type: '🏆', subtype: 4, image: 'relic-04.png' },
+            { type: '🏆🐉', subtype: 5, image: 'relic-05.png' },
+            { type: '🏆🌟', subtype: 6, image: 'relic-06.png' },
+            { type: '👑🔥', subtype: 7, image: 'relic-07.png' },
+            { type: '🔮', subtype: 8, image: 'relic-08.png' },
+
+            // монстри
+                // звичайні
+            { type: '👺', image: 'goblin.png' },
+            { type: '💀💀', image: 'skeleton.png' },
+            { type: '🐕', image: 'wolf.png' },
+            { type: '🕷️', image: 'spider.png' },
+            { type: '🐀', image: 'rat.png' },
+            { type: '🧟', image: 'zombie.png' },
+            { type: '👻', image: 'ghost.png' },
+            { type: '🦅', image: 'harpy.png' },
+            { type: '🦎', image: 'cobold.png' },
+                // елітні
+            { type: '👹', image: 'orc.png' },
+            { type: '🤢🤢', image: 'troll.png' },
+            { type: '🐺', image: 'varg.png' },
+            { type: '🧛', image: 'vampire.png' },
+            { type: '😈', image: 'demon.png' },
+                // боси
+            { type: '🐉', image: 'dragon.png' },
+            { type: '🎃', image: 'pumpkinhead.png' },
+            { type: '🤬', image: 'archidemon.png' },
+            { type: '🕸️', image: 'spider-queen.png' },
+
+            // зілля
+            { type: '🧪', subtype: 1, image: 'potion-1.png' },
+            { type: '🧪', subtype: 2, image: 'potion-2.png' },
+            { type: '🧪', subtype: 3, image: 'potion-3.png' },
         ];
 
         function emojiReplace() {
@@ -568,9 +688,26 @@
             });
         }
 
-        function addEmoji(emoji = '❤️', size = '16px') {
+        // замінник для емоджі
+        function addEmoji(emoji = '❤️', size = '16px', subtype = 0) {
+            // шукаєм картинку у емоджі реплейсері
             let imgData = emojiReplacer.find(er => er.type == emoji);
-            return `<img class='emoji-replaced' src='/templates/img/${imgData.image}' width='${size}'/>`;
+            // якщо картінка є продовжуєм
+            if (typeof imgData != 'undefined') {
+                // якщо для однієї емоджі можуть буть кілька варіантів
+                if (subtype != 0) {
+                    // шукаєм саме цей варіант
+                    let imgData2 = emojiReplacer.filter(er => er.type == emoji).find(er2 => er2.subtype == subtype);
+                    // використовуєм його або лишаем той шо вже є
+                    if (typeof imgData2 != 'undefined') {
+                        imgData = {...imgData2};
+                    }
+                }
+                // замінюєм емоджі
+                return `<img class='emoji-replaced' src='/templates/img/minirpg/clay/${imgData.image}' width='${size}'/>`;
+            }
+            // лишаєм емоджі якщо нічо немає
+            return emoji;
         }
 
         // перешкоди
@@ -581,85 +718,85 @@
 
         // Оновлена база даних зброї з параметрами критичної шкоди
         const weapons = [
-            { name: "Дерев'яний меч", emoji: "🔪", attack: 1, critChance: 0.05, rarity: 1, value: 3, type: "weapon" },
-            { name: "Кинджал", emoji: "🔪", attack: 2, critChance: 0.15, rarity: 1, value: 5, type: "weapon" },
-            { name: "Булава", emoji: "🏏", attack: 3, critChance: 0.08, rarity: 2, value: 8, type: "weapon" },
-            { name: "Сокира", emoji: "🪓", attack: 4, critChance: 0.1, rarity: 2, value: 10, type: "weapon" },
-            { name: "Меч", emoji: "⚔️", attack: 5, critChance: 0.1, rarity: 3, value: 15, type: "weapon" },
-            { name: "Спис", emoji: "🔱", attack: 6, critChance: 0.12, rarity: 3, value: 18, type: "weapon" },
-            { name: "Двосічний меч", emoji: "🗡️", attack: 7, critChance: 0.1, rarity: 4, value: 25, type: "weapon" },
-            { name: "Бойовий молот", emoji: "🔨", attack: 8, critChance: 0.07, rarity: 4, value: 30, type: "weapon" },
-            { name: "Лук", emoji: "🏹", attack: 6, critChance: 0.2, rarity: 3, value: 20, type: "weapon" },
-            { name: "Арбалет", emoji: "🎯", attack: 8, critChance: 0.25, rarity: 4, value: 35, type: "weapon" },
-            { name: "Катана", emoji: "🗡", attack: 9, critChance: 0.15, rarity: 5, value: 45, type: "weapon" },
-            { name: "Легендарний меч", emoji: "⚔️🌟", attack: 12, critChance: 0.15, rarity: 5, value: 60, type: "weapon" },
-            { name: "Міфічний клинок", emoji: "🗡✨", attack: 15, critChance: 0.2, rarity: 6, value: 100, type: "weapon" }
+            { name: "Дерев'яний меч", emoji: "🗡", subtype: 1, attack: 1, critChance: 0.05, rarity: 1, value: 3, type: "weapon" },
+            { name: "Кинджал", emoji: "🔪", subtype: 2, attack: 2, critChance: 0.15, rarity: 1, value: 5, type: "weapon" },
+            { name: "Дубець", emoji: "🏏", subtype: 3, attack: 3, critChance: 0.08, rarity: 2, value: 8, type: "weapon" },
+            { name: "Сокира", emoji: "🪓", subtype: 4, attack: 4, critChance: 0.1, rarity: 2, value: 10, type: "weapon" },
+            { name: "Спис", emoji: "🔱", subtype: 5, attack: 5, critChance: 0.1, rarity: 3, value: 15, type: "weapon" },
+            { name: "Меч", emoji: "🗡️", subtype: 6, attack: 6, critChance: 0.12, rarity: 3, value: 18, type: "weapon" },
+            { name: "Обушок", emoji: "🏏", subtype: 7, attack: 7, critChance: 0.1, rarity: 4, value: 25, type: "weapon" },
+            { name: "Бойовий молот", emoji: "🔨", subtype: 8, attack: 8, critChance: 0.07, rarity: 4, value: 30, type: "weapon" },
+            { name: "Лук", emoji: "🏹", subtype: 9, attack: 6, critChance: 0.2, rarity: 3, value: 20, type: "weapon" },
+            { name: "Арбалет", emoji: "🎯", subtype: 10, attack: 8, critChance: 0.25, rarity: 4, value: 35, type: "weapon" },
+            { name: "Катана", emoji: "🗡", subtype: 11, attack: 9, critChance: 0.15, rarity: 5, value: 45, type: "weapon" },
+            { name: "Вогняний меч", emoji: "🗡🔥", subtype: 12, attack: 12, critChance: 0.15, rarity: 5, value: 60, type: "weapon" },
+            { name: "Міфічний клинок", emoji: "🗡✨", subtype: 13, attack: 15, critChance: 0.2, rarity: 6, value: 100, type: "weapon" }
         ];
 
         // Розширена база даних броні
         const armors = [
-            { name: "Шкіряний жилет", emoji: "🧥", defense: 1, rarity: 1, value: 3, type: "armor" },
-            { name: "Шкіряна броня", emoji: "🧥", defense: 2, rarity: 1, value: 5, type: "armor" },
-            { name: "Кольчуга", emoji: "⛓️", defense: 3, rarity: 2, value: 8, type: "armor" },
-            { name: "Латні рукавиці", emoji: "🧤", defense: 1, rarity: 1, value: 4, type: "armor" },
-            { name: "Латний шолом", emoji: "⛑️", defense: 2, rarity: 2, value: 6, type: "armor" },
-            { name: "Латна броня", emoji: "🛡️", defense: 5, rarity: 3, value: 15, type: "armor" },
-            { name: "Міфічна броня", emoji: "👑", defense: 7, rarity: 4, value: 25, type: "armor" },
-            { name: "Драконяча шкура", emoji: "🐉", defense: 8, rarity: 4, value: 35, type: "armor" },
-            { name: "Легендарна броня", emoji: "🛡️🌟", defense: 10, rarity: 5, value: 50, type: "armor" },
-            { name: "Броня архонта", emoji: "🛡✨", defense: 13, rarity: 6, value: 90, type: "armor" }
+            { name: "Плащ", emoji: "🥼", subtype: 1, defense: 1, rarity: 1, value: 3, type: "armor" },
+            { name: "Шкіряна броня", emoji: "🧥", subtype: 2, defense: 2, rarity: 1, value: 5, type: "armor" },
+            { name: "Кольчуга", emoji: "⛓️", subtype: 3, defense: 3, rarity: 2, value: 8, type: "armor" },
+            { name: "Луската броня", emoji: "⛓️", subtype: 4, defense: 4, rarity: 2, value: 10, type: "armor" },
+            { name: "Кіраса", emoji: "🛡️🛡️", subtype: 5, defense: 5, rarity: 3, value: 15, type: "armor" },
+            { name: "Латна броня", emoji: "🛡️🛡️", subtype: 6, defense: 6, rarity: 3, value: 20, type: "armor" },
+            { name: "Міфічна броня", emoji: "🛡️👑", subtype: 7, defense: 7, rarity: 4, value: 25, type: "armor" },
+            { name: "Драконяча шкура", emoji: "🐉⛓️", subtype: 8, defense: 8, rarity: 4, value: 35, type: "armor" },
+            { name: "Легендарна броня", emoji: "🛡️🌟", subtype: 9, defense: 10, rarity: 5, value: 50, type: "armor" },
+            { name: "Ельфійська броня", emoji: "🛡️✨", subtype: 10, defense: 13, rarity: 6, value: 90, type: "armor" }
         ];
 
         // Розширена база даних артефактів
         const artifacts = [
             // Кільця
-            { name: "Мідне кільце", emoji: "💍", attack: 1, rarity: 1, value: 5, type: "ring" },
-            { name: "Срібне кільце", emoji: "💍", defense: 1, rarity: 1, value: 5, type: "ring" },
-            { name: "Кільце сили", emoji: "💍", attack: 2, rarity: 2, value: 10, type: "ring" },
-            { name: "Кільце захисту", emoji: "💍", defense: 2, rarity: 2, value: 10, type: "ring" },
-            { name: "Кільце воїна", emoji: "💍", attack: 3, defense: 1, rarity: 3, value: 20, type: "ring" },
-            { name: "Кільце мага", emoji: "💍", attack: 1, defense: 3, rarity: 3, value: 20, type: "ring" },
-            { name: "Кільце титана", emoji: "💍🌟", attack: 4, defense: 4, rarity: 5, value: 50, type: "ring" },
-            { name: "Кільце дракона", emoji: "💍🐉", attack: 5, defense: 3, rarity: 5, value: 60, type: "ring" },
-            { name: "Кільце безсмертя", emoji: "💍✨", attack: 3, defense: 5, maxHealth: 10, rarity: 6, value: 80, type: "ring" },
+            { name: "Мідне кільце", emoji: "💍", subtype: 1, attack: 1, rarity: 1, value: 5, type: "ring" },
+            { name: "Срібне кільце", emoji: "💍", subtype: 2, defense: 1, rarity: 1, value: 5, type: "ring" },
+            { name: "Кільце сили", emoji: "💍", subtype: 3, attack: 2, rarity: 2, value: 10, type: "ring" },
+            { name: "Кільце захисту", emoji: "💍", subtype: 4, defense: 2, rarity: 2, value: 10, type: "ring" },
+            { name: "Кільце воїна", emoji: "💍", subtype: 5, attack: 3, defense: 1, rarity: 3, value: 20, type: "ring" },
+            { name: "Кільце мага", emoji: "💍", subtype: 6, attack: 1, defense: 3, rarity: 3, value: 20, type: "ring" },
+            { name: "Кільце титана", emoji: "💍🌟", subtype: 7, attack: 4, defense: 4, rarity: 5, value: 50, type: "ring" },
+            { name: "Кільце дракона", emoji: "💍🐉", subtype: 8, attack: 5, defense: 3, rarity: 5, value: 60, type: "ring" },
+            { name: "Кільце безсмертя", emoji: "💍✨", subtype: 9, attack: 3, defense: 5, maxHealth: 10, rarity: 6, value: 80, type: "ring" },
             
             // Амулети
-            { name: "Дерев'яний амулет", emoji: "📿", maxHealth: 5, rarity: 1, value: 8, type: "amulet" },
-            { name: "Амулет здоров'я", emoji: "📿", maxHealth: 10, rarity: 2, value: 15, type: "amulet" },
-            { name: "Амулет воїна", emoji: "📿", attack: 2, maxHealth: 5, rarity: 2, value: 18, type: "amulet" },
-            { name: "Амулет мудрості", emoji: "📿", defense: 2, maxHealth: 5, rarity: 2, value: 18, type: "amulet" },
-            { name: "Амулет берсерка", emoji: "📿", attack: 4, defense: -1, rarity: 3, value: 25, type: "amulet" },
-            { name: "Амулет захисника", emoji: "📿", defense: 4, attack: -1, rarity: 3, value: 25, type: "amulet" },
-            { name: "Амулет балансу", emoji: "📿", attack: 2, defense: 2, maxHealth: 10, rarity: 4, value: 40, type: "amulet" },
-            { name: "Амулет безсмертя", emoji: "📿🌟", maxHealth: 25, rarity: 5, value: 70, type: "amulet" },
-            { name: "Амулет фенікса", emoji: "📿🔥", maxHealth: 30, attack: 3, rarity: 6, value: 100, type: "amulet" },
+            { name: "Дерев'яний амулет", emoji: "📿", subtype: 1, maxHealth: 5, rarity: 1, value: 8, type: "amulet" },
+            { name: "Амулет здоров'я", emoji: "📿", subtype: 2, maxHealth: 10, rarity: 2, value: 15, type: "amulet" },
+            { name: "Амулет воїна", emoji: "📿", subtype: 3, attack: 2, maxHealth: 5, rarity: 2, value: 18, type: "amulet" },
+            { name: "Амулет мудрості", emoji: "📿", subtype: 4, defense: 2, maxHealth: 5, rarity: 2, value: 18, type: "amulet" },
+            { name: "Амулет берсерка", emoji: "📿", subtype: 5, attack: 4, defense: -1, rarity: 3, value: 25, type: "amulet" },
+            { name: "Амулет захисника", emoji: "📿", subtype: 6, defense: 4, attack: -1, rarity: 3, value: 25, type: "amulet" },
+            { name: "Амулет балансу", emoji: "📿", subtype: 7, attack: 2, defense: 2, maxHealth: 10, rarity: 4, value: 40, type: "amulet" },
+            { name: "Амулет безсмертя", emoji: "📿🌟", subtype: 8, maxHealth: 25, rarity: 5, value: 70, type: "amulet" },
+            { name: "Амулет фенікса", emoji: "📿🔥", subtype: 9, maxHealth: 30, attack: 3, rarity: 6, value: 100, type: "amulet" },
             
             // Книги
-            { name: "Книга початківця", emoji: "📖", attack: 1, defense: 1, rarity: 1, value: 10, type: "book" },
-            { name: "Книга мечників", emoji: "📖", attack: 3, rarity: 2, value: 20, type: "book" },
-            { name: "Книга захисників", emoji: "📖", defense: 3, rarity: 2, value: 20, type: "book" },
-            { name: "Книга знань", emoji: "📖", attack: 2, defense: 2, rarity: 3, value: 30, type: "book" },
-            { name: "Книга воєнних мистецтв", emoji: "📖", attack: 5, defense: 1, rarity: 4, value: 50, type: "book" },
-            { name: "Книга древніх", emoji: "📖", defense: 5, attack: 1, rarity: 4, value: 50, type: "book" },
-            { name: "Заборонений фоліант", emoji: "📖🌟", attack: 5, defense: 5, maxHealth: 15, rarity: 5, value: 100, type: "book" },
-            { name: "Книга пророцтв", emoji: "📖🔮", attack: 7, defense: 7, maxHealth: 20, rarity: 6, value: 150, type: "book" },
+            { name: "Книга початківця", emoji: "📖", subtype: 1, attack: 1, defense: 1, rarity: 1, value: 10, type: "book" },
+            { name: "Книга мечників", emoji: "📖", subtype: 2, attack: 3, rarity: 2, value: 20, type: "book" },
+            { name: "Книга захисників", emoji: "📖", subtype: 3, defense: 3, rarity: 2, value: 20, type: "book" },
+            { name: "Книга знань", emoji: "📖", subtype: 4, attack: 2, defense: 2, rarity: 3, value: 30, type: "book" },
+            { name: "Книга воєнних мистецтв", emoji: "📖", subtype: 5, attack: 5, defense: 1, rarity: 4, value: 50, type: "book" },
+            { name: "Книга древніх", emoji: "📖", subtype: 6, defense: 5, attack: 1, rarity: 4, value: 50, type: "book" },
+            { name: "Заборонений фоліант", emoji: "📖🌟", subtype: 7, attack: 5, defense: 5, maxHealth: 15, rarity: 5, value: 100, type: "book" },
+            { name: "Книга пророцтв", emoji: "📖🔮", subtype: 8, attack: 7, defense: 7, maxHealth: 20, rarity: 6, value: 150, type: "book" },
             
             // Реліквії
-            { name: "Святий символ", emoji: "🏆", maxHealth: 10, rarity: 3, value: 30, type: "relic" },
-            { name: "Святий грааль", emoji: "🏆", maxHealth: 20, rarity: 4, value: 60, type: "relic" },
-            { name: "Кристал влади", emoji: "🏆", attack: 5, rarity: 4, value: 60, type: "relic" },
-            { name: "Щит бога", emoji: "🏆", defense: 5, rarity: 4, value: 60, type: "relic" },
-            { name: "Око дракона", emoji: "🏆🐉", attack: 7, defense: 3, rarity: 5, value: 90, type: "relic" },
-            { name: "Серце дракона", emoji: "🏆🌟", attack: 8, defense: 8, maxHealth: 30, rarity: 5, value: 150, type: "relic" },
-            { name: "Корона короля", emoji: "👑", attack: 5, defense: 5, maxHealth: 25, rarity: 6, value: 120, type: "relic" },
-            { name: "Сфера всемогутності", emoji: "🔮", attack: 10, defense: 10, maxHealth: 40, rarity: 6, value: 200, type: "relic" }
+            { name: "Святий тютюн", emoji: "🏆", subtype: 1, maxHealth: 10, rarity: 3, value: 30, type: "relic" },
+            { name: "Камінці безодні", emoji: "🏆", subtype: 2, maxHealth: 20, rarity: 4, value: 60, type: "relic" },
+            { name: "Кристал влади", emoji: "🏆", subtype: 3, attack: 5, rarity: 4, value: 60, type: "relic" },
+            { name: "Чиста руна", emoji: "🏆", subtype: 4, defense: 5, rarity: 4, value: 60, type: "relic" },
+            { name: "Око дракона", emoji: "🏆🐉", subtype: 5, attack: 7, defense: 3, rarity: 5, value: 90, type: "relic" },
+            { name: "Серце дракона", emoji: "🏆🌟", subtype: 6, attack: 8, defense: 8, maxHealth: 30, rarity: 5, value: 150, type: "relic" },
+            { name: "Корона вогню", emoji: "👑🔥", subtype: 7, attack: 5, defense: 5, maxHealth: 25, rarity: 6, value: 120, type: "relic" },
+            { name: "Палантір", emoji: "🔮", subtype: 8, attack: 10, defense: 10, maxHealth: 40, rarity: 6, value: 200, type: "relic" }
         ];
         
         // Додаємо еліксири до бази даних предметів
         const potions = [
-            { name: "Еліксир сили", emoji: "🧪", type: "potion_attack", description: "⚔️+1", effect: "attack", value: 1, rarity: 2, canSell: false },
-            { name: "Еліксир захисту", emoji: "🧪", type: "potion_defense", description: "🛡+1", effect: "defense", value: 1, rarity: 2, canSell: false },
-            { name: "Еліксир життя", emoji: "🧪", type: "potion_health", description: "💖+5", effect: "maxHealth", value: 5, rarity: 2, canSell: false }
+            { name: "Еліксир сили", emoji: "🧪", subtype: 1, type: "potion_attack", description: "⚔️+1", effect: "attack", value: 1, rarity: 2, canSell: false },
+            { name: "Еліксир захисту", emoji: "🧪", subtype: 2, type: "potion_defense", description: "🛡️+1", effect: "defense", value: 1, rarity: 2, canSell: false },
+            { name: "Еліксир життя", emoji: "🧪", subtype: 3, type: "potion_health", description: "💖+5", effect: "maxHealth", value: 5, rarity: 2, canSell: false }
         ];
 
         // Здорове харчівництво ;)
@@ -688,6 +825,32 @@
                 type: "fruit",
                 color: "#673ab7"  // Фіолетовий
             }
+        ];
+
+        const enemyTypes = [
+            // Звичайні монстри
+            { type: 'Гоблін', emoji: '👺', color: '#5f5', abilities: [] },
+            { type: 'Скелет', emoji: '💀💀', color: '#fff', abilities: ['undead', 'disease'] },
+            { type: 'Вовк', emoji: '🐕', color: '#aaa', abilities: ['fast', 'predator'] },
+            { type: 'Павук', emoji: '🕷️', color: '#8b4513', abilities: ['poison'] },
+            { type: 'Щур', emoji: '🐀', color: '#808080', abilities: ['disease'] },
+            { type: 'Зомбі', emoji: '🧟', color: '#5a5', abilities: ['undead', 'tough', 'disease'] },
+            { type: 'Привид', emoji: '👻', color: '#aaf', abilities: ['undead', 'magic_resist'] },
+            { type: 'Гарпія', emoji: '🦅', color: '#add8e6', abilities: ['flying', 'fast'] },
+            { type: 'Кобольд', emoji: '🦎', color: '#ff6347', abilities: ['trap_master'] },
+            
+            // Елітні монстри
+            { type: 'Орк-воїн', emoji: '👹', color: '#f55', abilities: ['strong', 'tough'], elite: true },
+            { type: 'Троль', emoji: '🤢🤢', color: '#228b22', abilities: ['regeneration', 'tough'], elite: true },
+            { type: 'Варґ', emoji: '🐺', color: '#4b0082', abilities: ['predator', 'fast'], elite: true },
+            { type: 'Вампір', emoji: '🧛', color: '#00ffff', abilities: ['undead', 'bloodsucker', 'magic_resist'], elite: true },
+            { type: 'Демон', emoji: '😈', color: '#ff0000', abilities: ['fire_aura', 'magic_resist'], elite: true },
+            
+            // Боси
+            { type: 'Дракон', emoji: '🐉', color: '#f33', abilities: ['fire_breath', 'flying', 'tough'], boss: true },
+            { type: 'Гарбузоголовий', emoji: '🎃', color: '#800080', abilities: ['strong', 'tough', 'stomp'], boss: true },
+            { type: 'Архідемон', emoji: '🤬', color: '#8b0000', abilities: ['fire_aura', 'bloodsucker', 'fear'], boss: true },
+            { type: 'Королева павуків', emoji: '🕸️', color: '#000000', abilities: ['poison', 'web', 'summon'], boss: true }
         ];
 
         // Карта гри
@@ -819,7 +982,8 @@
                 
                 const enemy = enemies.find(e => e.position.x === x && e.position.y === y);
                 if (enemy) {
-                    cell.textContent = enemy.emoji;
+                    //cell.textContent = enemy.emoji;
+                    cell.innerHTML = addEmoji(enemy.emoji, '30px');
                     
                     if (enemy.boss) cell.classList.add('boss-cell');
                     else if (enemy.elite) cell.classList.add('elite-cell');
@@ -829,7 +993,10 @@
                 }
                 
                 if (gameMap[y][x].type === 'artifact') {
-                    cell.textContent = gameMap[y][x].emoji;
+                    //cell.textContent = gameMap[y][x].emoji;
+                    //console.log(['artifact', gameMap[y][x].artifact]);
+                    cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px', gameMap[y][x].artifact.subtype);
+
                     if (gameMap[y][x].artifact.type.startsWith('potion')) {
                         cell.classList.add('potion-cell');
                     } else {
@@ -839,7 +1006,8 @@
                 }
 
                 if (gameMap[y][x].type === 'fruit') {
-                    cell.textContent = gameMap[y][x].emoji;
+                    //cell.textContent = gameMap[y][x].emoji;
+                    cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
                     cell.classList.add('fruit-cell');
                     cell.style.color = gameMap[y][x].color;
                     cell.dataset.fruit = Math.floor(gameMap[y][x].fruit.healPercent * 100);
@@ -848,6 +1016,10 @@
                 
                 if (visitedCells.has(`${x},${y}`)) {
                     cell.textContent = gameMap[y][x].emoji;
+                }
+
+                if (gameMap[y][x].type === 'treasure') {
+                    cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
                 }
             });
         }
@@ -1257,10 +1429,10 @@
                 itemElement.className = 'item-slot';
                 
                 // Визначаємо клас для еліксирів
-                let itemClass = '';
-                if (item.type === 'potion_health') itemClass = 'potion-health';
-                else if (item.type === 'potion_attack') itemClass = 'potion-attack';
-                else if (item.type === 'potion_defense') itemClass = 'potion-defense';
+                let itemClass = 'inventory-item';
+                if (item.type === 'potion_health') itemClass += ' potion-health';
+                else if (item.type === 'potion_attack') itemClass += ' potion-attack';
+                else if (item.type === 'potion_defense') itemClass += ' potion-defense';
                 
                 let bonusText = '';
                 if (item.attack) bonusText += ` ⚔️+${item.attack}`;
@@ -1268,8 +1440,9 @@
                 if (item.maxHealth) bonusText += ` ❤️+${item.maxHealth}`;
                 if (item.description) bonusText = ` ${item.description}`;
                 
+                const itemEmoji = addEmoji(item.emoji, '64px', typeof item.subtype != 'undefined' ? item.subtype : 0);
                 itemElement.innerHTML = `
-                    <span class="${itemClass}">${item.emoji} ${item.name}</span><span class="artifact-bonus">${bonusText}</span>
+                    <div class="${itemClass}">${item.name}<div>${itemEmoji}</div><div class="item-desc"><span class="artifact-bonus">${bonusText}</span></div></div>
                     <div class="item-actions">
                         <div class="item-action" onclick="useItem(${index})">${item.type.startsWith('potion') ? 'Випити' : 'Екіпірувати'}</div>
                         ${item.canSell !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.floor(item.value * 0.7)}💰)</div>` : ''}
@@ -1294,7 +1467,14 @@
                 if (item.defense) bonusText += ` 🛡️+${item.defense}`;
                 if (item.maxHealth) bonusText += ` ❤️+${item.maxHealth}`;
                 
-                element.innerHTML = `${item.emoji} ${item.name}<span class="artifact-bonus">${bonusText}</span>`;
+                let itemEmoji = item.emoji;
+
+                if (['weapon', 'armor', 'ring', 'amulet', 'book', 'relic'].includes(slot)) {
+                    itemEmoji = addEmoji(item.emoji, '64px', item.subtype);
+                    element.innerHTML = `<div>${item.name}</div>${itemEmoji} <span class="artifact-bonus">${bonusText}</span>`;
+                } else {
+                    element.innerHTML = `${itemEmoji} ${item.name}<span class="artifact-bonus">${bonusText}</span>`;
+                }
             } else {
                 element.textContent = 'Пусто';
             }
@@ -1306,6 +1486,7 @@
             let slot = item.type;
             
             // Якщо цей тип предмета вже екіпіровано, додаємо його в інвентар
+            console.log([index, slot, item]);
             if (player.equipment[slot]) {
                 player.inventory.push(player.equipment[slot]);
             }
@@ -1375,8 +1556,9 @@
             let rarity = 1;
             const rarityRoll = Math.random();
             
-            if (rarityRoll > 0.95) rarity = 5; // 5% шанс на легендарний
-            else if (rarityRoll > 0.85) rarity = 4; // 10% шанс на міфічний
+            if (rarityRoll > 0.98) rarity = 6; // 2% шанс на абсолютно легендарний
+            else if (rarityRoll > 0.93) rarity = 5; // 5% шанс на легендарний
+            else if (rarityRoll > 0.85) rarity = 4; // 8% шанс на міфічний
             else if (rarityRoll > 0.65) rarity = 3; // 20% шанс на рідкісний
             else if (rarityRoll > 0.4) rarity = 2; // 25% шанс на звичайний
             else rarity = 1; // 40% шанс на поширений
@@ -1438,8 +1620,9 @@
             let rarity = 1;
             const rarityRoll = Math.random();
             
-            if (rarityRoll > 0.95) rarity = 5; // 5% шанс на легендарний
-            else if (rarityRoll > 0.85) rarity = 4; // 10% шанс на міфічний
+            if (rarityRoll > 0.98) rarity = 6; // 2% шанс на абсолютно легендарний
+            else if (rarityRoll > 0.93) rarity = 5; // 5% шанс на легендарний
+            else if (rarityRoll > 0.85) rarity = 4; // 8% шанс на міфічний
             else if (rarityRoll > 0.65) rarity = 3; // 20% шанс на рідкісний
             else if (rarityRoll > 0.4) rarity = 2; // 25% шанс на звичайний
             else rarity = 1; // 40% шанс на поширений
@@ -1463,32 +1646,6 @@
 
         // Розширена база даних монстрів
         function generateEnemy() {
-            const enemyTypes = [
-                // Звичайні монстри
-                { type: 'Гоблін', emoji: '👺', color: '#5f5', abilities: [] },
-                { type: 'Скелет', emoji: '💀', color: '#fff', abilities: ['undead', 'disease'] },
-                { type: 'Вовк', emoji: '🐕', color: '#aaa', abilities: ['fast', 'predator'] },
-                { type: 'Павук', emoji: '🕷️', color: '#8b4513', abilities: ['poison'] },
-                { type: 'Щур', emoji: '🐀', color: '#808080', abilities: ['disease'] },
-                { type: 'Зомбі', emoji: '🧟', color: '#5a5', abilities: ['undead', 'tough', 'disease'] },
-                { type: 'Привид', emoji: '👻', color: '#aaf', abilities: ['undead', 'magic_resist'] },
-                { type: 'Гарпія', emoji: '🦅', color: '#add8e6', abilities: ['flying', 'fast'] },
-                { type: 'Кобольд', emoji: '🦎', color: '#ff6347', abilities: ['trap_master'] },
-                
-                // Елітні монстри
-                { type: 'Орк-воїн', emoji: '👹', color: '#f55', abilities: ['strong', 'tough'], elite: true },
-                { type: 'Троль', emoji: '🤢', color: '#228b22', abilities: ['regeneration', 'tough'], elite: true },
-                { type: 'Варґ', emoji: '🐺', color: '#4b0082', abilities: ['predator', 'fast'], elite: true },
-                { type: 'Вампір', emoji: '🧛', color: '#00ffff', abilities: ['undead', 'bloodsucker', 'magic_resist'], elite: true },
-                { type: 'Демон', emoji: '😈', color: '#ff0000', abilities: ['fire_aura', 'magic_resist'], elite: true },
-                
-                // Боси
-                { type: 'Дракон', emoji: '🐉', color: '#f33', abilities: ['fire_breath', 'flying', 'tough'], boss: true },
-                { type: 'Гарбузоголовий', emoji: '🎃', color: '#800080', abilities: ['strong', 'tough', 'stomp'], boss: true },
-                { type: 'Архідемон', emoji: '🤬', color: '#8b0000', abilities: ['fire_aura', 'bloodsucker', 'fear'], boss: true },
-                { type: 'Королева павуків', emoji: '🕸️', color: '#000000', abilities: ['poison', 'web', 'summon'], boss: true }
-            ];
-            
             // Визначаємо тип ворога залежно від рівня гравця
             let enemyPool = enemyTypes;
             if (player.level < 3) {
@@ -1870,7 +2027,8 @@
         // Показуємо ворога
         function showEnemy(enemy) {
             elements.enemyView.style.display = 'block';
-            elements.enemyEmoji.textContent = enemy.emoji;
+            //elements.enemyEmoji.textContent = enemy.emoji;
+            elements.enemyEmoji.innerHTML = addEmoji(enemy.emoji, '64px');
             elements.enemyEmoji.style.color = enemy.color;
             
             updateEnemyStats(enemy);
@@ -2043,15 +2201,23 @@
         
         // Ініціалізація гри
         initMap();
-        updateStats();
-        updateInventory();
         
         // Додамо стартову зброю та броню
         //player.inventory.push({...weapons[8]}); // test
-        /*
-        player.inventory.push({...weapons[0]}); // Дерев'яний меч
-        player.inventory.push({...armors[0]});  // Шкіряний жилет
-        */
+        
+        //player.inventory.push({...weapons[0]}); // Дерев'яний меч
+        //player.inventory.push({...armors[0]});  // Плащ
+
+        /*player.inventory.push({...artifacts[26]});
+        player.inventory.push({...artifacts[27]});
+        player.inventory.push({...artifacts[28]});
+        player.inventory.push({...artifacts[29]});
+        player.inventory.push({...artifacts[30]});
+        player.inventory.push({...artifacts[31]});
+        player.inventory.push({...artifacts[32]});
+        player.inventory.push({...artifacts[33]});*/
+        
+        updateStats();
         updateInventory();
 
         emojiReplace();
