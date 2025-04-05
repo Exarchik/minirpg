@@ -162,6 +162,12 @@
         .player-xp .xp-fill {
             background-color: #fff400;
         }
+        .megahealth {
+            filter: drop-shadow(0px 0px 11px #ff00ff);
+            animation: pulse 1.5s infinite;
+            display: inline-block;
+            width: 20px;
+        }
         .stats {
             font-size: 14px;
             margin-top: 5px;
@@ -196,7 +202,7 @@
             cursor: pointer;
             position: relative;
             text-align: center;
-            min-width: 31%;
+            width: 31%;
         }
         .item-slot:hover {
             background-color: #555;
@@ -227,6 +233,12 @@
         .item-action:hover {
             background-color: #666;
         }
+
+        .upgraded-stat {
+            color: #ff8f00;
+            text-shadow: 2px 2px 1px #000;
+        }
+
         #equipment {
             margin-top: 10px;
             display: grid;
@@ -254,6 +266,9 @@
             gap: 1px;
             width: 64%;
             justify-self: center;
+        }
+        .map-cell.incognita-cell {
+            background-color: #333;
         }
         .map-cell {
             width: 33px;
@@ -441,7 +456,8 @@
 
         .tree-cell {
             /*background-color: #499349;**/
-            background: radial-gradient(circle at center, white 0, white, #777 78%);
+            background: radial-gradient(circle at center, white 0, #777, #555 78%);
+            /*background: radial-gradient(circle at center, white 0, white, #777 78%);*/
             color: #2a8a2a;
         }
 
@@ -488,7 +504,7 @@
                         <div class="stats">
                             <span class="emoji-replace" data-emoji="⚔️" data-size="20px">АТК</span>: <span id="attack-display" >10</span> | 
                             <span class="emoji-replace" data-emoji="🛡️" data-size="20px">ЗАХ</span>: <span id="defense-display">5</span> | 
-                            <span class="emoji-replace" data-emoji="❤️" data-size="20px">❤️</span>: <span id="max-health-display">100</span>
+                            <span id="playerHeartEmoji" class="emoji-replace" data-emoji="❤️" data-size="20px">❤️</span>: <span id="max-health-display">100</span> <!--💜-->
                         </div>
                         <div class="health-bar player-health">
                             <div class="health-fill" id="player-health-bar"></div>
@@ -517,11 +533,11 @@
                 </div>
                 
                 <div id="controls">
-                    <button id="inventoryBtn" style="display: inline-block; min-width: 216px;">🎒 Інвентар <span id='inventoryFullness'>(Пусто)</span></button>
-                    <button id="mapBtn" style="display: none; min-width: 216px;">🗺️ Карта </button>
+                    <button id="inventoryBtn" style="display: inline-block; min-width: 216px;">🎒 Інвентар <span id='inventoryFullness'>(Пусто)</span> [I]</button>
+                    <button id="mapBtn" style="display: none; min-width: 216px;">🗺️ Карта [I]</button>
                     <button id="healBtn" style="display: none;">💊 Лікуватися (10 золота)</button>
-                    <button id="gambleBtn" style="display: inline-block;">🎰 Гемблінг (<span id="gamblePrice">50</span> золота)</button>
-                    <button id="resurrectBtn" style="display: none;">💀 Відродитись</button>
+                    <button id="gambleBtn" style="display: inline-block;">🎰 Гемблінг (<span id="gamblePrice">50</span> золота) [G]</button>
+                    <button id="resurrectBtn" style="display: none;">💀 Відродитись [R]</button>
                 </div>
 
                 <div id="equipment">
@@ -561,7 +577,7 @@
             overpoweredHealth: 0, // Тимчасовий Бонус від стейку дає надпотужне здоров'я, яке працює як мега-хелс 
             bonusHealth: 0, // Бонусне здоров'я яке додається еліксирами
             baseAttack: 3,  // Зменшено базову атаку
-            baseDefense: 2, // Зменшено базовий захист
+            baseDefense: 3, // Зменшено базовий захист
             gold: 0,
             xp: 0,
             xpToNext: 50,  // Зменшено досвід для першого рівня
@@ -576,6 +592,7 @@
                 relic: null
             },
             isBattle: false,
+            inInventory: false,
             position: { x: 0, y: 0 },
             get attack() {
                 let attack = this.baseAttack;
@@ -597,6 +614,7 @@
             },
             get maxHealth() {
                 let maxHealth = this.bonusHealth + 20 + (this.level - 1) * 5;  // Зменшено приріст здоров'я за рівень
+                if (this.equipment.armor) maxHealth += (this.equipment.armor.maxHealth || 0);
                 if (this.equipment.ring) maxHealth += (this.equipment.ring.maxHealth || 0);
                 if (this.equipment.amulet) maxHealth += (this.equipment.amulet.maxHealth || 0);
                 if (this.equipment.book) maxHealth += (this.equipment.book.maxHealth || 0);
@@ -613,6 +631,7 @@
                 // базові
             { type: '❤️', image: 'health.png' },
             { type: '💖', image: 'sparkling-heart.png' },
+            { type: '💜', image: 'purple-heart.png' },
             { type: '💰', image: 'money-sack.png' },
             { type: '⚔️', image: 'attack.png' },
             { type: '🛡️', image: 'defense.png' },
@@ -620,6 +639,7 @@
             { type: '📈', image: 'xp.png' },
             { type: '🧙‍♂️', image: 'wizard.png' },
             { type: '📦', image: 'chest.png' },
+            { type: '📦👑', image: 'chest-golden.png' },
             { type: '💼', image: 'prize.png' },
             { type: '💀', image: 'skull.png' },
             { type: '🔥', image: 'fire.png' },
@@ -631,9 +651,9 @@
             { type: '🤢', image: 'sick.png' },
             { type: '💪', image: 'muscle.png' },
                 // перешкоди
-            { type: '🗻', image: 'obs-mountain.png' },
-            { type: '🌳', image: 'obs-tree-1.png' },
-            { type: '🌲', image: 'obs-tree-2.png' },
+            { type: '🗻', image: 'obs-mountain-2.png' },
+            { type: '🌳', image: 'obs-tree-3.png' },
+            { type: '🌲', image: 'obs-tree-4.png' },
                 // фрукти
             { type: '🍎', image: 'red-apple.png' },
             { type: '🍌', image: 'banana.png' },
@@ -658,11 +678,15 @@
                 // броня
             { type: '🥼', subtype: 1, image: 'armor-cloak.png' },
             { type: '🧥', subtype: 2, image: 'leather-armor.png' },
+            { type: '🧥✨', subtype: 2, image: 'leather-armor-2.png' },
             { type: '⛓️', subtype: 3, image: 'armor-chainmail.png' },
+            { type: '⛓️✨', subtype: 3, image: 'armor-chainmail-2.png' },
             { type: '⛓️', subtype: 4, image: 'scale-armour.png' },
             { type: '🛡️🛡️', subtype: 5, image: 'armor-cuirass.png' },
+            { type: '🛡️✨', subtype: 5, image: 'armor-cuirass-2.png' },
             { type: '🛡️🛡️', subtype: 6, image: 'plate-armor.png' },
             { type: '🛡️👑', subtype: 7, image: 'armor-of-myth.png' },
+            { type: '🛡️✨', subtype: 7, image: 'armor-of-myth-2.png' },
             { type: '🐉⛓️', subtype: 8, image: 'dragon-armor.png' },
             { type: '🛡️🌟', subtype: 9, image: 'legendary-armor.png' },
             { type: '🛡️✨', subtype: 10, image: 'elven-armor.png' },
@@ -791,11 +815,15 @@
         const armors = [
             { name: "Плащ", emoji: "🥼",            subtype: 1, defense: 1, rarity: 1, value: 5, type: "armor" },
             { name: "Шкіряна броня", emoji: "🧥",   subtype: 2, defense: 2, rarity: 1, value: 10, type: "armor" },
+            { name: "Шкапова броня", emoji: "🧥✨", subtype: 1, defense: 2, maxHealth: 5, rarity: 1, value: 25, type: "armor" },
             { name: "Кольчуга", emoji: "⛓️",        subtype: 3, defense: 3, rarity: 2, value: 25, type: "armor" },
+            { name: "Бехтер", emoji: "⛓️✨",        subtype: 3, defense: 3, maxHealth: 5, rarity: 2, value: 50, type: "armor" },
             { name: "Луската броня", emoji: "⛓️",   subtype: 4, defense: 4, rarity: 2, value: 50, type: "armor" },
             { name: "Кіраса", emoji: "🛡️🛡️",        subtype: 5, defense: 5, rarity: 3, value: 100, type: "armor" },
+            { name: "Панцир", emoji: "🛡️✨",        subtype: 5, defense: 5, maxHealth: 10, rarity: 3, value: 200, type: "armor" },
             { name: "Латна броня", emoji: "🛡️🛡️",   subtype: 6, defense: 6, rarity: 3, value: 200, type: "armor" },
             { name: "Міфічна броня", emoji: "🛡️👑", subtype: 7, defense: 7, rarity: 4, value: 350, type: "armor" },
+            { name: "Елітна броня", emoji: "🛡️✨",  subtype: 7, defense: 7, maxHealth: 10, rarity: 4, value: 600, type: "armor" },
             { name: "Драконяча шкура", emoji: "🐉⛓️", subtype: 8, defense: 8, rarity: 4, value: 700, type: "armor" },
             { name: "Легендарна броня", emoji: "🛡️🌟", subtype: 9, defense: 10, rarity: 5, value: 1000, type: "armor" },
             { name: "Ельфійська броня", emoji: "🛡️✨", subtype: 10, defense: 13, rarity: 6, value: 2000, type: "armor" }
@@ -932,6 +960,7 @@
         let gameMap = [];
         let enemies = [];
         let visitedCells = new Set();
+        let terraCognita = new Set();
 
         // Елементи DOM
         const elements = {
@@ -954,6 +983,7 @@
             playerXpBar: document.getElementById('player-xp-bar'),
             playerView: document.getElementById('player-view'),
             playerEmoji: document.getElementById('player-emoji'),
+            playerHeartEmoji: document.getElementById('playerHeartEmoji'),
             enemyHealthBar: document.getElementById('enemy-health-bar'),
             enemyView: document.getElementById('enemy-view'),
             enemyEmoji: document.getElementById('enemy-emoji'),
@@ -979,6 +1009,67 @@
             return list[index];
         }
 
+        function getEnemyDefense(enemy) {
+            let enemyDefense = enemy.defense;
+            if (enemy.item != null && enemy.item.defense) enemyDefense += enemy.item.defense;
+            return enemyDefense;
+        }
+
+        function getEnemyAttack(enemy) {
+            let enemyAttack = enemy.attack;
+            if (enemy.item != null && enemy.item.attack) enemyAttack += enemy.item.attack;
+            return enemyAttack;
+        }
+
+        function getEnemyMaxHealth(enemy) {
+            let enemyMaxHealth = enemy.maxHealth;
+            if (enemy.item != null && enemy.item.maxHealth) enemyMaxHealth += enemy.item.maxHealth;
+            return enemyMaxHealth;
+        }
+
+        function addTerraLight(playerX, playerY) {
+            for (j = playerY - 1; j <= playerY + 1; j++) {
+                for (i = playerX - 1; i <= playerX + 1; i++) {
+                    if (gameMap[j] != null && gameMap[j][i] != null) {
+                        terraCognita.add(`${i},${j}`);
+                    }
+                }
+            }
+        }
+
+        // ховаєм всі доступні ячейки
+        function resetTerra() {
+            terraCognita = new Set();
+            visitedCells = new Set();
+        }
+
+        // один з ворогів рухається
+        function moveRandomEnemy() {
+            const _koords = [-1, 0, 1];
+
+            if (enemies.length && Math.random() < 0.4) {
+                const randomIndex = Math.floor(Math.random() * enemies.length);
+                if (enemies[randomIndex].boss) {
+                    return;
+                }
+
+                const randomX = enemies[randomIndex].position.x + _koords[Math.floor(Math.random() * _koords.length)];
+                const randomY = enemies[randomIndex].position.y + _koords[Math.floor(Math.random() * _koords.length)];
+
+                if (gameMap[randomY] != null && gameMap[randomY][randomX] != null) {
+                    const targetCell = gameMap[randomY][randomX];
+
+                    //console.log([enemies[randomIndex].position.x, enemies[randomIndex].position.y, enemies[randomIndex].type, ' => ', randomX, randomY, targetCell.type]);
+                    if (targetCell.type == 'empty') {
+                        const enemy = enemies.find(e => (e.position.x === randomX && e.position.y === randomY));
+                        if (!enemy && player.position.x != randomX && player.position.y != randomY) {
+                            enemies[randomIndex].position.x = randomX;
+                            enemies[randomIndex].position.y = randomY;
+                        }
+                    }
+                }
+            }
+        }
 
         // Ініціалізація карти
         function initMap() {
@@ -1041,28 +1132,21 @@
             const cells = document.querySelectorAll('.map-cell');
             
             visitedCells.add(`${player.position.x},${player.position.y}`);
+            addTerraLight(player.position.x, player.position.y);
             
             cells.forEach(cell => {
                 const x = parseInt(cell.dataset.x);
                 const y = parseInt(cell.dataset.y);
                 
-                cell.className = 'map-cell';
-                cell.textContent = gameMap[y][x].emoji;
+                cell.className = 'map-cell incognita-cell';
+                cell.textContent = terraCognita.has(`${x},${y}`) ? gameMap[y][x].emoji : emptyEmoji;
                 cell.id = '';
-
-                if (gameMap[y][x].type === 'obstacle') {
-                    cell.classList.add('obstacle-cell');
-                    /*if (gameMap[y][x].obstacle.type === 'tree') {
-                        cell.classList.add('tree-cell');
-                    } else {
-                        cell.classList.add('mountain-cell');
-                    }*/
-                    cell.classList.add('tree-cell');
-                    cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
-                }
                 
                 if (visitedCells.has(`${x},${y}`)) {
                     cell.classList.add('visited-cell');
+                }
+                if (terraCognita.has(`${x},${y}`)) {
+                    cell.classList.remove('incognita-cell');
                 }
                 
                 if (x === player.position.x && y === player.position.y) {
@@ -1073,52 +1157,54 @@
                     return;
                 }
                 
-                const enemy = enemies.find(e => e.position.x === x && e.position.y === y);
-                if (enemy) {
-                    //cell.textContent = enemy.emoji;
-                    cell.innerHTML = addEmoji(enemy.emoji, '30px');
-                    
-                    if (enemy.boss) cell.classList.add('boss-cell');
-                    else if (enemy.elite) cell.classList.add('elite-cell');
-                    else if (enemy.abilities.includes('magic')) cell.classList.add('magic-cell');
-                    else cell.classList.add('enemy-cell');
-                    return;
-                }
-                
-                if (gameMap[y][x].type === 'artifact') {
-                    //cell.textContent = gameMap[y][x].emoji;
-                    //console.log(['artifact', gameMap[y][x].artifact]);
-                    cell.innerHTML = addEmoji('💼', '30px', gameMap[y][x].artifact.subtype);
-                    //cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px', gameMap[y][x].artifact.subtype);
-
-                    if (gameMap[y][x].artifact.type.startsWith('potion')) {
-                        cell.classList.add('potion-cell');
-                    } else {
-                        cell.classList.add('artifact-cell');
+                if (terraCognita.has(`${x},${y}`)) {
+                    if (gameMap[y][x].type === 'obstacle') {
+                        cell.classList.add('obstacle-cell');
+                        cell.classList.add('tree-cell');
+                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
                     }
-                    return;
-                }
 
-                if (gameMap[y][x].type === 'fruit') {
-                    //cell.textContent = gameMap[y][x].emoji;
-                    cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
-                    cell.classList.add('fruit-cell');
-                    cell.style.color = gameMap[y][x].color;
-                    cell.dataset.fruit = Math.floor(gameMap[y][x].fruit.healPercent * 100);
-                    return;
-                }
-                
-                // нашо це
-                /*
-                if (visitedCells.has(`${x},${y}`)) {
-                    cell.textContent = gameMap[y][x].emoji;
-                }*/
-
-                if (['treasure', 'chest'].includes(gameMap[y][x].type)) {
-                    cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
+                    const enemy = enemies.find(e => e.position.x === x && e.position.y === y);
+                    if (enemy) {
+                        //cell.textContent = enemy.emoji;
+                        cell.innerHTML = addEmoji(enemy.emoji, '30px');
+                        
+                        if (enemy.boss) cell.classList.add('boss-cell');
+                        else if (enemy.elite) cell.classList.add('elite-cell');
+                        else if (enemy.abilities.includes('magic')) cell.classList.add('magic-cell');
+                        else cell.classList.add('enemy-cell');
+                        return;
+                    }
                     
-                    if (gameMap[y][x].type === 'chest') {
-                        cell.classList.add('chest-cell');
+                    if (gameMap[y][x].type === 'artifact') {
+                        //cell.textContent = gameMap[y][x].emoji;
+                        //console.log(['artifact', gameMap[y][x].artifact]);
+                        cell.innerHTML = addEmoji('💼', '30px', gameMap[y][x].artifact.subtype);
+                        //cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px', gameMap[y][x].artifact.subtype);
+
+                        if (gameMap[y][x].artifact.type.startsWith('potion')) {
+                            cell.classList.add('potion-cell');
+                        } else {
+                            cell.classList.add('artifact-cell');
+                        }
+                        return;
+                    }
+
+                    if (gameMap[y][x].type === 'fruit') {
+                        //cell.textContent = gameMap[y][x].emoji;
+                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
+                        cell.classList.add('fruit-cell');
+                        cell.style.color = gameMap[y][x].color;
+                        cell.dataset.fruit = Math.floor(gameMap[y][x].fruit.healPercent * 100);
+                        return;
+                    }
+
+                    if (['treasure', 'chest'].includes(gameMap[y][x].type)) {
+                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
+                        
+                        if (gameMap[y][x].type === 'chest') {
+                            cell.classList.add('chest-cell');
+                        }
                     }
                 }
             });
@@ -1192,15 +1278,10 @@
             // Перевіряємо чи є тут щось цікаве
             checkCellContent(x, y);
             
+            // рухаєм якогось воріженьку
+            moveRandomEnemy();
             updateMap();
         }
-
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "ArrowUp") movePlayer(player.position.x, player.position.y - 1);
-            if (e.key === "ArrowRight") movePlayer(player.position.x + 1, player.position.y);
-            if (e.key === "ArrowDown") movePlayer(player.position.x, player.position.y + 1);
-            if (e.key === "ArrowLeft") movePlayer(player.position.x - 1, player.position.y);
-        });
 
         // Підбираємо артефакт
         function pickUpArtifact(x, y) {
@@ -1289,17 +1370,22 @@
                 updateStats();
                 updateMap();
             } else if (cell.type == 'chest') {
-                const goldFound = Math.floor(Math.random() * 5 * player.level) + 5;
-                const xpFound = Math.floor(Math.random() * 6 * player.level) + 5;
+                const isGoldenChest = cell.emoji == '📦👑';
+                const chestName = isGoldenChest ? `<span style='color:gold; font-weight:bold'>Золотий Сундук</span>` : `сундук`;
+
+                let goldFound = Math.floor(Math.random() * 5 * player.level) + 5;
+                    goldFound = isGoldenChest ? goldFound * 3 : goldFound;
+                let xpFound = Math.floor(Math.random() * 6 * player.level) + 5;
+                    xpFound = isGoldenChest ? xpFound * 3 : xpFound;
                 player.gold += goldFound;
                 player.xp += xpFound;
 
                 checkLevelUp();
 
-                let messageChest = `🎁 Ви відкрили сундук і отримали ${goldFound} золота та ${xpFound} досвіду!`;
+                let messageChest = `🎁 Ви відкрили ${chestName} і отримали ${goldFound} золота та ${xpFound} досвіду!`;
                 if (gameMap[y][x].artifact != null) {
                     player.inventory.push(gameMap[y][x].artifact);
-                    messageChest = `🎁 Ви відкрили сундук і отримали ${goldFound} золота, ${xpFound} досвіду та знайшли ${gameMap[y][x].artifact.emoji} ${gameMap[y][x].artifact.name}!`;
+                    messageChest = `🎁 Ви відкрили ${chestName} і отримали ${goldFound} золота, ${xpFound} досвіду та знайшли ${gameMap[y][x].artifact.emoji} ${gameMap[y][x].artifact.name}!`;
                 }
 
                 addLog(messageChest, 'loot');
@@ -1359,9 +1445,12 @@
 
         // Додаємо сундучок на карту
         // Який має містити золото, досвід і рандомний предмет
-        function spawnChest() {
+        function spawnChest(isGold = false) {
             let x, y;
             let attempts = 0;
+
+            // поки шо так
+            isGold = Math.random() < 0.25;
 
             do {
                 x = Math.floor(Math.random() * mapSize);
@@ -1377,10 +1466,10 @@
             
             if (attempts <= 100) {
                 // обов'язково генеруємо якийсь предмет
-                const item = generateItem(true);
+                const item = generateItem(true, isGold ? 1 : -1);
                 gameMap[y][x] = {
                     type: 'chest',
-                    emoji: '📦',
+                    emoji: `${(isGold ? '📦👑' : '📦')}`,
                     artifact: item
                 };
             }
@@ -1563,6 +1652,8 @@
                     modal.style.display = 'none';
                 }
             }
+
+            okButton.focus();
         }
 
         // Додаємо повідомлення до журналу
@@ -1590,16 +1681,56 @@
         function getXpByLevel(level) {
             const baseXp = 50;
             const growthRate = 1.6;
+            const growSlow = 0.028;
+            let growthSlow = ((level - 1) * growSlow);
+                growthSlow = growthSlow > 0.995 ? 0.995 : growthSlow;
+
             const rawXp = baseXp * Math.pow(growthRate, level - 1);
+            //const rawXp = baseXp * Math.pow(growthRate - growthSlow, level - 1);
+            //const rawXp = baseXp * Math.pow(growthRate, level - 1) * (1 - growthSlow);
+            //console.log([baseXp * Math.pow(growthRate, level - 1), rawXp, growthSlow]);*/
 
             // Автоматичне округлення до приємного масштабу
             let roundingStep = 10;
             if (rawXp >= 1000) {
-                roundingStep = Math.pow(10, Math.floor(Math.log10(rawXp)));
+                //console.log(['Math.log10(rawXp)', rawXp, Math.log10(rawXp), Math.floor(Math.log10(rawXp))]);
+                roundingStep = Math.pow(10, Math.floor(Math.log10(rawXp)) - 1);
+                //roundingStep = Math.pow(10, Math.floor(Math.log10(rawXp)));
                 if (rawXp < roundingStep * 2) roundingStep /= 10;
             }
 
+            if (level > 10) {
+                return 3400 + (level - 10) * 1600;
+            }
+            /*if (level > 13) {
+                return 10000 + (level - 13) * 4000;
+            }*/
+
             return Math.round(rawXp / roundingStep) * roundingStep;
+        }
+
+        // функція розрахунку досвіду для рівня - комбінована
+        function getXpByLevel2(level) {
+            if (level <= 10) {
+                // Експоненційне зростання на старті
+                return Math.round(50 * Math.pow(1.6, level - 1) / 10) * 10;
+            } else {
+                // Плавне лінійне зростання після 10 рівня
+                return 2500 + (level - 10) * 1500;
+            }
+        }
+
+        function testlevelUp(minLevel = 1, maxLevel = 20) {
+            let levelCounted = 1;
+            let levelXpNextLast = 0;
+            let levelXpNext = 0;
+            for (i=0;i<=(maxLevel-minLevel);i++) {
+                levelCounted = i+minLevel;
+                levelXpNextLast = levelXpNext;
+                levelXpNext = getXpByLevel(i+minLevel);
+                //console.log(`${levelCounted};${levelXpNext};${levelXpNext-levelXpNextLast}`);
+                console.log(`${levelXpNext}`);
+            }
         }
 
         // Оновлюємо статистику гравця на екрані
@@ -1614,7 +1745,11 @@
             elements.defense.textContent = player.defense;
             elements.defense.title = `БАЗА: ${player.baseDefense} + ДОД: ${player.defense-player.baseDefense}`;
 
-            elements.maxHealth.textContent = player.health + '/' + player.maxHealth;
+            // перерозраховуєм оверхелс
+            const cleanMaxHealth = player.maxHealth - player.overpoweredHealth;
+            elements.maxHealth.innerHTML
+                = ((player.overpoweredHealth > 0 && player.health > cleanMaxHealth) ? `<span style="color: #8c1ce5;text-shadow: 1px 1px 2px black;font-weight: bold;">${player.health}</span>` : player.health) + '/'
+                + (player.overpoweredHealth > 0 ? cleanMaxHealth : player.maxHealth);
             
             // Оновлюємо health bar гравця
             const playerHealthPercent = (player.health / player.maxHealth) * 100;
@@ -1622,8 +1757,12 @@
             // чекаєм оверхелс
             if (player.overpoweredHealth > 0 && !elements.playerHealthBar.classList.contains('overpowered')) {
                 elements.playerHealthBar.classList.add('overpowered');
+                elements.playerHeartEmoji.classList.add('megahealth');
+                elements.playerHeartEmoji.innerHTML = addEmoji(`💜`, '20px');
             } else if (player.overpoweredHealth < 1 && elements.playerHealthBar.classList.contains('overpowered')) {
                 elements.playerHealthBar.classList.remove('overpowered');
+                elements.playerHeartEmoji.classList.remove('megahealth');
+                elements.playerHeartEmoji.innerHTML = addEmoji(`❤️`, '20px');
             }
             
             // Оновлюємо xp bar гравця
@@ -1669,11 +1808,12 @@
                 if (item.attack) bonusText += ` ⚔️${signedValue(item.attack)}`;
                 if (item.defense) bonusText += ` 🛡️${signedValue(item.defense)}`;
                 if (item.maxHealth) bonusText += ` ❤️${signedValue(item.maxHealth)}`;
+                if (item.critChance) bonusText += ` 💥${Math.floor(item.critChance*100)}%`;
                 if (item.description) bonusText = ` ${item.description}`;
                 
                 const itemEmoji = addEmoji(item.emoji, '64px', typeof item.subtype != 'undefined' ? item.subtype : 0);
                 itemElement.innerHTML = `
-                    <div class="${itemClass}">${item.name}<div>${itemEmoji}</div><div class="item-desc"><span class="artifact-bonus">${bonusText}</span></div></div>
+                    <div class="${itemClass}">[${index+1}]${item.name}<div>${itemEmoji}</div><div class="item-desc"><span class="artifact-bonus">${bonusText}</span></div></div>
                     <div class="item-actions">
                         <div class="item-action" onclick="useItem(${index})">${item.type.startsWith('potion') ? 'Випити' : 'Екіпірувати'}</div>
                         ${item.canSell !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.floor(item.value * 0.7)}💰)</div>` : ''}
@@ -1699,16 +1839,9 @@
                 if (item.attack) bonusText += ` ⚔️${signedValue(item.attack)}`;
                 if (item.defense) bonusText += ` 🛡️${signedValue(item.defense)}`;
                 if (item.maxHealth) bonusText += ` ❤️${signedValue(item.maxHealth)}`;
+                if (item.critChance) bonusText += ` 💥${Math.floor(item.critChance*100)}%`;
                 
-                let itemEmoji = addEmoji(item.emoji, '64px', item.subtype);//item.emoji;
-
-                /*if (['weapon', 'armor', 'ring', 'amulet', 'book', 'relic'].includes(slot)) {
-                    itemEmoji = addEmoji(item.emoji, '64px', item.subtype);
-                    element.innerHTML = `<div>${item.name}</div>${itemEmoji} <span class="artifact-bonus">${bonusText}</span>`;
-                } else {
-                    element.innerHTML = `${itemEmoji} ${item.name}<span class="artifact-bonus">${bonusText}</span>`;
-                }*/
-
+                let itemEmoji = addEmoji(item.emoji, '64px', item.subtype);
                 element.innerHTML = `
                     <div class="inventory-item">
                         ${item.name}
@@ -1719,7 +1852,12 @@
                     </div>
                 `;
             } else {
-                element.textContent = 'Пусто';
+                element.innerHTML = `
+                    <div class="inventory-item">
+                        Пусто
+                        <div><img style="opacity: 0.3;" src='/templates/img/minirpg/clay/empty-${slot}.png' width='64px'/></div>
+                    </div>
+                `;
             }
         }
 
@@ -1792,6 +1930,7 @@
 
         // функція rarity від AI
         function getBiasedRarity(playerLevel, rarityBias = -1) {
+            //console.log(rarityBias);
             // співвідношення
             const rarityTable = [
                 { 'rarity': 1, 'playerLevel': 1 },
@@ -1888,7 +2027,7 @@
         }
 
         // Генеруємо випадковий предмет
-        function generateItem(isForced = false) {
+        function generateItem(isForced = false, rarityBias = -1) {
             // 60% шанс отримати предмет
             if (Math.random() > 0.6 && !isForced) return null;
             
@@ -1904,7 +2043,7 @@
             
             // Визначаємо рідкість на основі рівня гравця
             //let rarity = 1;
-            let rarity = getBiasedRarity(player.level);
+            let rarity = getBiasedRarity(player.level, rarityBias);
             /*    const rarityRoll = Math.random();
                 
                 if (rarityRoll > 0.98) rarity = 6; // 2% шанс на абсолютно легендарний
@@ -1923,7 +2062,7 @@
             const availableItems = itemPool.filter(item => item.rarity <= rarity);
 
             if (availableItems.length === 0) {
-                if (isForced) return generateItem(true);
+                if (isForced) return generateItem(true, rarityBias);
                 else return null;
             }
             
@@ -2040,10 +2179,10 @@
             
             // Базова сила ворога залежить від рівня гравця
             const basePower = 2 + player.level;
-            let powerMultiplier = 1.7;
+            let powerMultiplier = 1.6;
             
-            if (enemy.elite) powerMultiplier = 2.6;
-            if (enemy.boss) powerMultiplier = 3.5;
+            if (enemy.elite) powerMultiplier = 2.5;
+            if (enemy.boss) powerMultiplier = 3.4;
             
             // Характеристики ворога
             enemy.health = Math.floor(basePower * powerMultiplier * (0.8 + Math.random() * 0.4));
@@ -2061,6 +2200,7 @@
             if (enemy.abilities.includes('magic_resist')) enemy.defense += 1;
             
             enemy.maxHealth = enemy.health;
+            enemy.baseMaxHealth = enemy.health;
             
             // Нагороди
             enemy.gold = Math.floor(basePower * powerMultiplier * (0.5 + Math.random() * 1));
@@ -2081,8 +2221,12 @@
             if (enemy.boss) itemChance = 0.9;
             
             if (Math.random() < itemChance) {
-                enemy.item = generateItem(enemy.boss ? 3 : enemy.elite ? 2 : 1);
+                enemy.item = generateItem(false, enemy.boss ? 1 : (enemy.elite ? 0 : -1));
             }
+
+            // з урахуванням item
+            enemy.maxHealth = getEnemyMaxHealth(enemy);
+            enemy.health = enemy.maxHealth;
             
             return enemy;
         }
@@ -2164,7 +2308,7 @@
             function battleStep() {
                 if (player.health <= 0 || enemy.health <= 0) return;
                 iteration++;
-                
+
                 // Атака гравця
                 let playerDamage = player.attack + Math.floor(Math.random() * 5) - 2;
                 // для тестів
@@ -2172,13 +2316,13 @@
                     let maxDmg = player.attack + Math.floor(1 * 5) - 2;
                 let isCritical = false;
                 let critMessage = '';
-                let effectiveDefense = enemy.defense;
-                
+                let effectiveDefense = getEnemyDefense(enemy);
+
                 // Перевірка на критичний удар
                 if (player.equipment.weapon && Math.random() < player.equipment.weapon.critChance) {
                     isCritical = true;
-                    effectiveDefense = Math.floor(enemy.defense * 0.3); // Ігноруємо 70% захисту
-                    critMessage = ` <span class="critical-hit">(КРИТИЧНИЙ УДАР! Ігнорує ${Math.ceil(enemy.defense * 0.7)}🛡️)</span>`;
+                    effectiveDefense = Math.floor(getEnemyDefense(enemy) * 0.3); // Ігноруємо 70% захисту
+                    critMessage = ` <span class="critical-hit">(КРИТИЧНИЙ УДАР! Ігнорує ${Math.ceil(getEnemyDefense(enemy) * 0.7)}🛡️)</span>`;
                 }
                 
                 // тести
@@ -2288,6 +2432,7 @@
                     
                     if (enemies.length < 1) {
                         spawnEnemies();
+                        resetTerra();
                     }
                     
                     // Перевірка на новий рівень
@@ -2301,7 +2446,7 @@
 
                 // Ворог атакує (з урахуванням здібностей)
                 setTimeout(() => {
-                    let enemyDamage = Math.max(1, enemy.attack - player.defense + Math.floor(Math.random() * 5) - 2);
+                    let enemyDamage = Math.max(1, getEnemyAttack(enemy) - player.defense + Math.floor(Math.random() * 5) - 2);
                     fastEnemyStatus = false;
                     
                     // Спеціальні атаки
@@ -2426,7 +2571,11 @@
             else if (enemy.elite) enemyTitle = `Елітний ${enemy.type} ⚡`;
             
             addLog(`---------------`, 'enemy');
-            addLog(`⚔️ Ви зустріли ${enemy.emoji} <strong>${enemyTitle}</strong> 🗡:${enemy.attack} | 🛡:${enemy.defense} | ❤:${enemy.maxHealth} !`, 'enemy');
+            const enemyAttack = enemy.attack < getEnemyAttack(enemy) ? `<strong class="upgraded-stat">${getEnemyAttack(enemy)}</strong>` : getEnemyAttack(enemy);
+            const enemyDefense = enemy.defense < getEnemyDefense(enemy) ? `<strong class="upgraded-stat">${getEnemyDefense(enemy)}</strong>` : getEnemyDefense(enemy);
+            const enemyMaxHealth = enemy.baseMaxHealth < getEnemyMaxHealth(enemy) ? `<strong class="upgraded-stat">${getEnemyMaxHealth(enemy)}</strong>` : getEnemyMaxHealth(enemy);
+
+            addLog(`⚔️ Ви зустріли ${enemy.emoji} <strong>${enemyTitle}</strong> 🗡:${enemyAttack} | 🛡:${enemyDefense} | ❤:${enemyMaxHealth} !`, 'enemy');
             
             // Опис здібностей ворога
             if (enemy.abilities.length > 0) {
@@ -2462,7 +2611,12 @@
             const attackEmoji = addEmoji('⚔️', '20px');
             const defenseEmoji = addEmoji('🛡️', '20px');
             const healthEmoji = addEmoji('❤️', '20px');
-            elements.enemyStats.innerHTML = `${attackEmoji}: ${enemy.attack} | ${defenseEmoji}: ${enemy.defense} | ${healthEmoji}: ${enemy.health >= 0 ? enemy.health : 0}/${enemy.maxHealth}`;
+
+            const enemyAttack = enemy.attack < getEnemyAttack(enemy) ? `<strong class="upgraded-stat">${getEnemyAttack(enemy)}</strong>` : getEnemyAttack(enemy);
+            const enemyDefense = enemy.defense < getEnemyDefense(enemy) ? `<strong class="upgraded-stat">${getEnemyDefense(enemy)}</strong>` : getEnemyDefense(enemy);
+            const enemyMaxHealth = enemy.baseMaxHealth < getEnemyMaxHealth(enemy) ? `<strong class="upgraded-stat">${getEnemyMaxHealth(enemy)}</strong>` : getEnemyMaxHealth(enemy);
+
+            elements.enemyStats.innerHTML = `${attackEmoji}: ${enemyAttack} | ${defenseEmoji}: ${enemyDefense} | ${healthEmoji}: ${enemy.health >= 0 ? enemy.health : 0}/${enemyMaxHealth}`;
             
             // Оновлюємо health bar ворога
             const enemyHealthPercent = ((enemy.health >= 0 ? enemy.health : 0) / enemy.maxHealth) * 100;
@@ -2565,7 +2719,8 @@
                 }, 100);
             } else if (localRandom < 0.92) {
                 // 15% - 25% of level
-                const addingXp = Math.round(player.xpToNext * 0.25);
+                //const addingXp = Math.round(player.xpToNext * 0.25);
+                const addingXp = Math.floor(Math.random() * 6 * (player.level + 2)) + 5;
                 showEventPopup(`${addEmoji('📈', '40px')}`, elements.gambleBtn);
 
                 player.xp += addingXp;
@@ -2608,9 +2763,9 @@
             elements.gambleBtn.style.display = 'inline-block';
 
             elements.playerEmoji.style.filter = `grayscale(0%)`;
-            // втрачаєте 33% золота і 25% досвіду рівня
-            const lostGold = Math.round(player.gold * 0.33);
-            let lostXp = Math.round(player.xpToNext * 0.25);
+            // втрачаєте 25% золота і 20% досвіду рівня
+            const lostGold = Math.round(player.gold * 0.25);
+            let lostXp = Math.round(player.xpToNext * 0.2);
             lostXp = lostXp >= player.xp ? player.xp : lostXp;
 
             addLog(`📈 Ви втратили ${lostXp} досвіду!`, 'system', 'red');
@@ -2625,23 +2780,35 @@
             player.overpoweredHealth = 0;
             player.health = Math.ceil(player.maxHealth * 0.5);
             addLog('⚡ Ви відродились і частково відновили здоров\'я!', 'system');
-            
+
+            // спавн фрукта після смерті трошки покращить становище в бою
+            spawnFruits(1);
+
             // Оновлюємо health bar
             updateStats();
             
             // Вороги також відпочивають (респавняться)
             enemies = [];
             respawnObstacles();
+
             spawnEnemies();
+            resetTerra();
             updateMap();
         }
 
         function toogleInventory() {
-            elements.inventory.style.display = elements.inventory.style.display == 'block' ? 'none' : 'block';
-            elements.map.style.display = elements.inventory.style.display == 'block' ? 'none' : 'grid';
+            // змінюєм статус "Гравець в інвентарі"
+            player.inInventory = !player.inInventory;
 
-            elements.inventoryBtn.style.display = elements.inventory.style.display == 'block' ? 'none' : 'inline-block';
-            elements.mapBtn.style.display = elements.inventory.style.display == 'block' ? 'inline-block' : 'none';
+            // відображаєм інвентар
+            elements.inventory.style.display = player.inInventory ? 'block' : 'none';
+            // ховаєм мапу
+            elements.map.style.display = player.inInventory ? 'none' : 'grid';
+
+            // ховаєм кнопку інвентаря
+            elements.inventoryBtn.style.display = player.inInventory ? 'none' : 'inline-block';
+            // показуєм кнопку мапи
+            elements.mapBtn.style.display = player.inInventory ? 'inline-block' : 'none';
         }
 
         // Обробники подій
@@ -2656,6 +2823,31 @@
         // Глобальні функції для виклику з HTML
         window.equipItem = equipItem;
         window.sellItem = sellItem;
+
+        // buttons 
+        document.addEventListener("keydown", (e) => {
+            // player moving
+            if (!player.inInventory) {
+                if (e.code === "ArrowUp") movePlayer(player.position.x, player.position.y - 1);
+                if (e.code === "ArrowRight") movePlayer(player.position.x + 1, player.position.y);
+                if (e.code === "ArrowDown") movePlayer(player.position.x, player.position.y + 1);
+                if (e.code === "ArrowLeft") movePlayer(player.position.x - 1, player.position.y);
+            }
+            // gambling
+            if (e.code === "KeyG") gamble();
+            if (e.code === "KeyI") toogleInventory();
+
+            // resurrect
+            if (e.code === "KeyR" && player.health < 1) { resurrect(); }
+
+            // items manupulations
+            if (['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8' ,'Digit9'].includes(e.code)) {
+                const itemIndex = parseInt(e.code.split("Digit")[1]) - 1;
+                if (player.inventory[itemIndex] != null) {
+                    !e.shiftKey ? useItem(itemIndex) : sellItem(itemIndex);
+                }
+            }
+        });
 
         // Оновлене початкове повідомлення
         addLog('🌈 Ласкаво просимо в Міні RPG!', 'system');
