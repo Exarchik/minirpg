@@ -1194,12 +1194,14 @@
                     if (gameMap[y][x].type === 'artifact') {
                         //cell.textContent = gameMap[y][x].emoji;
                         //console.log(['artifact', gameMap[y][x].artifact]);
-                        cell.innerHTML = addEmoji('💼', '30px', gameMap[y][x].artifact.subtype);
+                        //cell.innerHTML = addEmoji('💼', '30px', gameMap[y][x].artifact.subtype);
                         //cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px', gameMap[y][x].artifact.subtype);
 
                         if (gameMap[y][x].artifact.type.startsWith('potion')) {
+                            cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px', gameMap[y][x].artifact.subtype);
                             cell.classList.add('potion-cell');
                         } else {
+                            cell.innerHTML = addEmoji('💼', '30px', gameMap[y][x].artifact.subtype);
                             cell.classList.add('artifact-cell');
                         }
                         return;
