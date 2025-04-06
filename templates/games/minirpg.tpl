@@ -38,7 +38,16 @@
             background-color: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(3px);
         }
-
+        .modal-header {
+            display: block;
+            position: absolute;
+            width: 100%;
+            border: 2px solid #4CAF50;
+            border-radius: 9px;
+            top: -78px;
+            background-color: #222;
+            font-size: 20px;
+        }
         .modal-content {
             background-color: #333;
             margin: 15% auto;
@@ -487,6 +496,9 @@
         
         <div id="game-modal" class="modal">
             <div class="modal-content">
+                <div style="width: 100%; position: relative;display: block;">
+                    <div class="modal-header" id="modal-header">Локацію зачищено</div>
+                </div>
                 <p id="modal-message"></p>
                 <button id="modal-ok" class="modal-button">OK</button>
             </div>
@@ -1629,11 +1641,13 @@
         }
 
         // Функція для показу повідомлення
-        function showGameMessage(message, duration = 0) {
+        function showGameMessage(header, message, duration = 0) {
             const modal = document.getElementById('game-modal');
+            const messageHeader = document.getElementById('modal-header');
             const messageElement = document.getElementById('modal-message');
             const okButton = document.getElementById('modal-ok');
             
+            messageHeader.innerHTML = header;
             messageElement.innerHTML = message;
             modal.style.display = 'block';
             
@@ -2438,7 +2452,7 @@
                         spawnEnemies();
                         resetTerra();
 
-                        showGameMessage(`🎉 Ви зачистили локацію і отримуєте бонуси на новій локації!`, 0);
+                        showGameMessage(`Локацію зачищено`, `🎉 Ви зачистили локацію і отримуєте бонуси на новій локації!`, 0);
 
                         spawnArtifacts(2);
                         spawnChest();
@@ -2550,7 +2564,7 @@
 
                         elements.playerEmoji.style.filter = `grayscale(100%)`;
                         addLog(`💀 Ви загинули в бою з ${enemy.emoji} ${enemy.type}!`, 'system');
-                        showGameMessage(`💀 Ви загинули в бою! Натисніть "Відродитись", щоб продовжити гру.`, 0);
+                        showGameMessage(`Поразка`, `💀 Ви загинули в бою! Натисніть "Відродитись", щоб продовжити гру.`, 0);
 
                         showEventPopup(`${addEmoji('💀', '40px')}`, document.getElementById('player-on-map'), {
                             fontSize: '40px',
@@ -2795,7 +2809,7 @@
             addLog(`📈 Ви втратили ${lostXp} досвіду!`, 'system', 'red');
             addLog(`💰 Ви втратили ${lostGold} золота!`, 'system', 'red');
 
-            showGameMessage(`Ви відродились та частково відновили власні сили, але довелось витратили 📈 ${lostXp} досвіду і 💰 ${lostGold} золота, щоб повернути Вас до життя!`, 0);
+            showGameMessage(`Відродження`, `Ви відродились та частково відновили власні сили, але довелось витратили 📈 ${lostXp} досвіду і 💰 ${lostGold} золота, щоб повернути Вас до життя!`, 0);
 
             player.gold -= lostGold;
             player.xp -= lostXp;
