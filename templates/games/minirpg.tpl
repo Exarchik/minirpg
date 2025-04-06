@@ -1259,18 +1259,22 @@
             
             // Перевіряємо чи є там ворог
             const enemyIndex = enemies.findIndex(e => e.position.x === x && e.position.y === y);
+
             // Битва починається
             if (enemyIndex !== -1) {
                 // під час битви не рухаєм
                 player.isBattle = true;
 
-                updateEnemyStats(enemies[enemyIndex]);
-                elements.enemyEmoji.textContent = enemies[enemyIndex].emoji;
+                let newEnemy = {...enemies[enemyIndex]};
+                newEnemy.health = getEnemyMaxHealth(newEnemy);
+
+                updateEnemyStats(newEnemy);
+                elements.enemyEmoji.textContent = newEnemy.emoji;
                 elements.enemyEmoji.style.filter = `grayscale(0%)`;
                 
-                showEnemy(enemies[enemyIndex]);
+                showEnemy(newEnemy);
                 setTimeout(function() {
-                    startBattle(enemies[enemyIndex]);
+                    startBattle(newEnemy);
                 }, 1500);
                 return;
             }
@@ -1288,7 +1292,7 @@
             
             // Переміщуємо гравця
             player.position = { x, y };
-            addLog(`🚶 Ви перейшли на клітинку [${x}, ${y}]`, 'system');
+            //addLog(`🚶 Ви перейшли на клітинку [${x}, ${y}]`, 'system');
             
             // Перевіряємо чи є тут щось цікаве
             checkCellContent(x, y);
@@ -2321,6 +2325,8 @@
             let fastEnemyStatus = enemy.abilities.includes('fast');
             let iteration = 0;
 
+            enemy.health = getEnemyMaxHealth(enemy);
+
             // Функція для анімації бою з урахуванням здібностей
             function battleStep() {
                 if (player.health <= 0 || enemy.health <= 0) return;
@@ -2487,7 +2493,7 @@
                         showEventPopup(`-${fireDamage}${addEmoji('🔥')}`, elements.playerEmoji, {
                             color: '#f00',
                             delay: 250,
-                            horizontalOffset: -25
+                            horizontalOffset: -40
                         });
                         addLog(`[${iteration}] 🔥 ${enemy.emoji} ${enemy.type} використовує вогняне дихання (+${fireDamage} шкоди)!`, 'enemy');
                     }
@@ -2497,7 +2503,7 @@
                         showEventPopup(`-${poisonDamage}${addEmoji('☣️')}`, elements.playerEmoji, {
                             color: '#0f0',
                             delay: 250,
-                            horizontalOffset: -25
+                            horizontalOffset: -40
                         });
                         addLog(`[${iteration}] ☠️ ${enemy.emoji} ${enemy.type} отруює вас (+${poisonDamage} шкоди)!`, 'enemy');
                     }
@@ -2640,10 +2646,10 @@
             const enemyDefense = enemy.defense < getEnemyDefense(enemy) ? `<strong class="upgraded-stat">${getEnemyDefense(enemy)}</strong>` : getEnemyDefense(enemy);
             const enemyMaxHealth = enemy.baseMaxHealth < getEnemyMaxHealth(enemy) ? `<strong class="upgraded-stat">${getEnemyMaxHealth(enemy)}</strong>` : getEnemyMaxHealth(enemy);
 
-            elements.enemyStats.innerHTML = `${attackEmoji}: ${enemyAttack} | ${defenseEmoji}: ${enemyDefense} | ${healthEmoji}: ${enemy.health >= 0 ? enemy.health : 0}/${enemyMaxHealth}`;
+            elements.enemyStats.innerHTML = `${attackEmoji}: ${enemyAttack} | ${defenseEmoji}: ${enemyDefense} | ${healthEmoji}: ${(enemy.health >= 0 ? enemy.health : 0)}/${enemyMaxHealth}`;
             
             // Оновлюємо health bar ворога
-            const enemyHealthPercent = ((enemy.health >= 0 ? enemy.health : 0) / enemy.maxHealth) * 100;
+            const enemyHealthPercent = ((enemy.health >= 0 ? enemy.health : 0) / getEnemyMaxHealth(enemy)) * 100;
             elements.enemyHealthBar.style.width = `${enemyHealthPercent}%`;
         }
 
