@@ -455,9 +455,7 @@
         }
 
         .tree-cell {
-            /*background-color: #499349;**/
             background: radial-gradient(circle at center, white 0, #777, #555 78%);
-            /*background: radial-gradient(circle at center, white 0, white, #777 78%);*/
             color: #2a8a2a;
         }
 
@@ -580,7 +578,7 @@
             baseDefense: 3, // Зменшено базовий захист
             gold: 0,
             xp: 0,
-            xpToNext: 50,  // Зменшено досвід для першого рівня
+            xpToNext: 50,  // Необхідний досвід до наступного рівня
             emoji: '🧙‍♂️',
             inventory: [],
             equipment: {
@@ -1000,6 +998,11 @@
             relicSlot: document.getElementById('relic-slot'),
             map: document.getElementById('map')
         };
+
+        // класичний рандом
+        function rand(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
 
         function chooseOne(list) {
             if (!Array.isArray(list) || list.length === 0) {
@@ -2430,9 +2433,16 @@
                         enemies.splice(enemyIndex, 1);
                     }
                     
+                    // Гравець зачистив локацію і отримує бонусяки
                     if (enemies.length < 1) {
                         spawnEnemies();
                         resetTerra();
+
+                        showGameMessage(`🎉 Ви зачистили локацію і отримуєте бонуси на новій локації!`, 0);
+
+                        spawnArtifacts(2);
+                        spawnChest();
+                        spawnFruits(1);
                     }
                     
                     // Перевірка на новий рівень
@@ -2694,7 +2704,7 @@
         // щоб кудись вирачати гроші
         function gamble() {
             if (player.gold < gamblingPrice()) {
-                addLog(`❌ У вас немає ${gamblingPrice()} 💰 золота для гемблінгу!`, 'system');
+                addLog(`🎰❌ У вас немає ${gamblingPrice()} 💰 золота для гемблінгу!`, 'system');
                 showEventPopup(`${addEmoji('❌', '40px')}`, elements.gambleBtn);
                 return;
             }
@@ -2707,20 +2717,30 @@
                 // 31% артефакти
                 showEventPopup(`${addEmoji('🔮', '40px')}`, elements.gambleBtn);
                 spawnArtifacts(1);
+
+                addLog(`🎰🔮 Удача! На карті з'явився артефакт!`, 'loot');
             } else if (localRandom < 0.54) { 
                 // 23% сундук
                 showEventPopup(`${addEmoji('📦', '40px')}`, elements.gambleBtn);
                 spawnChest();
+
+                addLog(`🎰📦 Удача! На карті з'явився сундук!`, 'loot');
             } else if (localRandom < 0.77) {
                 // 23% фрукт
                 showEventPopup(`${addEmoji('🍎', '40px')}`, elements.gambleBtn);
                 setTimeout(() => {
                     spawnFruits(1);
                 }, 100);
+
+                addLog(`🎰🍎 На карті з'явився харч!`, 'loot');
             } else if (localRandom < 0.92) {
                 // 15% - 25% of level
                 //const addingXp = Math.round(player.xpToNext * 0.25);
-                const addingXp = Math.floor(Math.random() * 6 * (player.level + 2)) + 5;
+                const randomXpParam = Math.random();
+                const maxXpOnLevel = 24 * player.level + (5 + player.level * 4);
+                const minXpOnLevel = Math.floor(maxXpOnLevel * 0.5);
+
+                const addingXp = rand(minXpOnLevel, maxXpOnLevel);
                 showEventPopup(`${addEmoji('📈', '40px')}`, elements.gambleBtn);
 
                 player.xp += addingXp;
@@ -2732,9 +2752,11 @@
                     fontSize: '18px',
                     delay: 50,
                 });
+
+                addLog(`🎰📈 Ви нічого не виграли, але отримали ${addingXp} досвіду!`, 'loot');
             } else {
                 // решта золотішко
-                const jackPot = gamblingPrice() * 2; 
+                const jackPot = Math.floor(gamblingPrice() * rand(2, 3));
                 showEventPopup(`${addEmoji('💰', '40px')}`, elements.gambleBtn);
 
                 player.gold += jackPot;
@@ -2744,6 +2766,8 @@
                     fontSize: '20px',
                     delay: 50,
                 });
+
+                addLog(`🎰💰 Ви виграли ${jackPot} грошей!`, 'loot');
             }
 
             updateMap();
