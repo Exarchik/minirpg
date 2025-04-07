@@ -669,6 +669,9 @@
             'book': '📖',
             'relic': '🔮',
         };
+
+        const extraStyleMainIcons = 'vertical-align: sub !important; margin-left: 4px; margin-bottom: 2px';
+
         // бібліотека емоджі
         const emojiReplacer = [
                 // базові
@@ -1100,6 +1103,11 @@
             return emoji;
         }
 
+        // типова для гравця іконка
+        function addEmojiPlayer(emoji = '❤️', size = '20px') {
+            return addEmoji(emoji, size, undefined, extraStyleMainIcons);
+        }
+
         // один з ворогів рухається
         function moveRandomEnemy() {
             const _koords = [-1, 0, 1];
@@ -1386,7 +1394,7 @@
             player.position = { x, y };
             
             // Анімація
-            showEventPopup(`+${actualHeal} ${addEmoji('❤️')}`, document.getElementById('player-on-map'), {
+            showEventPopup(`+${actualHeal}${addEmojiPlayer('❤️')}`, document.getElementById('player-on-map'), {
                 color: fruit.color,
                 fontSize: '24px'
             });
@@ -1415,7 +1423,7 @@
                 player.gold += goldFound;
                 addLog(`💰 Ви знайшли скарб і отримали ${goldFound} золота!`, 'loot');
 
-                showEventPopup(`+${goldFound} ${addEmoji('💰')}`, document.getElementById('player-on-map'), {
+                showEventPopup(`+${goldFound}${addEmojiPlayer('💰')}`, document.getElementById('player-on-map'), {
                     color: '#ff0',
                     fontSize: '20px'
                 });
@@ -1446,11 +1454,11 @@
                 addLog(messageChest, 'loot');
 
                 // Анімація
-                showEventPopup(`+${goldFound} ${addEmoji('💰')}`, document.getElementById('player-on-map'), {
+                showEventPopup(`+${goldFound}${addEmojiPlayer('💰')}`, document.getElementById('player-on-map'), {
                     color: '#ff0',
                     fontSize: '20px'
                 });
-                showEventPopup(`+${goldFound} ${addEmoji('📈')}`, document.getElementById('player-on-map'), {
+                showEventPopup(`+${goldFound}${addEmojiPlayer('📈')}`, document.getElementById('player-on-map'), {
                     color: '#ff0',
                     fontSize: '20px',
                     delay: 250,
@@ -1977,7 +1985,7 @@
             
             addLog(`💰 Ви продали ${item.emoji} ${item.name} за ${sellPrice} золота`, 'sell');
             // сповіщення продажу
-            showEventPopup(`+${sellPrice} ${addEmoji('💰')}`, elements.playerEmoji, {
+            showEventPopup(`+${sellPrice}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
                 color: '#ff0',
                 fontSize: '20px'
             });
@@ -2162,7 +2170,7 @@
             }
 
             if (['potion_attack', 'potion_defense', 'potion_health'].includes(item.type)) {
-                showEventPopup(`${addEmoji(item.emojiType)}+${item.value}`, elements.playerEmoji, {
+                showEventPopup(`${addEmojiPlayer(item.emojiType)}+${item.value}`, elements.playerEmoji, {
                     color: item.color ? item.color : '#f00',
                 });
             }
@@ -2323,7 +2331,7 @@
                 popupElement.style.fontSize = options.fontSize;
                 
                 if (options.isCritical) {
-                    infoText += addEmoji('💥');
+                    infoText += addEmojiPlayer('💥');
                     popupElement.style.fontWeight = 'bold';
                     popupElement.style.textShadow = '2px 2px 3px black';//'0 0 5px gold';
                 }
@@ -2394,7 +2402,7 @@
                 // Модифікатори від здібностей ворога
                 if (enemy.abilities.includes('flying') && Math.random() < 0.25) {
                     addLog(`🦅 ${enemy.emoji} ${enemy.type} ухилився від вашої атаки!`, 'enemy');
-                    showEventPopup(`${addEmoji('💨','30px')}`, elements.enemyEmoji, {
+                    showEventPopup(`${addEmojiPlayer('💨','30px')}`, elements.enemyEmoji, {
                         color: '#f00',
                     });
                     playerDamage = 0;
@@ -2403,7 +2411,7 @@
                 // Хвороба знижує атаку на 75% але лише не критичні
                 if (!isCritical && enemy.abilities.includes('disease') && Math.random() < 0.3) {
                     addLog(`🤢 ${enemy.emoji} ${enemy.type} послабив вашу атаку хворобою!`, 'enemy', '#124f12');
-                    showEventPopup(`${addEmoji('🤢')}`, elements.enemyEmoji, {
+                    showEventPopup(`${addEmojiPlayer('🤢')}`, elements.enemyEmoji, {
                         color: '#f00',
                         horizontalOffset: -25
                     });
@@ -2453,13 +2461,13 @@
                     player.xp += enemy.xp;
                     addLog(`💰 Ви отримали ${enemy.gold} золота і ${enemy.xp} досвіду.`, 'loot');
                     
-                    showEventPopup(`+${enemy.gold} ${addEmoji('💰')}`, elements.playerEmoji, {
+                    showEventPopup(`+${enemy.gold}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
                         color: '#ff0',
                         fontSize: '20px',
                         delay: 500,
                         horizontalOffset: -25
                     });
-                    showEventPopup(`+${enemy.xp} ${addEmoji('📈')}`, elements.playerEmoji, {
+                    showEventPopup(`+${enemy.xp}${addEmojiPlayer('📈')}`, elements.playerEmoji, {
                         color: '#88f',
                         fontSize: '18px',
                         delay: 750,
@@ -2472,7 +2480,7 @@
                         addLog(`🎁 ${enemy.item.emoji} Ви отримали: <strong>${enemy.item.name}</strong>!`, 'item', '#4504ed');
                         updateInventory();
 
-                        showEventPopup(`${addEmoji('💼')}`, elements.playerEmoji, {
+                        showEventPopup(`${addEmojiPlayer('💼')}`, elements.playerEmoji, {
                             color: '#88f',
                             fontSize: '18px',
                             delay: 1000,
@@ -2517,7 +2525,7 @@
                     // Спеціальні атаки
                     if (enemy.abilities.includes('strong') && Math.random() < 0.5) {
                         enemyDamage = Math.floor(enemyDamage * 1.3);
-                        showEventPopup(`${addEmoji('💪')}`, elements.playerEmoji, {
+                        showEventPopup(`${addEmojiPlayer('💪')}`, elements.playerEmoji, {
                             color: '#fff',
                             horizontalOffset: -25
                         });
@@ -2525,7 +2533,7 @@
                     if (enemy.abilities.includes('fire_breath') && Math.random() < 0.25) {
                         const fireDamage = Math.max(1, Math.floor(enemyDamage * 0.5));
                         enemyDamage += fireDamage;
-                        showEventPopup(`-${fireDamage}${addEmoji('🔥')}`, elements.playerEmoji, {
+                        showEventPopup(`-${fireDamage}${addEmojiPlayer('🔥')}`, elements.playerEmoji, {
                             color: '#f00',
                             delay: 250,
                             horizontalOffset: -40
@@ -2535,7 +2543,7 @@
                     if (enemy.abilities.includes('poison') && Math.random() < 0.25) {
                         const poisonDamage = Math.max(1, Math.floor(enemyDamage * 0.3));
                         enemyDamage += poisonDamage;
-                        showEventPopup(`-${poisonDamage}${addEmoji('☣️')}`, elements.playerEmoji, {
+                        showEventPopup(`-${poisonDamage}${addEmojiPlayer('☣️')}`, elements.playerEmoji, {
                             color: '#0f0',
                             delay: 250,
                             horizontalOffset: -40
@@ -2546,7 +2554,7 @@
                         const suckDamage = Math.max(1, Math.floor(enemyDamage * 0.333));
                         player.health -= suckDamage;
                         enemy.health = Math.min(enemy.maxHealth, enemy.health + suckDamage);
-                        showEventPopup(`+${suckDamage}${addEmoji('🩸')}`, elements.enemyEmoji, {
+                        showEventPopup(`+${suckDamage}${addEmojiPlayer('🩸')}`, elements.enemyEmoji, {
                             color: '#f00',
                             delay: 50,
                         });
@@ -2568,7 +2576,7 @@
                     if (enemy.abilities.includes('regeneration') && Math.random() < 0.4) {
                         const healAmount = Math.floor(enemy.maxHealth * 0.1);
                         enemy.health = Math.min(enemy.maxHealth, enemy.health + healAmount);
-                        showEventPopup(`+${healAmount}${addEmoji('💚')}`, elements.enemyEmoji, {
+                        showEventPopup(`+${healAmount}${addEmojiPlayer('💚')}`, elements.enemyEmoji, {
                             color: '#0f0',
                             delay: 200,
                             horizontalOffset: 25
@@ -2802,7 +2810,7 @@
                 checkLevelUp();
                 updateStats();
 
-                showEventPopup(`+${addingXp} ${addEmoji('📈')}`, elements.playerEmoji, {
+                showEventPopup(`+${addingXp}${addEmojiPlayer('📈')}`, elements.playerEmoji, {
                     color: '#88f',
                     fontSize: '18px',
                     delay: 50,
@@ -2816,7 +2824,7 @@
 
                 player.gold += jackPot;
 
-                showEventPopup(`+${jackPot} ${addEmoji('💰')}`, elements.playerEmoji, {
+                showEventPopup(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
                     color: '#ff0',
                     fontSize: '20px',
                     delay: 50,
