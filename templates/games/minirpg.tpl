@@ -2,7 +2,7 @@
     <script>
         let icons = {};
         // отримуємо всі іконкі з атласу. дякую: https://www.codeandweb.com/free-sprite-sheet-packer
-        fetch('/templates/img/minirpg/clay/clay.json')
+        fetch('/templates/img/minirpg/clay/spritesheet.json')
             .then(response => response.json())
             .then(data => {
                 // спочатку підгружаєм всі іконки
@@ -59,7 +59,7 @@
         .emoji-sprite {
             width: 64px;
             height: 64px;
-            background-image: url('/templates/img/minirpg/clay/icons.png');
+            background-image: url('/templates/img/minirpg/clay/spritesheet.png');
             background-size: auto; /* або вказати розміри атласу */
         }
 
@@ -224,6 +224,10 @@
             color: #000;
             background-color: #555;
         }
+        .inventory-item {
+            /**/
+        }
+
         .item-desc {
             padding-left: 5px;
         }
@@ -684,6 +688,7 @@
             { type: '🛡️', image: 'defense.png' },
             { type: '👑', image: 'crown.png' },
             { type: '📈', image: 'xp.png' },
+            { type: '🌟', image: 'star.png' },
             { type: '🧙‍♂️', image: 'wizard.png' },
             { type: '📦', image: 'chest.png' },
             { type: '📦👑', image: 'chest-golden.png' },
@@ -2790,7 +2795,7 @@
                 player.health += 5;  // Зменшено приріст здоров'я за рівень
                 
                 addLog(`🌟 Вітаємо! Ви досягли ${player.level} рівня! Ваші характеристики зросли.`, 'system');
-                showEventPopup(`🌟 ${player.level} 🌟`, document.getElementById('player-on-map'), {
+                showEventPopup(`${addEmojiPlayer('🌟')} ${player.level} ${addEmojiPlayer('🌟')}`, document.getElementById('player-on-map'), {
                     color: '#ff0',
                     fontSize: '20px',
                     delay: 1000,
