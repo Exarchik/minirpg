@@ -484,7 +484,7 @@
         /* Додаткові стилі для різних типів фруктів */
         .fruit-cell[data-fruit="25"] { color: #ff555554; background-color: #ff555554; }
         .fruit-cell[data-fruit="50"] { color: #ffaa0054; background-color: #ffaa0054; }
-        .fruit-cell[data-fruit="100"] { color: #55ff5554; background-color: #55ff5554; }
+        .fruit-cell[data-fruit="100"] { color: #673ab7c9; background-color: #673ab7c9; }
 
         /* Перешкоди */
         .obstacle-cell {
@@ -763,6 +763,7 @@
             { type: '📿', subtype: 7, image: 'amulet-of-balanse.png' },
             { type: '📿🌟', subtype: 8, image: 'amulet-of-immortality.png' },
             { type: '📿🔥', subtype: 9, image: 'amulet-of-phoenix.png' },
+            { type: '📿🔮', subtype: 10, image: 'amulet-of-unity.png' },
                 // книги
             { type: '📖', subtype: 1, image: 'book.png' },
             { type: '📖', subtype: 2, image: 'book-2.png' },
@@ -875,6 +876,7 @@
             { name: "Амулет балансу", emoji: "📿",      subtype: 7, attack: 2, defense: 2, maxHealth: 10, rarity: 5, value: 250, type: "amulet" },
             { name: "Амулет безсмертя", emoji: "📿🌟",  subtype: 8, maxHealth: 40, rarity: 5, value: 500, type: "amulet" },
             { name: "Амулет фенікса", emoji: "📿🔥",    subtype: 9, maxHealth: 30, attack: 3, rarity: 6, value: 1000, type: "amulet" },
+            { name: "Амулет єднання", emoji: "📿🔮",    subtype: 10, maxHealth: 25, defense: 3, attack: 3, rarity: 6, value: 2200, type: "amulet" },
             
             // Книги
             { name: "Книга бійця", emoji: "📖",         subtype: 3, attack: 1, rarity: 2, value: 5, type: "book" },
@@ -1461,7 +1463,7 @@
             else if (fruit.healPercent === 0.5) percentText = ' (50%)';
             else percentText = ' (100%)';
             
-            addLog(`🍏 Ви з'їли ${fruit.emoji} ${fruit.name} і відновили ${actualHeal} HP${percentText}!`, 'system');
+            addLog(`🍏 Ви з'їли ${fruit.emoji} ${fruit.name} і відновили ${actualHeal} HP${percentText}!${overHealth > 0 ? ' Підвищення сил: +' + overHealth : ''}`, 'system');
             
             // Видаляємо фрукт з карти
             gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
@@ -1687,9 +1689,9 @@
                     const rarityRoll = Math.random();
                     let fruitType;
                     
-                    if (rarityRoll > 0.9 && player.level > 3) {       // 10% шанс на виноград (рівень > 3)
+                    if (rarityRoll > 0.9 && player.level > 3) {       // 10% шанс на виноград / стейк (рівень > 3)
                         fruitType = fruits.find(f => f.healPercent === 1.0);
-                    } else if (rarityRoll > 0.6) {                   // 30% шанс на банан
+                    } else if (rarityRoll > 0.6) {                   // 30% шанс на банан / піццу
                         fruitType = fruits.find(f => f.healPercent === 0.5);
                     } else {                                         // 60% шанс на яблуко
                         fruitType = fruits.find(f => f.healPercent === 0.25);
@@ -1774,11 +1776,11 @@
             }
             
             // Закриття при кліку поза вікном
-            window.onclick = function(event) {
+            /*window.onclick = function(event) {
                 if (event.target == modal) {
                     modal.style.display = 'none';
                 }
-            }
+            }*/
 
             okButton.focus();
         }
@@ -1895,6 +1897,9 @@
             // Оновлюємо xp bar гравця
             const playerXpPercent = (player.xp / player.xpToNext) * 100;
             elements.playerXpBar.style.width = `${playerXpPercent}%`;
+
+            // оновлюєм кнопку гембла
+            elements.gamblePrice.innerHTML = `${gamblingPrice()}${addEmoji('💰', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')}`;
         }
 
         function signedValue(value) {
@@ -1953,8 +1958,6 @@
                 elements.inventoryItems.innerHTML = '<p>Інвентар порожній</p>';
                 elements.inventoryFullness.innerHTML = '(Пусто)';
             }
-
-            elements.gamblePrice.innerHTML = `${gamblingPrice()}${addEmoji('💰', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')}`;
         }
 
         // Оновлюємо слот обладнання
