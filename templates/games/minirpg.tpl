@@ -571,7 +571,7 @@
                     <button id="inventoryBtn" style="display: inline-block; min-width: 216px;">🎒 Інвентар <span id='inventoryFullness'>(Пусто)</span> [I]</button>
                     <button id="mapBtn" style="display: none; min-width: 216px;">🗺️ Карта [I]</button>
                     <button id="healBtn" style="display: none;">💊 Лікуватися (10 золота)</button>
-                    <button id="gambleBtn" style="display: inline-block;">🎰 Гемблінг (<span id="gamblePrice">50</span><span class="emoji-replace" data-emoji="💰" data-size="20px" style="vertical-align: text-bottom; display: inline-block; margin: 0 0 1px 4px;">💰</span>) [G]</button>
+                    <button id="gambleBtn" style="display: inline-block;">🎰 Гемблінг (<span id="gamblePrice">50💰</span>) [G]</button>
                     <button id="resurrectBtn" style="display: none;">💀 Відродитись [R]</button>
                 </div>
 
@@ -1890,8 +1890,6 @@
             // Оновлюємо xp bar гравця
             const playerXpPercent = (player.xp / player.xpToNext) * 100;
             elements.playerXpBar.style.width = `${playerXpPercent}%`;
-
-            elements.gamblePrice.innerHTML = gamblingPrice();
         }
 
         function signedValue(value) {
@@ -1945,11 +1943,13 @@
                 elements.inventoryItems.appendChild(itemElement);
             });
             
-            elements.inventoryFullness.innerHTML = `(📦 ${player.inventory.length})`;
+            elements.inventoryFullness.innerHTML = `(${player.inventory.length}${addEmoji('📦', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')})`;
             if (player.inventory.length === 0) {
                 elements.inventoryItems.innerHTML = '<p>Інвентар порожній</p>';
                 elements.inventoryFullness.innerHTML = '(Пусто)';
             }
+
+            elements.gamblePrice.innerHTML = `${gamblingPrice()}${addEmoji('💰', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')}`;
         }
 
         // Оновлюємо слот обладнання
