@@ -1,3 +1,20 @@
+    {ignore}
+    <script>
+        let icons = {};
+        // отримуємо всі іконкі з атласу. дякую: https://www.codeandweb.com/free-sprite-sheet-packer
+        fetch('/templates/img/minirpg/clay/clay.json')
+            .then(response => response.json())
+            .then(data => {
+                // спочатку підгружаєм всі іконки
+                icons = data;
+                // лише потім стартуєм ВСЬО!
+                beginAll();
+            })
+            .catch(error => {
+            console.error('Помилка завантаження JSON:', error);
+        });
+    </script>
+    {/ignore}
     <style>
         body {
             font-family: 'Courier New', monospace;
@@ -38,6 +55,14 @@
             background-color: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(3px);
         }
+
+        .emoji-sprite {
+            width: 64px;
+            height: 64px;
+            background-image: url('/templates/img/minirpg/clay/icons.png');
+            background-size: auto; /* або вказати розміри атласу */
+        }
+
         .modal-header {
             display: block;
             position: absolute;
@@ -636,6 +661,14 @@
             }
         };
 
+        const emptySlotsEquipmentsEmojies = {
+            'weapon': '🗡',
+            'armor': '🛡️✨',
+            'ring': '💍✨',
+            'amulet': '📿🔥',
+            'book': '📖',
+            'relic': '🔮',
+        };
         // бібліотека емоджі
         const emojiReplacer = [
                 // базові
@@ -765,36 +798,6 @@
             { type: '🧪', subtype: 2, image: 'potion-2.png' },
             { type: '🧪', subtype: 3, image: 'potion-3.png' },
         ];
-
-        function emojiReplace() {
-            document.querySelectorAll('.emoji-replace').forEach(el => {
-                const emoji = el.getAttribute('data-emoji');
-                const size = el.getAttribute('data-size') ? el.getAttribute('data-size') : '16px';
-                el.innerHTML = addEmoji(emoji, size);
-            });
-        }
-
-        // замінник для емоджі
-        function addEmoji(emoji = '❤️', size = '20px', subtype = 0) {
-            // шукаєм картинку у емоджі реплейсері
-            let imgData = emojiReplacer.find(er => er.type == emoji);
-            // якщо картінка є продовжуєм
-            if (typeof imgData != 'undefined') {
-                // якщо для однієї емоджі можуть буть кілька варіантів
-                if (subtype != 0) {
-                    // шукаєм саме цей варіант
-                    let imgData2 = emojiReplacer.filter(er => er.type == emoji).find(er2 => er2.subtype == subtype);
-                    // використовуєм його або лишаем той шо вже є
-                    if (typeof imgData2 != 'undefined') {
-                        imgData = {...imgData2};
-                    }
-                }
-                // замінюєм емоджі
-                return `<img class='emoji-replaced' src='/templates/img/minirpg/clay/${imgData.image}' width='${size}'/>`;
-            }
-            // лишаєм емоджі якщо нічо немає
-            return emoji;
-        }
 
         // перешкоди
         const obstacles = [
@@ -1058,6 +1061,45 @@
             visitedCells = new Set();
         }
 
+        function emojiReplace() {
+            document.querySelectorAll('.emoji-replace').forEach(el => {
+                const emoji = el.getAttribute('data-emoji');
+                const size = el.getAttribute('data-size') ? el.getAttribute('data-size') : '16px';
+                el.innerHTML = addEmoji(emoji, size);
+            });
+        }
+
+        // замінник для емоджі
+        function addEmoji(emoji = '❤️', size = '20px', subtype = 0, extraStyle = '') {
+            // шукаєм картинку у емоджі реплейсері
+            let imgData = emojiReplacer.find(er => er.type == emoji);
+            // якщо картінка є продовжуєм
+            if (typeof imgData != 'undefined') {
+                // якщо для однієї емоджі можуть буть кілька варіантів
+                if (subtype != 0) {
+                    // шукаєм саме цей варіант
+                    let imgData2 = emojiReplacer.filter(er => er.type == emoji).find(er2 => er2.subtype == subtype);
+                    // використовуєм його або лишаем той шо вже є
+                    if (typeof imgData2 != 'undefined') {
+                        imgData = {...imgData2};
+                    }
+                }
+                const baseSize = 64;
+                const scaling = parseInt(size) / baseSize;
+
+                const posX = icons.frames[imgData.image].frame.x * scaling;
+                const posY = icons.frames[imgData.image].frame.y * scaling;
+                const atlasX = icons.meta.size.w * scaling;
+                const atlasY = icons.meta.size.h * scaling;
+
+                const emojiStyle = `${extraStyle != '' ? extraStyle+'; ' : ''}display: inline-block; vertical-align: bottom; width:${size}; height:${size}; background-position: -${posX}px -${posY}px; background-size: ${atlasX}px ${atlasY}px;`;
+                // замінюєм емоджі
+                return `<span class="emoji-sprite emoji-replaced" style="${emojiStyle}"></span>`;
+            }
+            // лишаєм емоджі якщо нічо немає
+            return emoji;
+        }
+
         // один з ворогів рухається
         function moveRandomEnemy() {
             const _koords = [-1, 0, 1];
@@ -1165,7 +1207,6 @@
                 }
                 
                 if (x === player.position.x && y === player.position.y) {
-                    //cell.textContent = player.emoji;
                     cell.innerHTML = addEmoji(player.emoji, '30px');
                     cell.classList.add('player-cell');
                     cell.id = 'player-on-map';
@@ -1181,7 +1222,6 @@
 
                     const enemy = enemies.find(e => e.position.x === x && e.position.y === y);
                     if (enemy) {
-                        //cell.textContent = enemy.emoji;
                         cell.innerHTML = addEmoji(enemy.emoji, '30px');
                         
                         if (enemy.boss) cell.classList.add('boss-cell');
@@ -1192,11 +1232,6 @@
                     }
                     
                     if (gameMap[y][x].type === 'artifact') {
-                        //cell.textContent = gameMap[y][x].emoji;
-                        //console.log(['artifact', gameMap[y][x].artifact]);
-                        //cell.innerHTML = addEmoji('💼', '30px', gameMap[y][x].artifact.subtype);
-                        //cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px', gameMap[y][x].artifact.subtype);
-
                         if (gameMap[y][x].artifact.type.startsWith('potion')) {
                             cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px', gameMap[y][x].artifact.subtype);
                             cell.classList.add('potion-cell');
@@ -1208,7 +1243,6 @@
                     }
 
                     if (gameMap[y][x].type === 'fruit') {
-                        //cell.textContent = gameMap[y][x].emoji;
                         cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
                         cell.classList.add('fruit-cell');
                         cell.style.color = gameMap[y][x].color;
@@ -1878,7 +1912,7 @@
                 element.innerHTML = `
                     <div class="inventory-item">
                         Пусто
-                        <div><img style="opacity: 0.3;" src='/templates/img/minirpg/clay/empty-${slot}.png' width='64px'/></div>
+                        <div>${addEmoji(emptySlotsEquipmentsEmojies[slot], '64px', 0, 'filter: grayscale(1) invert(1);opacity: 0.1;')}</div>
                     </div>
                 `;
             }
@@ -2017,7 +2051,6 @@
                 console.log(`Rarity ${rarity}: ${percentage.toFixed(2).padStart(5)}% | ${bar}`);
             }
         }
-
 
         function rarityTreshold(rarity, playerLevel) {
             const rarityTable = [
@@ -2857,70 +2890,57 @@
             elements.mapBtn.style.display = player.inInventory ? 'inline-block' : 'none';
         }
 
-        // Обробники подій
-        elements.healBtn.addEventListener('click', heal);
-        elements.gambleBtn.addEventListener('click', gamble);
-        elements.resurrectBtn.addEventListener('click', resurrect);
+        function beginAll() {
+            // Обробники подій
+            elements.healBtn.addEventListener('click', heal);
+            elements.gambleBtn.addEventListener('click', gamble);
+            elements.resurrectBtn.addEventListener('click', resurrect);
 
-        elements.inventoryBtn.addEventListener('click', toogleInventory);
-        elements.mapBtn.addEventListener('click', toogleInventory);
-        elements.closeInventoryBtn.addEventListener('click', toogleInventory);
+            elements.inventoryBtn.addEventListener('click', toogleInventory);
+            elements.mapBtn.addEventListener('click', toogleInventory);
+            elements.closeInventoryBtn.addEventListener('click', toogleInventory);
 
-        // Глобальні функції для виклику з HTML
-        window.equipItem = equipItem;
-        window.sellItem = sellItem;
+            // Глобальні функції для виклику з HTML
+            window.equipItem = equipItem;
+            window.sellItem = sellItem;
 
-        // buttons 
-        document.addEventListener("keydown", (e) => {
-            // player moving
-            if (!player.inInventory) {
-                if (e.code === "ArrowUp") movePlayer(player.position.x, player.position.y - 1);
-                if (e.code === "ArrowRight") movePlayer(player.position.x + 1, player.position.y);
-                if (e.code === "ArrowDown") movePlayer(player.position.x, player.position.y + 1);
-                if (e.code === "ArrowLeft") movePlayer(player.position.x - 1, player.position.y);
-            }
-            // gambling
-            if (e.code === "KeyG") gamble();
-            if (e.code === "KeyI") toogleInventory();
-
-            // resurrect
-            if (e.code === "KeyR" && player.health < 1) { resurrect(); }
-
-            // items manupulations
-            if (['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8' ,'Digit9'].includes(e.code)) {
-                const itemIndex = parseInt(e.code.split("Digit")[1]) - 1;
-                if (player.inventory[itemIndex] != null) {
-                    !e.shiftKey ? useItem(itemIndex) : sellItem(itemIndex);
+            // buttons 
+            document.addEventListener("keydown", (e) => {
+                // player moving
+                if (!player.inInventory) {
+                    if (e.code === "ArrowUp") movePlayer(player.position.x, player.position.y - 1);
+                    if (e.code === "ArrowRight") movePlayer(player.position.x + 1, player.position.y);
+                    if (e.code === "ArrowDown") movePlayer(player.position.x, player.position.y + 1);
+                    if (e.code === "ArrowLeft") movePlayer(player.position.x - 1, player.position.y);
                 }
-            }
-        });
+                // gambling
+                if (e.code === "KeyG") gamble();
+                if (e.code === "KeyI") toogleInventory();
 
-        // Оновлене початкове повідомлення
-        addLog('🌈 Ласкаво просимо в Міні RPG!', 'system');
-        addLog('🧪 Тепер у світі можна знайти 3 види еліксирів:', 'system');
-        addLog('🗺️ Клацайте на клітинки карти, щоб рухатись.', 'system');
-        
-        // Ініціалізація гри
-        initMap();
-        
-        // Додамо стартову зброю та броню
-        //player.inventory.push({...weapons[8]}); // test
-        
-        //player.inventory.push({...weapons[0]}); // Дерев'яний меч
-        //player.inventory.push({...armors[0]});  // Плащ
+                // resurrect
+                if (e.code === "KeyR" && player.health < 1) { resurrect(); }
 
-        /*player.inventory.push({...artifacts[26]});
-        player.inventory.push({...artifacts[27]});
-        player.inventory.push({...artifacts[28]});
-        player.inventory.push({...artifacts[29]});
-        player.inventory.push({...artifacts[30]});
-        player.inventory.push({...artifacts[31]});
-        player.inventory.push({...artifacts[32]});
-        player.inventory.push({...artifacts[33]});*/
-        
-        updateStats();
-        updateInventory();
+                // items manupulations
+                if (['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8' ,'Digit9'].includes(e.code)) {
+                    const itemIndex = parseInt(e.code.split("Digit")[1]) - 1;
+                    if (player.inventory[itemIndex] != null) {
+                        !e.shiftKey ? useItem(itemIndex) : sellItem(itemIndex);
+                    }
+                }
+            });
 
-        emojiReplace();
+            // Оновлене початкове повідомлення
+            addLog('🌈 Ласкаво просимо в Міні RPG!', 'system');
+            addLog('🧪 Тепер у світі можна знайти 3 види еліксирів:', 'system');
+            addLog('🗺️ Клацайте на клітинки карти, щоб рухатись.', 'system');
+            
+            // Ініціалізація гри
+            initMap();
+            
+            updateStats();
+            updateInventory();
+
+            emojiReplace();
+        }
     </script>
     {/ignore}
