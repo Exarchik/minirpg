@@ -571,7 +571,7 @@
                     <button id="inventoryBtn" style="display: inline-block; min-width: 216px;">🎒 Інвентар <span id='inventoryFullness'>(Пусто)</span> [I]</button>
                     <button id="mapBtn" style="display: none; min-width: 216px;">🗺️ Карта [I]</button>
                     <button id="healBtn" style="display: none;">💊 Лікуватися (10 золота)</button>
-                    <button id="gambleBtn" style="display: inline-block;">🎰 Гемблінг (<span id="gamblePrice">50</span> золота) [G]</button>
+                    <button id="gambleBtn" style="display: inline-block;">🎰 Гемблінг (<span id="gamblePrice">50</span><span class="emoji-replace" data-emoji="💰" data-size="20px" style="vertical-align: text-bottom; display: inline-block; margin: 0 0 1px 4px;">💰</span>) [G]</button>
                     <button id="resurrectBtn" style="display: none;">💀 Відродитись [R]</button>
                 </div>
 
@@ -669,6 +669,7 @@
             'book': '📖',
             'relic': '🔮',
         };
+        const equipableTypes = ['weapon', 'armor', 'ring', 'amulet', 'book', 'relic'];
 
         const extraStyleMainIcons = 'vertical-align: sub !important; margin-left: 4px; margin-bottom: 2px';
 
@@ -1068,7 +1069,8 @@
             document.querySelectorAll('.emoji-replace').forEach(el => {
                 const emoji = el.getAttribute('data-emoji');
                 const size = el.getAttribute('data-size') ? el.getAttribute('data-size') : '16px';
-                el.innerHTML = addEmoji(emoji, size);
+                const style = el.style ? el.style : '';
+                el.innerHTML = addEmoji(emoji, size, undefined, style);
             });
         }
 
@@ -1413,6 +1415,11 @@
             // Видаляємо артефакт з карти
             gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
             player.position = { x, y };
+
+            // якщо в гравця немає екіпу - має сенсу одразу брати підняту річ в руки
+            if (player.equipment[artifact.type] == null && equipableTypes.includes(artifact.type)) {
+                equipItem(player.inventory.length - 1);
+            }
             
             updateMap();
             updateInventory();
@@ -1494,6 +1501,11 @@
                 if (gameMap[y][x].artifact != null) {
                     player.inventory.push(gameMap[y][x].artifact);
                     messageChest = `🎁 Ви відкрили ${chestName} і отримали ${goldFound} золота, ${xpFound} досвіду та знайшли ${gameMap[y][x].artifact.emoji} ${gameMap[y][x].artifact.name}!`;
+
+                    // якщо в гравця немає екіпу - має сенсу одразу брати підняту річ в руки
+                    if (player.equipment[gameMap[y][x].artifact.type] == null && equipableTypes.includes(gameMap[y][x].artifact.type)) {
+                        equipItem(player.inventory.length - 1);
+                    }
                 }
 
                 addLog(messageChest, 'loot');
@@ -2523,9 +2535,15 @@
                     if (enemy.item) {
                         player.inventory.push(enemy.item);
                         addLog(`🎁 ${enemy.item.emoji} Ви отримали: <strong>${enemy.item.name}</strong>!`, 'item', '#4504ed');
+
+                        // якщо в гравця немає екіпу - має сенсу одразу брати підняту річ в руки
+                        if (player.equipment[enemy.item.type] == null && equipableTypes.includes(enemy.item.type)) {
+                            equipItem(player.inventory.length - 1);
+                        }
+
                         updateInventory();
 
-                        showEventPopup(`${addEmojiPlayer('💼')}`, elements.playerEmoji, {
+                        showEventPopup(`${addEmoji(enemy.item.emoji, '32px', enemy.item.subtype)}`, elements.playerEmoji, {
                             color: '#88f',
                             fontSize: '18px',
                             delay: 1000,
