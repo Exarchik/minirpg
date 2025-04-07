@@ -1309,6 +1309,16 @@
                 // під час битви не рухаєм
                 player.isBattle = true;
 
+                const targetOnMap = document.querySelector(`.map-cell[data-x="${x}"][data-y="${y}"]`);
+
+                const tmpTarget = getTempPosElementBetween(document.getElementById('player-on-map'), targetOnMap);
+                // показуєм початок битви
+                showEventPopup(`${addEmoji('⚔️', '32px')}`, tmpTarget, {
+                    color: '#ff0',
+                    fontSize: '20px',
+                    horizontalOffset: 5
+                });
+
                 let newEnemy = {...enemies[enemyIndex]};
                 newEnemy.health = getEnemyMaxHealth(newEnemy);
 
@@ -1346,9 +1356,40 @@
             updateMap();
         }
 
+        function getTempPosElementBetween(a, b) {
+            const rectA = a.getBoundingClientRect();
+            const rectB = b.getBoundingClientRect();
+
+            // Знаходимо центр кожного елемента
+            const centerAX = rectA.left + rectA.width / 2;
+            const centerAY = rectA.top + rectA.height / 2;
+
+            const centerBX = rectB.left + rectB.width / 2;
+            const centerBY = rectB.top + rectB.height / 2;
+
+            // Центр між центрами A і B
+            const midX = (centerAX + centerBX) / 2;
+            const midY = (centerAY + centerBY) / 2;
+
+            // Позиціонування
+            const middle = document.createElement('div');
+            middle.style.position = 'absolute';
+            // Розміщуємо новий div (в центрі між ними)
+            middle.style.left = `${midX - middle.offsetWidth / 2}px`;
+            middle.style.top = `${midY - middle.offsetHeight / 2}px`;
+            middle.style.zIndex = '1000';
+            middle.style.pointerEvents = 'none';
+
+            document.body.appendChild(middle);
+            // Видалення елемента після анімації
+            setTimeout(() => { middle.remove();}, 50);
+            return middle;
+        }
+
         // Підбираємо артефакт
         function pickUpArtifact(x, y) {
             const artifact = gameMap[y][x].artifact;
+            const targetOnMap = document.querySelector(`.map-cell[data-x="${x}"][data-y="${y}"]`);
             
             // Особливе повідомлення для еліксирів
             if (artifact.type.startsWith('potion')) {
@@ -1362,8 +1403,9 @@
                 addLog(`✨ Ви знайшли артефакт: ${artifact.emoji} <strong>${artifact.name}</strong> ${descArt}!`, 'artifact', '#4504ed');
 
                 // Анімація
-                showEventPopup(`${addEmoji('💼')}`, document.getElementById('player-on-map'), {
-                    fontSize: '40px'
+                showEventPopup(`${addEmoji(artifact.emoji, '32px', artifact.subtype)}`, targetOnMap, {
+                    fontSize: '40px',
+                    horizontalOffset: 5
                 });
             }
             
@@ -1378,6 +1420,8 @@
 
         function pickUpFruit(x, y) {
             const fruit = gameMap[y][x].fruit;
+            const targetOnMap = document.querySelector(`.map-cell[data-x="${x}"][data-y="${y}"]`);
+
             const healAmount = Math.floor(player.maxHealth * fruit.healPercent);
             const newHealth = Math.min(player.maxHealth, player.health + healAmount);
             const actualHeal = newHealth - player.health;
@@ -1394,7 +1438,7 @@
             player.position = { x, y };
             
             // Анімація
-            showEventPopup(`+${actualHeal}${addEmojiPlayer('❤️')}`, document.getElementById('player-on-map'), {
+            showEventPopup(`+${actualHeal}${addEmojiPlayer('❤️')}`, targetOnMap, {
                 color: fruit.color,
                 fontSize: '24px'
             });
@@ -1417,13 +1461,14 @@
         // Перевіряємо вміст клітинки
         function checkCellContent(x, y) {
             const cell = gameMap[y][x];
+            const targetOnMap = document.querySelector(`.map-cell[data-x="${x}"][data-y="${y}"]`);
             
             if (cell.type === 'treasure') {
                 const goldFound = Math.floor(Math.random() * 10 * player.level) + 5;
                 player.gold += goldFound;
                 addLog(`💰 Ви знайшли скарб і отримали ${goldFound} золота!`, 'loot');
 
-                showEventPopup(`+${goldFound}${addEmojiPlayer('💰')}`, document.getElementById('player-on-map'), {
+                showEventPopup(`+${goldFound}${addEmojiPlayer('💰')}`, targetOnMap, {
                     color: '#ff0',
                     fontSize: '20px'
                 });
@@ -1454,20 +1499,20 @@
                 addLog(messageChest, 'loot');
 
                 // Анімація
-                showEventPopup(`+${goldFound}${addEmojiPlayer('💰')}`, document.getElementById('player-on-map'), {
+                showEventPopup(`+${goldFound}${addEmojiPlayer('💰')}`, targetOnMap, {
                     color: '#ff0',
                     fontSize: '20px'
                 });
-                showEventPopup(`+${goldFound}${addEmojiPlayer('📈')}`, document.getElementById('player-on-map'), {
+                showEventPopup(`+${goldFound}${addEmojiPlayer('📈')}`, targetOnMap, {
                     color: '#ff0',
                     fontSize: '20px',
                     delay: 250,
                     horizontalOffset: -20,
                 });
-                showEventPopup(`${addEmoji('💼')}`, document.getElementById('player-on-map'), {
-                    fontSize: '20px',
+                showEventPopup(`${addEmoji(gameMap[y][x].artifact.emoji, '32px', gameMap[y][x].artifact.subtype)}`, targetOnMap, {
+                    fontSize: '40px',
                     delay: 500,
-                    horizontalOffset: 30,
+                    horizontalOffset: 30
                 });
 
                 // Видаляємо сундук
@@ -2949,6 +2994,8 @@
             updateInventory();
 
             emojiReplace();
+
+            elements.enemyEmoji.innerHTML = addEmoji('👺', '64px', undefined, 'filter: grayscale(1) invert(1); opacity: 0.1;');
         }
     </script>
     {/ignore}
