@@ -1983,6 +1983,20 @@
             }
         }
 
+        // знімаємо предмет
+        function unequipItem(index) {
+            const equipmentTypes = ['weapon', 'armor', 'ring', 'amulet', 'book', 'relic'];
+
+            if (index < 0 || index > 5 || player.equipment[equipableTypes[index]] == undefined || player.equipment[equipableTypes[index]] == null) return;
+
+            const item = player.equipment[equipableTypes[index]];
+            player.inventory.push(item);
+            player.equipment[equipableTypes[index]] = null;
+
+            updateInventory();
+            updateStats();
+        }
+
         // Екіпіруємо предмет
         function equipItem(index) {
             const item = player.inventory[index];
@@ -2993,10 +3007,17 @@
 
                 // items manupulations
                 if (['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7', 'Digit8' ,'Digit9'].includes(e.code)) {
+                    
+                    //console.log([e.code, e.shiftKey, e.altKey]);
+
                     const itemIndex = parseInt(e.code.split("Digit")[1]) - 1;
-                    if (player.inventory[itemIndex] != null) {
-                        !e.shiftKey ? useItem(itemIndex) : sellItem(itemIndex);
-                    }
+
+                    // якщо тицнем цифру із Shift - то автоматично продаєм її, але лише якщо гравець дивиться у інвентар
+                    if (e.shiftKey && player.inventory[itemIndex] != null && player.inInventory) sellItem(itemIndex);
+                    // якщо тицнем цифру із Alt - то знімаєм вдягнену річ (1-зброя / 2-броня / 3-кільце / 4-амулет / 5-книга / 6-реліквія)
+                    else if (e.altKey) unequipItem(itemIndex);
+                    // якщо просто тиснем цифру з рюкзака, то вона вдягнеться/використається
+                    else if (player.inventory[itemIndex] != null) useItem(itemIndex);
                 }
             });
 
