@@ -632,10 +632,12 @@
             },
             isBattle: false,
             inInventory: false,
+            clearedRooms: 0, // кількість зачищенних "кімнат"
             position: { x: 0, y: 0 },
             get attack() {
                 let attack = this.baseAttack;
                 if (this.equipment.weapon) attack += this.equipment.weapon.attack;
+                if (this.equipment.armor) attack += (this.equipment.armor.attack || 0);
                 if (this.equipment.ring) attack += (this.equipment.ring.attack || 0);
                 if (this.equipment.amulet) attack += (this.equipment.amulet.attack || 0);
                 if (this.equipment.book) attack += (this.equipment.book.attack || 0);
@@ -645,6 +647,7 @@
             get defense() {
                 let defense = this.baseDefense;
                 if (this.equipment.armor) defense += this.equipment.armor.defense;
+                if (this.equipment.weapon) defense += (this.equipment.weapon.defense || 0);
                 if (this.equipment.ring) defense += (this.equipment.ring.defense || 0);
                 if (this.equipment.amulet) defense += (this.equipment.amulet.defense || 0);
                 if (this.equipment.book) defense += (this.equipment.book.defense || 0);
@@ -653,6 +656,7 @@
             },
             get maxHealth() {
                 let maxHealth = this.bonusHealth + 20 + (this.level - 1) * 5;  // Зменшено приріст здоров'я за рівень
+                if (this.equipment.weapon) maxHealth += (this.equipment.weapon.maxHealth || 0);
                 if (this.equipment.armor) maxHealth += (this.equipment.armor.maxHealth || 0);
                 if (this.equipment.ring) maxHealth += (this.equipment.ring.maxHealth || 0);
                 if (this.equipment.amulet) maxHealth += (this.equipment.amulet.maxHealth || 0);
@@ -706,6 +710,8 @@
             { type: '🗻', image: 'obs-mountain-2.png' },
             { type: '🌳', image: 'obs-tree-3.png' },
             { type: '🌲', image: 'obs-tree-4.png' },
+                // крамниця 🏬
+            { type: '🏬', image: 'shop.png' },
                 // фрукти
             { type: '🍎', image: 'red-apple.png' },
             { type: '🍌', image: 'banana.png' },
@@ -904,9 +910,9 @@
         
         // Додаємо еліксири до бази даних предметів
         const potions = [
-            { name: "Еліксир сили", emoji: "🧪", subtype: 1, type: "potion_attack", emojiType: "⚔️", description: "⚔️+1", effect: "attack", value: 1, rarity: 2, canSell: false, color: '#0f0' },
-            { name: "Еліксир захисту", emoji: "🧪", subtype: 2, type: "potion_defense", emojiType: "🛡️", description: "🛡️+1", effect: "defense", value: 1, rarity: 2, canSell: false, color: '#00ceff' },
-            { name: "Еліксир життя", emoji: "🧪", subtype: 3, type: "potion_health", emojiType: "💖", description: "💖+5", effect: "maxHealth", value: 5, rarity: 2, canSell: false, color: 'red' }
+            { name: "Еліксир сили", emoji: "🧪", subtype: 1, type: "potion_attack", emojiType: "⚔️", description: "⚔️+1", effect: "attack", value: 100, bonus: 1, rarity: 2, canSell: false, color: '#0f0' },
+            { name: "Еліксир захисту", emoji: "🧪", subtype: 2, type: "potion_defense", emojiType: "🛡️", description: "🛡️+1", effect: "defense", value: 100, bonus: 1, rarity: 2, canSell: false, color: '#00ceff' },
+            { name: "Еліксир життя", emoji: "🧪", subtype: 3, type: "potion_health", emojiType: "💖", description: "💖+5", effect: "maxHealth", value: 100, bonus: 5, rarity: 2, canSell: false, color: 'red' }
         ];
 
         // Здорове харчівництво ;)
@@ -985,6 +991,9 @@
         let enemies = [];
         let visitedCells = new Set();
         let terraCognita = new Set();
+
+        // предмети з крамниці
+        let store = [];
 
         // Елементи DOM
         const elements = {
@@ -1115,6 +1124,23 @@
         // типова для гравця іконка
         function addEmojiPlayer(emoji = '❤️', size = '20px') {
             return addEmoji(emoji, size, undefined, extraStyleMainIcons);
+        }
+
+        // типові кіонки для зброх, броні, амулетів, перснів, книжок і реліквій
+        function addEmojiItem(emoji = '❤️', subtype = 0, specialParams = {}) {
+            return addEmoji(emoji, '64px', subtype, specialParamsToStyle(specialParams));
+        }
+
+        // перетворює спец параметри на стилі
+        function specialParamsToStyle(specialParams = {}) {
+            let itemExtraStyles = [];
+
+            for (const [key, value] of Object.entries(specialParams)) {
+                if (key === 'hue-rotate') itemExtraStyles.push(`${key}(${value}deg)`);
+                else itemExtraStyles.push(`${key}(${value})`);
+            }
+
+            return itemExtraStyles.length ? `filter:${itemExtraStyles.join(' ')}` : '';
         }
 
         // один з ворогів рухається
@@ -1928,7 +1954,7 @@
                 itemElement.className = 'item-slot';
                 
                 // Визначаємо клас для еліксирів
-                let itemClass = 'inventory-item';
+                /*let itemClass = 'inventory-item';
                 if (item.type === 'potion_health') itemClass += ' potion-health';
                 else if (item.type === 'potion_attack') itemClass += ' potion-attack';
                 else if (item.type === 'potion_defense') itemClass += ' potion-defense';
@@ -1941,14 +1967,22 @@
                 if (item.critChance) bonusText += ` 💥${Math.floor(item.critChance*100)}%`;
                 if (item.description) bonusText = ` ${item.description}`;
                 
-                const itemEmoji = addEmoji(item.emoji, '64px', typeof item.subtype != 'undefined' ? item.subtype : 0);
+                const currentSubtype = typeof item.subtype != 'undefined' ? item.subtype : 0;
+                const currentSpecialParams = typeof item.specialParams != 'undefined' ? item.specialParams : {};
+                let itemSpecStyle = specialParamsToStyle(currentSpecialParams);
+                itemSpecStyle = itemSpecStyle != '' ?  `color:#0ff;${itemSpecStyle};text-shadow: 2px 2px 0 black;` : itemSpecStyle ;
+
+                //const itemEmoji = addEmoji(item.emoji, '64px', typeof item.subtype != 'undefined' ? item.subtype : 0);
+                const itemEmoji = addEmojiItem(item.emoji, currentSubtype, currentSpecialParams);
+
                 itemElement.innerHTML = `
-                    <div class="${itemClass}">[${index+1}]${item.name}<div>${itemEmoji}</div><div class="item-desc"><span class="artifact-bonus">${bonusText}</span></div></div>
+                    <div class="${itemClass}"><div class="item-name" style="${itemSpecStyle}">[${index+1}]${item.name}</div><div>${itemEmoji}</div><div class="item-desc"><span class="artifact-bonus">${bonusText}</span></div></div>
                     <div class="item-actions">
                         <div class="item-action" onclick="useItem(${index})">${item.type.startsWith('potion') ? 'Випити' : 'Екіпірувати'}</div>
                         ${item.canSell !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.floor(item.value * 0.7)}💰)</div>` : ''}
                     </div>
-                `;
+                `;*/
+                itemElement.innerHTML = getItemView(item, index, 'inventory');
                 
                 elements.inventoryItems.appendChild(itemElement);
             });
@@ -1964,23 +1998,7 @@
         function updateEquipmentSlot(slot) {
             const element = elements[`${slot}Slot`];
             if (player.equipment[slot]) {
-                const item = player.equipment[slot];
-                let bonusText = '';
-                if (item.attack) bonusText += ` ⚔️${signedValue(item.attack)}`;
-                if (item.defense) bonusText += ` 🛡️${signedValue(item.defense)}`;
-                if (item.maxHealth) bonusText += ` ❤️${signedValue(item.maxHealth)}`;
-                if (item.critChance) bonusText += ` 💥${Math.floor(item.critChance*100)}%`;
-                
-                let itemEmoji = addEmoji(item.emoji, '64px', item.subtype);
-                element.innerHTML = `
-                    <div class="inventory-item">
-                        ${item.name}
-                        <div>${itemEmoji}</div>
-                        <div class="item-desc">
-                            <span class="artifact-bonus">${bonusText}</span>
-                        </div>
-                    </div>
-                `;
+                element.innerHTML = getItemView(player.equipment[slot]);
             } else {
                 element.innerHTML = `
                     <div class="inventory-item">
@@ -1989,6 +2007,63 @@
                     </div>
                 `;
             }
+        }
+
+        // відображення предмету
+        // viewType ('inventory' - в рюкзаку, 'equipment' - те шо вдягнуте, 'store' - в крамниці)
+        function getItemView(item, index = -1, viewType = 'equipment') {
+            let bonusText = '';
+            if (item.attack) bonusText += ` ⚔️${signedValue(item.attack)}`;
+            if (item.defense) bonusText += ` 🛡️${signedValue(item.defense)}`;
+            if (item.maxHealth) bonusText += ` ❤️${signedValue(item.maxHealth)}`;
+            if (item.critChance) bonusText += ` 💥${Math.floor(item.critChance*100)}%`;
+            if (item.description) bonusText = ` ${item.description}`;
+            
+            const currentSubtype = typeof item.subtype != 'undefined' ? item.subtype : 0;
+            const currentSpecialParams = typeof item.specialParams != 'undefined' ? item.specialParams : {};
+            let itemSpecStyle = specialParamsToStyle(currentSpecialParams);
+            itemSpecStyle = itemSpecStyle != '' ?  `color:#0ff;${itemSpecStyle};text-shadow: 2px 2px 0 black;` : itemSpecStyle ;
+
+            const itemEmoji = addEmojiItem(item.emoji, currentSubtype, currentSpecialParams);
+
+            const inventoryIndex = (index != -1 && viewType == 'inventory') ? `[${index + 1}]` : '';
+
+            const inventoryActions = (index != -1 && viewType == 'inventory') ? `<div class="item-actions">
+                                            <div class="item-action" onclick="useItem(${index})">${item.type.startsWith('potion') ? 'Випити' : 'Екіпірувати'}</div>
+                                            ${item.canSell !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.floor(item.value * 0.7)}💰)</div>` : ''}
+                                        </div>` : '';
+            return `
+                <div class="inventory-item">
+                    <div class="item-name" style="${itemSpecStyle}">${inventoryIndex}${item.name}</div>
+                    <div>${itemEmoji}</div>
+                    <div class="item-desc">
+                        <span class="artifact-bonus">${bonusText}</span>
+                    </div>
+                </div>
+                ${inventoryActions}
+            `;
+        }
+
+        // створюєм предмети для купівлі
+        function generateStore() {
+            // скидуєм крамницю
+            store = [];
+            const itemsToBuy = rand(6, 12);
+
+            for (i = 0; i < itemsToBuy; i++) {
+                store.push(generateItem(true, undefined, true));
+            }
+
+            store.sort((a, b) => {
+                const orderA = equipableTypes.indexOf(a.type);
+                const orderB = equipableTypes.indexOf(b.type);
+
+                if (orderA !== orderB) {
+                    return orderA - orderB; // спочатку по type
+                }
+
+                return a.value - b.value; // якщо type однакові — по value
+            });
         }
 
         // знімаємо предмет
@@ -2170,7 +2245,7 @@
         }
 
         // Генеруємо випадковий предмет
-        function generateItem(isForced = false, rarityBias = -1) {
+        function generateItem(isForced = false, rarityBias = -1, mustBeModifed = false) {
             // 60% шанс отримати предмет
             if (Math.random() > 0.6 && !isForced) return null;
             
@@ -2185,32 +2260,59 @@
             else itemPool = artifacts;
             
             // Визначаємо рідкість на основі рівня гравця
-            //let rarity = 1;
             let rarity = getBiasedRarity(player.level, rarityBias);
-            /*    const rarityRoll = Math.random();
-                
-                if (rarityRoll > 0.98) rarity = 6; // 2% шанс на абсолютно легендарний
-                else if (rarityRoll > 0.93) rarity = 5; // 5% шанс на легендарний
-                else if (rarityRoll > 0.85) rarity = 4; // 8% шанс на міфічний
-                else if (rarityRoll > 0.65) rarity = 3; // 20% шанс на рідкісний
-                else if (rarityRoll > 0.4) rarity = 2; // 25% шанс на звичайний
-                else rarity = 1; // 40% шанс на поширений
-
-                // обмежуємо rarity за рівнем гравця (щоб не біло варіантів, коли випадає легендарка на 1-му рівні)
-                const rarityTest = rarity;
-                rarity = rarityTreshold(rarity, player.level);
-                //console.log(`generateItem => in: ${rarityTest} => out: ${rarity}`);
-            */
             // Фільтруємо предмети за рідкістю
             const availableItems = itemPool.filter(item => item.rarity <= rarity);
 
             if (availableItems.length === 0) {
-                if (isForced) return generateItem(true, rarityBias);
+                if (isForced) return generateItem(true, rarityBias, mustBeModifed);
                 else return null;
             }
             
             // Вибираємо випадковий предмет з доступних
-            const itemTemplate = availableItems[Math.floor(Math.random() * availableItems.length)];
+            let itemTemplate = {...availableItems[Math.floor(Math.random() * availableItems.length)]};
+
+            // Особливі параметри
+            let itemSpecialParams = {};
+
+            const isModified = mustBeModifed || (Math.random() < 0.25);
+
+            if (isModified && equipableTypes.includes(itemTemplate.type)) {
+                // hue main param
+                //console.log([`name: ${itemTemplate.name}`]);
+                if (Math.random() < 0.5) {
+                    const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * 0.25)));
+                    //console.log([`spec attack: ${(itemTemplate.attack || 0)} + ${attackParam}`]);
+
+                    itemTemplate.attack = (itemTemplate.attack || 0) + attackParam;
+                    itemSpecialParams['hue-rotate'] = rand(0, 359);
+                    if (itemTemplate.type == 'weapon') {
+                        itemTemplate.critChance += Math.random() * 0.2;
+                    }
+
+                    itemTemplate.value = Math.floor(itemTemplate.value * 1.25);
+                }
+                if (Math.random() < 0.5) {
+                    const defenseParam = rand(1, Math.max(1, Math.floor((itemTemplate.defense || 1) * 0.25)));
+                    //console.log([`spec defense: ${(itemTemplate.defense || 0)} + ${defenseParam}`]);
+
+                    itemTemplate.defense = (itemTemplate.defense || 0) + defenseParam;
+                    itemSpecialParams['contrast'] = rand(80, 200) / 100;
+
+                    itemTemplate.value = Math.floor(itemTemplate.value * 1.25);
+                }
+                if (Math.random() < 0.5) {
+                    const maxHealthParam = rand(1, Math.max(1, Math.floor((itemTemplate.maxHealth || 1) * 0.25)));
+                    //console.log([`spec health: ${(itemTemplate.maxHealth || 0)} + ${maxHealthParam}`]);
+
+                    itemTemplate.maxHealth = (itemTemplate.maxHealth || 0) + maxHealthParam;
+                    itemSpecialParams['brightness'] = rand(80, 150) / 100;
+
+                    itemTemplate.value = Math.floor(itemTemplate.value * 1.25);
+                }
+            }
+            itemTemplate['specialParams'] = itemSpecialParams;
+            //console.log([`---`]);
             
             // Створюємо копію предмета для гравця
             return {
@@ -2224,22 +2326,22 @@
             const item = player.inventory[index];
             
             if (item.type === 'potion_attack') {
-                player.baseAttack += item.value;
-                addLog(`🧪 Ви випили ${item.emoji} ${item.name}! Ваша атака збільшилась на ${item.value}. (${player.baseAttack-item.value} => ${player.baseAttack})`, 'system');
+                player.baseAttack += item.bonus;
+                addLog(`🧪 Ви випили ${item.emoji} ${item.name}! Ваша атака збільшилась на ${item.bonus}. (${player.baseAttack-item.bonus} => ${player.baseAttack})`, 'system');
                 updateStats();
             }
             else if (item.type === 'potion_defense') {
-                player.baseDefense += item.value;
-                addLog(`🧪 Ви випили ${item.emoji} ${item.name}! Ваш захист збільшився на ${item.value}. (${player.baseDefense-item.value} => ${player.baseDefense})`, 'system');
+                player.baseDefense += item.bonus;
+                addLog(`🧪 Ви випили ${item.emoji} ${item.name}! Ваш захист збільшився на ${item.bonus}. (${player.baseDefense-item.bonus} => ${player.baseDefense})`, 'system');
                 updateStats();
             }
             else if (item.type === 'potion_health') {
-                player.bonusHealth += item.value;
+                player.bonusHealth += item.bonus;
                 updateStats();
-                addLog(`🧪 Ви випили ${item.emoji} ${item.name}! Ваше максимальне здоров'я збільшилось на ${item.value}. (${player.maxHealth-item.value} => ${player.maxHealth})`, 'system');
+                addLog(`🧪 Ви випили ${item.emoji} ${item.name}! Ваше максимальне здоров'я збільшилось на ${item.bonus}. (${player.maxHealth-item.bonus} => ${player.maxHealth})`, 'system');
 
                 setTimeout(() => {
-                    player.health += item.value;
+                    player.health += item.bonus;
                     updateStats();
                 }, 250);
             } else {
@@ -2249,7 +2351,7 @@
             }
 
             if (['potion_attack', 'potion_defense', 'potion_health'].includes(item.type)) {
-                showEventPopup(`${addEmojiPlayer(item.emojiType)}+${item.value}`, elements.playerEmoji, {
+                showEventPopup(`${addEmojiPlayer(item.emojiType)}+${item.bonus}`, elements.playerEmoji, {
                     color: item.color ? item.color : '#f00',
                 });
             }
@@ -2583,10 +2685,17 @@
                     
                     // Гравець зачистив локацію і отримує бонусяки
                     if (enemies.length < 1) {
+                        player.clearedRooms++;
                         spawnEnemies();
                         resetTerra();
 
-                        showGameMessage(`Локацію зачищено`, `🎉 Ви зачистили локацію і отримуєте бонуси на новій локації!`, 0);
+                        // Після зачистки кожної другої кімнати спавним - крамничку
+                        let infoShop = '';
+                        if (player.clearedRooms % 2 === 0) {
+                            //spawnStore();
+                            infoShop = ` <br>На локації з'явилась 🏬 крамниця магічних предметів`;
+                        }
+                        showGameMessage(`Локацію зачищено`, `🎉 Ви зачистили ${player.clearedRooms} локацію і отримуєте бонуси на новій локації!${infoShop}`);
 
                         spawnArtifacts(2);
                         spawnChest();
