@@ -127,6 +127,10 @@
             display: none; /* Початково прихована */
         }
 
+        #storeBtn {
+            background-color: #b53b3b;
+        }
+
         #resurrectBtn:hover {
             background-color: #A52A2A;
         }
@@ -309,7 +313,7 @@
             grid-template-columns: repeat(11, 1fr);
             gap: 1px;
             width: 64%;
-            justify-self: center;
+            justify-self: left /*center*/;
         }
         .map-cell.incognita-cell {
             background-color: #333;
@@ -837,7 +841,7 @@
         ];
 
         // Оновлена база даних зброї з параметрами критичної шкоди
-        const weapons = [
+        let weapons = [
             { name: "Дерев'яний меч", emoji: "🗡",  subtype: 1, attack: 1, critChance: 0.03, rarity: 1, value: 5, type: "weapon" },
             { name: "Кинджал", emoji: "🔪",         subtype: 2, attack: 2, critChance: 0.15, rarity: 1, value: 10, type: "weapon" },
             { name: "Дубець", emoji: "🏏",          subtype: 3, attack: 3, critChance: 0.08, rarity: 2, value: 25, type: "weapon" },
@@ -855,7 +859,7 @@
         ];
 
         // Розширена база даних броні
-        const armors = [
+        let armors = [
             { name: "Плащ", emoji: "🥼",            subtype: 1, defense: 1, rarity: 1, value: 5, type: "armor" },
             { name: "Шкіряна броня", emoji: "🧥",   subtype: 2, defense: 2, rarity: 1, value: 10, type: "armor" },
             { name: "Шкапова броня", emoji: "🧥✨", subtype: 1, defense: 2, maxHealth: 5, rarity: 1, value: 25, type: "armor" },
@@ -873,7 +877,7 @@
         ];
 
         // Розширена база даних артефактів
-        const artifacts = [
+        let artifacts = [
             // Кільця
             { name: "Мідне кільце", emoji: "💍",    subtype: 1, attack: 1, rarity: 1, value: 5, type: "ring" },
             { name: "Срібне кільце", emoji: "💍",   subtype: 2, defense: 1, rarity: 1, value: 5, type: "ring" },
@@ -1006,6 +1010,8 @@
         let visitedCells = new Set();
         let terraCognita = new Set();
 
+        const sellCoefficient = 0.5;
+        const buyCoefficient = 2.0;
         // предмети з крамниці
         let store = [];
 
@@ -1055,6 +1061,50 @@
         // класичний рандом
         function rand(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // дивна рекалькуляція всіх параметрів
+        function paramToValue(valuesSum) {
+            const raw = 0.6 * Math.pow(valuesSum, 3) + 0.5 * Math.pow(valuesSum, 2) + 4 * valuesSum;
+            return Math.round(raw / 5) * 5;
+        }
+
+        // нова ціна для предмета
+        function newPriceForItem(item) {
+            let paramsSum = 0;
+            if (item.attack) paramsSum += (item.attack || 0);
+            if (item.defense) paramsSum += (item.defense || 0);
+            if (item.maxHealth) paramsSum += (item.maxHealth || 0) / 5;
+            if (item.critChance) paramsSum += (item.critChance || 0) / 0.2;
+
+            return paramToValue(paramsSum);
+        }
+
+        // new prices
+        function newPrices(listOfItems) {
+            let newList = [];
+            for (i = 0; i < listOfItems.length; i++) {
+                let item = {...listOfItems[i]};
+                let newPrice = newPriceForItem(item);
+
+                if (['amulet', 'book'].includes(item.type)) {
+                    newPrice = Math.round(newPrice * 1.25 / 5) * 5; // всі амулети дорожче на 25%
+                } else if (['relic'].includes(item.type)) {
+                    newPrice = Math.round(newPrice * 1.5 / 5) * 5; // всі амулети дорожче на 50%
+                } 
+
+                //console.log(`${item.name} => OLD PRICE[${item.value}] => NEW PRICE[${newPrice}]`);
+                item.value = newPrice;
+                newList.push(item);
+            }
+            return newList;
+        }
+
+        // recalculate all Prices
+        function recalculateAllPrices() {
+            weapons = newPrices(weapons);
+            armors = newPrices(armors);
+            artifacts = newPrices(artifacts);
         }
 
         function chooseOne(list) {
@@ -1331,6 +1381,10 @@
             }
             if (player.isBattle === true) {
                 addLog('🚫 Під час битви не можна рухатись!', 'system');
+                return;
+            }
+            if (player.inStore === true) {
+                addLog('🏬 Обережно, Ви ж у крамниці!', 'system');
                 return;
             }
 
@@ -2067,14 +2121,14 @@
 
             const inventoryActions = (index != -1 && viewType == 'inventory') ? `<div class="item-actions">
                                                                                     <div class="item-action" onclick="useItem(${index})">${item.type.startsWith('potion') ? 'Випити' : 'Екіпірувати'}</div>
-                                                                                    ${item.canSell !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.floor(item.value * 0.7)}💰)</div>` : ''}
+                                                                                    ${item.canSell !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.floor(item.value * sellCoefficient)}💰)</div>` : ''}
                                                                                 </div>` : '';
 
             const storeActions = (index != -1 && viewType == 'store') ? `<div class="item-actions">
-                                                                            <div class="item-action" onclick="buyItem(${index})">Купити (${Math.floor(item.value * 2)}💰)</div>
+                                                                            <div class="item-action" onclick="buyItem(${index})">Купити (${Math.floor(item.value * buyCoefficient)}💰)</div>
                                                                         </div>` : '';
             const storePriceBlock = (index != -1 && viewType == 'store') ? `<div class="item-desc item-price">
-                                                                                <span class="artifact-bonus store-price">${Math.floor(item.value * 2)}💰</span>
+                                                                                <span class="artifact-bonus store-price">${Math.floor(item.value * buyCoefficient)}💰</span>
                                                                             </div>` : '';
 
             return `
@@ -2191,13 +2245,14 @@
             if (store[index] == undefined) { return; }
 
             const item = store[index];
-            if (player.gold < (item.value * 2)) {
+            const buyPrice = Math.floor(item.value * buyCoefficient);
+            if (player.gold < buyPrice) {
                 addLog(`🏬💰 У вас недостатньо коштів для купівлі ${item.emoji} ${item.name}`, 'system');
                 return;
             }
 
             player.inventory.push(item);
-            player.gold -= (item.value * 2);
+            player.gold -= buyPrice;
 
             // Видаляємо предмет з інвентаря
             store.splice(index, 1);
@@ -2217,7 +2272,7 @@
                 return;
             }
 
-            const sellPrice = Math.floor(item.value * 0.7); // Продаємо за 70% вартості
+            const sellPrice = Math.floor(item.value * sellCoefficient); // Продаємо за 50% вартості
             
             player.gold += sellPrice;
             player.inventory.splice(index, 1);
@@ -2380,7 +2435,7 @@
                         itemTemplate.critChance += Math.random() * 0.2;
                     }
 
-                    itemTemplate.value = Math.floor(itemTemplate.value * (1 + (0.3 * attackParam)));
+                    //itemTemplate.value = Math.floor(itemTemplate.value * (1 + (0.3 * attackParam)));
                 }
                 if (Math.random() < 0.5) {
                     const defenseParam = rand(1, Math.max(1, Math.floor((itemTemplate.defense || 1) * 0.25)));
@@ -2389,7 +2444,7 @@
                     itemTemplate.defense = (itemTemplate.defense || 0) + defenseParam;
                     itemSpecialParams['contrast'] = rand(80, 200) / 100;
 
-                    itemTemplate.value = Math.floor(itemTemplate.value * (1 + (0.25 * defenseParam)));
+                    //itemTemplate.value = Math.floor(itemTemplate.value * (1 + (0.25 * defenseParam)));
                 }
                 if (Math.random() < 0.5) {
                     const maxHealthParam = rand(1, Math.max(1, Math.floor((itemTemplate.maxHealth || 1) * 0.25)));
@@ -2398,8 +2453,10 @@
                     itemTemplate.maxHealth = (itemTemplate.maxHealth || 0) + maxHealthParam;
                     itemSpecialParams['brightness'] = rand(80, 150) / 100;
 
-                    itemTemplate.value = Math.floor(itemTemplate.value * (1 + (0.25 * maxHealthParam)));
+                    //itemTemplate.value = Math.floor(itemTemplate.value * (1 + (0.25 * maxHealthParam)));
                 }
+
+                itemTemplate.value = newPriceForItem(itemTemplate);
             }
             itemTemplate['specialParams'] = itemSpecialParams;
             //console.log([`---`]);
@@ -3252,6 +3309,8 @@
 
             emojiReplace();
 
+            // робимо перерахунок для всіх предметів
+            recalculateAllPrices()
             elements.enemyEmoji.innerHTML = addEmoji('👺', '64px', undefined, 'filter: grayscale(1) invert(1); opacity: 0.1;');
         }
     </script>
