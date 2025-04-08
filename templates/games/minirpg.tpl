@@ -344,6 +344,10 @@
         }
         .player-cell {
             background-color: #55f;
+            animation: pulse 1.5s infinite;
+        }
+        .player-cell:hover{
+            background-color: #55f;
         }
         .enemy-cell {
             background-color: rgb(255, 181, 85);
@@ -360,6 +364,10 @@
         .artifact-cell {
             background-color: #f8f;
             animation: glow 2s infinite;
+        }
+        .store-cell {
+            background-color: #1d874c;
+            animation: pulse 1.5s infinite;
         }
         @keyframes pulse {
             0% { transform: scale(1); }
@@ -1538,18 +1546,25 @@
                 });
             }
             
-            player.inventory.push(artifact);
             // Видаляємо артефакт з карти
             gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
             player.position = { x, y };
 
-            // якщо в гравця немає екіпу - має сенсу одразу брати підняту річ в руки
-            if (player.equipment[artifact.type] == null && equipableTypes.includes(artifact.type)) {
-                equipItem(player.inventory.length - 1);
-            }
+            // піднімаєм предмет
+            pickUpItem(artifact);
             
             updateMap();
             updateInventory();
+        }
+
+        // функція із автоекіпом
+        function pickUpItem(item) {
+            // кладем в торбу
+            player.inventory.push(item);
+            // якщо немає вдягнутого предмета цього типу і цей тип можна вдягнути - вдягаєм
+            if (player.equipment[item.type] == null && equipableTypes.includes(item.type)) {
+                equipItem(player.inventory.length - 1);
+            }
         }
 
         function pickUpFruit(x, y) {
@@ -1626,13 +1641,10 @@
 
                 let messageChest = `🎁 Ви відкрили ${chestName} і отримали ${goldFound} золота та ${xpFound} досвіду!`;
                 if (gameMap[y][x].artifact != null) {
-                    player.inventory.push(gameMap[y][x].artifact);
                     messageChest = `🎁 Ви відкрили ${chestName} і отримали ${goldFound} золота, ${xpFound} досвіду та знайшли ${gameMap[y][x].artifact.emoji} ${gameMap[y][x].artifact.name}!`;
 
-                    // якщо в гравця немає екіпу - має сенсу одразу брати підняту річ в руки
-                    if (player.equipment[gameMap[y][x].artifact.type] == null && equipableTypes.includes(gameMap[y][x].artifact.type)) {
-                        equipItem(player.inventory.length - 1);
-                    }
+                    // піднімає предмет
+                    pickUpItem(gameMap[y][x].artifact);
                 }
 
                 addLog(messageChest, 'loot');
@@ -2262,7 +2274,7 @@
                 return;
             }
 
-            player.inventory.push(item);
+            pickUpItem(item);
             player.gold -= buyPrice;
 
             // Видаляємо предмет з інвентаря
@@ -2802,13 +2814,10 @@
                     
                     // Перевірка на предмет
                     if (enemy.item) {
-                        player.inventory.push(enemy.item);
                         addLog(`🎁 ${enemy.item.emoji} Ви отримали: <strong>${enemy.item.name}</strong>!`, 'item', '#4504ed');
 
-                        // якщо в гравця немає екіпу - має сенсу одразу брати підняту річ в руки
-                        if (player.equipment[enemy.item.type] == null && equipableTypes.includes(enemy.item.type)) {
-                            equipItem(player.inventory.length - 1);
-                        }
+                        // отримуєм предмет
+                        pickUpItem(enemy.item);
 
                         updateInventory();
 
