@@ -228,6 +228,12 @@
             color: #000;
             background-color: #555;
         }
+        #updateStoreBtn {
+            display: inline-block;
+            padding: 4px 6px;
+            background-color: transparent;
+            margin: 0 0 0 10px;
+        }
         .inventory-item {
             /**/
         }
@@ -609,7 +615,7 @@
                         <div id="inventory-items"></div>
                     </div>
                     <div id="store" style="display:none;">
-                        <div>🏬 Крамниця</div>
+                        <div style="display:inline-block;">🏬 Крамниця</div><button id="updateStoreBtn">🔁 Оновити крамницю (<span id="updateStorePrice">25💰</span>)</button>
                         <button id="closeStoreBtn">❌</button>
                         <div id="store-items"></div>
                     </div>
@@ -1055,6 +1061,8 @@
             relicSlot: document.getElementById('relic-slot'),
             store: document.getElementById('store'),
             storeItems: document.getElementById('store-items'),
+            updateStoreBtn: document.getElementById('updateStoreBtn'),
+            updateStorePrice: document.getElementById('updateStorePrice'),
             map: document.getElementById('map')
         };
 
@@ -2089,6 +2097,9 @@
         }
 
         function updateStore() {
+            // оновлюєм ціну оновлення в крамниці
+            updateStorePrice.innerHTML = player.level * 25;
+
             elements.storeItems.innerHTML = '';
 
             store.forEach((item, index) => {
@@ -3042,7 +3053,7 @@
                 player.baseDefense += 1; // Зменшено приріст захисту за рівень
                 const oldMaxHealth = player.maxHealth;
                 player.health += 5;  // Зменшено приріст здоров'я за рівень
-                
+
                 addLog(`🌟 Вітаємо! Ви досягли ${player.level} рівня! Ваші характеристики зросли.`, 'system');
                 showEventPopup(`${addEmojiPlayer('🌟')} ${player.level} ${addEmojiPlayer('🌟')}`, document.getElementById('player-on-map'), {
                     color: '#ff0',
@@ -3216,6 +3227,22 @@
             updateMap();
         }
 
+        // кнопка оновлення цін в крамниці
+        function updateStorePrices() {
+            const updatePrice = player.level * 25;
+
+            if (player.gold < updatePrice) {
+                addLog(`💰 Ви не можете оновити асортимент крамниці адже не вистачає ${updatePrice} золота!`, 'system', 'red');
+                return;
+            }
+
+            player.gold -= updatePrice;
+
+            generateStore();
+            updateStore();
+            updateStats();
+        }
+
         function toogleInventory() {
             // змінюєм статус "Гравець в інвентарі"
             player.inInventory = !player.inInventory;
@@ -3251,6 +3278,7 @@
             elements.healBtn.addEventListener('click', heal);
             elements.gambleBtn.addEventListener('click', gamble);
             elements.resurrectBtn.addEventListener('click', resurrect);
+            elements.updateStoreBtn.addEventListener('click', updateStorePrices);
 
             elements.inventoryBtn.addEventListener('click', toogleInventory);
             elements.mapBtn.addEventListener('click', toogleInventory);
