@@ -115,6 +115,10 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        #gambleBtn.tickets {
+            background-color: #005aff;
+        }
+
         #resurrectBtn {
             background-color: #8B0000;
             padding: 8px 15px;
@@ -234,10 +238,16 @@
             background-color: transparent;
             margin: 0 0 0 10px;
         }
+        #updateStoreBtn.tickets {
+            background-color: #005aff;
+        }
         .inventory-item {
             /**/
         }
 
+        .item-name {
+            font-size: 15px;
+        }
         .item-desc {
             padding-left: 5px;
         }
@@ -652,6 +662,7 @@
             xpToNext: 50,  // Необхідний досвід до наступного рівня
             emoji: '🧙‍♂️',
             inventory: [],
+            tickets: 0, // квитки для гемблінгу
             equipment: {
                 weapon: null,
                 armor: null,
@@ -744,6 +755,7 @@
             { type: '🌲', image: 'obs-tree-4.png' },
                 // крамниця 🏬
             { type: '🏬', image: 'store.png' },
+            { type: '🎟️', image: 'ticket.png' },
                 // фрукти
             { type: '🍎', image: 'red-apple.png' },
             { type: '🍌', image: 'banana.png' },
@@ -775,12 +787,16 @@
             { type: '🛡️🛡️', subtype: 5, image: 'armor-cuirass.png' },
             { type: '🛡️✨', subtype: 5, image: 'armor-cuirass-2.png' },
             { type: '🛡️🛡️', subtype: 6, image: 'plate-armor.png' },
+            { type: '🛡️✨', subtype: 6, image: 'plate-armor-2.png' },
             { type: '🛡️👑', subtype: 7, image: 'armor-of-myth.png' },
             { type: '🛡️✨', subtype: 7, image: 'armor-of-myth-2.png' },
             { type: '🐉⛓️', subtype: 8, image: 'dragon-armor.png' },
             { type: '🛡️🌟', subtype: 9, image: 'legendary-armor.png' },
+            { type: '🛡️❄️', subtype: 11, image: 'armor-crystal.png' },
             { type: '🛡️✨', subtype: 10, image: 'elven-armor.png' },
                 // кільця
+            { type: '💍', subtype: 11, image: 'wooden-ring.png' },
+            { type: '💍', subtype: 12, image: 'wooden-ring-2.png' },
             { type: '💍', subtype: 1, image: 'copper-ring.png' },
             { type: '💍', subtype: 2, image: 'silver-ring.png' },
             { type: '💍', subtype: 10, image: 'golden-ring.png' },
@@ -817,6 +833,12 @@
             { type: '🏆🌟', subtype: 6, image: 'relic-06.png' },
             { type: '👑🔥', subtype: 7, image: 'relic-07.png' },
             { type: '🔮', subtype: 8, image: 'relic-08.png' },
+            { type: '👑☠️', subtype: 9, image: 'relic-skull.png' },
+            { type: '🔮', subtype: 10, image: 'relic-sphere.png' },
+            { type: '🐚', subtype: 11, image: 'relic-seashell.png' },
+            { type: '📜', subtype: 12, image: 'relic-scroll.png' },
+            { type: '🏆☠️', subtype: 13, image: 'relic-icon-skull.png' },
+            // 
 
             // монстри
                 // звичайні
@@ -854,90 +876,102 @@
             { type: 'mountain', emoji: '🗻', color: '#aaaaaa', name: 'Гора' }
         ];
 
+        // Ігрові квитки можна використати для гемблінгу, або зміни асортименту магазину
+        const ticket = { name: 'Квиток', emoji: '🎟️', rarity: 1, value: 200, type: 'ticket' };
+
         // Оновлена база даних зброї з параметрами критичної шкоди
         let weapons = [
             { name: "Дерев'яний меч", emoji: "🗡",  subtype: 1, attack: 1, critChance: 0.03, rarity: 1, value: 5, type: "weapon" },
-            { name: "Кинджал", emoji: "🔪",         subtype: 2, attack: 2, critChance: 0.15, rarity: 1, value: 10, type: "weapon" },
-            { name: "Дубець", emoji: "🏏",          subtype: 3, attack: 3, critChance: 0.08, rarity: 2, value: 25, type: "weapon" },
-            { name: "Сокира", emoji: "🪓",          subtype: 4, attack: 4, critChance: 0.1, rarity: 2, value: 50, type: "weapon" },
-            { name: "Спис", emoji: "🔱",            subtype: 5, attack: 5, critChance: 0.1, rarity: 3, value: 80, type: "weapon" },
-            { name: "Меч", emoji: "🗡️",             subtype: 6, attack: 6, critChance: 0.12, rarity: 3, value: 125, type: "weapon" },
-            { name: "Обушок", emoji: "🏏",          subtype: 7, attack: 7, critChance: 0.1, rarity: 4, value: 200, type: "weapon" },
-            { name: "Бойовий молот", emoji: "🔨",   subtype: 8, attack: 8, critChance: 0.07, rarity: 4, value: 350, type: "weapon" },
-            { name: "Лук", emoji: "🏹",             subtype: 9, attack: 6, critChance: 0.2, rarity: 3, value: 200, type: "weapon" },
-            { name: "Арбалет", emoji: "🎯",         subtype: 10, attack: 8, critChance: 0.25, rarity: 4, value: 350, type: "weapon" },
-            { name: "Магічний меч", emoji: "🗡️",    subtype: 14, attack: 7, critChance: 0.3, rarity: 5, value: 350, type: "weapon" },
-            { name: "Катана", emoji: "🗡",          subtype: 11, attack: 9, critChance: 0.15, rarity: 5, value: 600, type: "weapon" },
-            { name: "Вогняний меч", emoji: "🗡🔥",  subtype: 12, attack: 12, critChance: 0.15, rarity: 5, value: 1200, type: "weapon" },
-            { name: "Міфічний клинок", emoji: "🗡✨", subtype: 13, attack: 15, critChance: 0.2, rarity: 6, value: 2000, type: "weapon" }
+            { name: "Кинджал", emoji: "🔪",         subtype: 2, attack: 2, critChance: 0.15, rarity: 2, value: 25, type: "weapon" },
+            { name: "Дубець", emoji: "🏏",          subtype: 3, attack: 3, critChance: 0.08, rarity: 2, value: 45, type: "weapon" },
+            { name: "Сокира", emoji: "🪓",          subtype: 4, attack: 4, critChance: 0.1, rarity: 3, value: 85, type: "weapon" },
+            { name: "Спис", emoji: "🔱",            subtype: 5, attack: 5, critChance: 0.1, rarity: 3, value: 135, type: "weapon" },
+            { name: "Меч", emoji: "🗡️",             subtype: 6, attack: 6, critChance: 0.12, rarity: 4, value: 220, type: "weapon" },
+            { name: "Обушок", emoji: "🏏",          subtype: 7, attack: 7, critChance: 0.1, rarity: 4, value: 310, type: "weapon" },
+            { name: "Бойовий молот", emoji: "🔨",   subtype: 8, attack: 8, critChance: 0.07, rarity: 4, value: 420, type: "weapon" },
+            { name: "Лук", emoji: "🏹",             subtype: 9, attack: 6, critChance: 0.2, rarity: 5, value: 260, type: "weapon" },
+            { name: "Арбалет", emoji: "🎯",         subtype: 10, attack: 8, critChance: 0.25, rarity: 5, value: 555, type: "weapon" },
+            { name: "Магічний меч", emoji: "🗡️",    subtype: 14, attack: 7, critChance: 0.3, rarity: 6, value: 440, type: "weapon" },
+            { name: "Катана", emoji: "🗡",          subtype: 11, attack: 9, critChance: 0.15, rarity: 6, value: 645, type: "weapon" },
+            { name: "Вогняний меч", emoji: "🗡🔥",  subtype: 12, attack: 12, critChance: 0.15, rarity: 7, value: 1375, type: "weapon" },
+            { name: "Міфічний клинок", emoji: "🗡✨", subtype: 13, attack: 15, critChance: 0.2, rarity: 7, value: 2650, type: "weapon" }
         ];
 
         // Розширена база даних броні
         let armors = [
             { name: "Плащ", emoji: "🥼",            subtype: 1, defense: 1, rarity: 1, value: 5, type: "armor" },
-            { name: "Шкіряна броня", emoji: "🧥",   subtype: 2, defense: 2, rarity: 1, value: 10, type: "armor" },
-            { name: "Шкапова броня", emoji: "🧥✨", subtype: 1, defense: 2, maxHealth: 5, rarity: 1, value: 25, type: "armor" },
-            { name: "Кольчуга", emoji: "⛓️",        subtype: 3, defense: 3, rarity: 2, value: 25, type: "armor" },
-            { name: "Бехтер", emoji: "⛓️✨",        subtype: 3, defense: 3, maxHealth: 5, rarity: 2, value: 50, type: "armor" },
-            { name: "Луската броня", emoji: "⛓️",   subtype: 4, defense: 4, rarity: 2, value: 50, type: "armor" },
-            { name: "Кіраса", emoji: "🛡️🛡️",        subtype: 5, defense: 5, rarity: 3, value: 100, type: "armor" },
-            { name: "Панцир", emoji: "🛡️✨",        subtype: 5, defense: 5, maxHealth: 10, rarity: 3, value: 200, type: "armor" },
-            { name: "Латна броня", emoji: "🛡️🛡️",   subtype: 6, defense: 6, rarity: 3, value: 200, type: "armor" },
-            { name: "Міфічна броня", emoji: "🛡️👑", subtype: 7, defense: 7, rarity: 4, value: 350, type: "armor" },
-            { name: "Елітна броня", emoji: "🛡️✨",  subtype: 7, defense: 7, maxHealth: 10, rarity: 4, value: 600, type: "armor" },
-            { name: "Драконяча шкура", emoji: "🐉⛓️", subtype: 8, defense: 8, rarity: 4, value: 700, type: "armor" },
-            { name: "Легендарна броня", emoji: "🛡️🌟", subtype: 9, defense: 10, rarity: 5, value: 1000, type: "armor" },
-            { name: "Ельфійська броня", emoji: "🛡️✨", subtype: 10, defense: 13, rarity: 6, value: 2000, type: "armor" }
+            { name: "Шкіряна броня", emoji: "🧥",   subtype: 2, defense: 2, rarity: 2, value: 10, type: "armor" },
+            { name: "Шкапова броня", emoji: "🧥✨", subtype: 1, defense: 2, maxHealth: 5, rarity: 2, value: 25, type: "armor" },
+            { name: "Кольчуга", emoji: "⛓️",        subtype: 3, defense: 3, rarity: 3, value: 25, type: "armor" },
+            { name: "Бехтер", emoji: "⛓️✨",        subtype: 3, defense: 3, maxHealth: 5, rarity: 3, value: 50, type: "armor" },
+            { name: "Луската броня", emoji: "⛓️",   subtype: 4, defense: 4, rarity: 4, value: 50, type: "armor" },
+            { name: "Кіраса", emoji: "🛡️🛡️",        subtype: 5, defense: 5, rarity: 4, value: 100, type: "armor" },
+            { name: "Панцир", emoji: "🛡️✨",        subtype: 5, defense: 5, maxHealth: 10, rarity: 4, value: 200, type: "armor" },
+            { name: "Латна броня", emoji: "🛡️🛡️",   subtype: 6, defense: 6, rarity: 4, value: 200, type: "armor" },
+            { name: "Обладунки", emoji: "🛡️✨",     subtype: 6, defense: 6, maxHealth: 10, rarity: 5, value: 350, type: "armor" },
+            { name: "Міфічна броня", emoji: "🛡️👑", subtype: 7, defense: 7, rarity: 5, value: 350, type: "armor" },
+            { name: "Елітна броня", emoji: "🛡️✨",  subtype: 7, defense: 7, maxHealth: 10, rarity: 5, value: 600, type: "armor" },
+            { name: "Драконяча шкура", emoji: "🐉⛓️", subtype: 8, defense: 8, rarity: 6, value: 700, type: "armor" },
+            { name: "Легендарна броня", emoji: "🛡️🌟", subtype: 9, defense: 10, rarity: 6, value: 1000, type: "armor" },
+            { name: "Кристальна броня", emoji: "🛡️❄️", subtype: 11, attack: -2, defense: 12, rarity: 7, value: 1000, type: "armor" },
+            { name: "Ельфійська броня", emoji: "🛡️✨", subtype: 10, defense: 13, rarity: 7, value: 2000, type: "armor" }
         ];
 
         // Розширена база даних артефактів
         let artifacts = [
             // Кільця
-            { name: "Мідне кільце", emoji: "💍",    subtype: 1, attack: 1, rarity: 1, value: 5, type: "ring" },
-            { name: "Срібне кільце", emoji: "💍",   subtype: 2, defense: 1, rarity: 1, value: 5, type: "ring" },
-            { name: "Золоте кільце", emoji: "💍",   subtype: 10, maxHealth: 5, rarity: 1, value: 5, type: "ring" },
-            { name: "Кільце сили", emoji: "💍",     subtype: 3, attack: 2, rarity: 2, value: 20, type: "ring" },
-            { name: "Кільце захисту", emoji: "💍",  subtype: 4, defense: 2, rarity: 2, value: 40, type: "ring" },
-            { name: "Кільце воїна", emoji: "💍",    subtype: 5, attack: 3, defense: 1, rarity: 3, value: 100, type: "ring" },
-            { name: "Кільце мага", emoji: "💍",     subtype: 6, attack: 1, defense: 3, rarity: 3, value: 100, type: "ring" },
+            { name: "Дерев'яне кільце", emoji: "💍", subtype: 11, maxHealth: 5, rarity: 1, value: 5, type: "ring" },
+            { name: "Мідне кільце", emoji: "💍",    subtype: 1, attack: 1, rarity: 2, value: 5, type: "ring" },
+            { name: "Срібне кільце", emoji: "💍",   subtype: 2, defense: 1, rarity: 2, value: 5, type: "ring" },
+            { name: "Золоте кільце", emoji: "💍",   subtype: 10, maxHealth: 10, rarity: 2, value: 20, type: "ring" },
+            { name: "Кільце сили", emoji: "💍",     subtype: 3, attack: 2, rarity: 3, value: 20, type: "ring" },
+            { name: "Кільце захисту", emoji: "💍",  subtype: 4, defense: 2, rarity: 3, value: 40, type: "ring" },
+            { name: "Перстень волі", emoji: "💍",   subtype: 12, attack: 1, defense: 1, maxHealth: 5, rarity: 3, value: 40, type: "ring" },
+            { name: "Кільце воїна", emoji: "💍",    subtype: 5, attack: 3, defense: 1, rarity: 4, value: 100, type: "ring" },
+            { name: "Кільце мага", emoji: "💍",     subtype: 6, attack: 1, defense: 3, rarity: 4, value: 100, type: "ring" },
             { name: "Кільце титана", emoji: "💍🌟", subtype: 7, attack: 4, defense: 4, rarity: 5, value: 300, type: "ring" },
-            { name: "Кільце дракона", emoji: "💍🐉", subtype: 8, attack: 5, defense: 3, rarity: 5, value: 300, type: "ring" },
-            { name: "Кільце безсмертя", emoji: "💍✨", subtype: 9, attack: 3, defense: 5, maxHealth: 10, rarity: 6, value: 800, type: "ring" },
+            { name: "Кільце дракона", emoji: "💍🐉", subtype: 8, attack: 5, defense: 3, rarity: 6, value: 300, type: "ring" },
+            { name: "Кільце безсмертя", emoji: "💍✨", subtype: 9, attack: 3, defense: 5, maxHealth: 10, rarity: 7, value: 800, type: "ring" },
             
             // Амулети
-            { name: "Дерев'яний амулет", emoji: "📿",   subtype: 1, maxHealth: 5, rarity: 2, value: 10, type: "amulet" },
+            { name: "Оберіг", emoji: "📿",              subtype: 1, maxHealth: 5, rarity: 1, value: 10, type: "amulet" },
             { name: "Амулет здоров'я", emoji: "📿",     subtype: 2, maxHealth: 10, rarity: 2, value: 30, type: "amulet" },
             { name: "Амулет воїна", emoji: "📿",        subtype: 3, attack: 2, maxHealth: 5, rarity: 3, value: 50, type: "amulet" },
             { name: "Амулет мудрості", emoji: "📿",     subtype: 4, defense: 2, maxHealth: 5, rarity: 3, value: 50, type: "amulet" },
             { name: "Амулет берсерка", emoji: "📿",     subtype: 5, attack: 4, defense: -1, rarity: 4, value: 100, type: "amulet" },
             { name: "Амулет захисника", emoji: "📿",    subtype: 6, defense: 4, attack: -1, rarity: 4, value: 100, type: "amulet" },
             { name: "Амулет балансу", emoji: "📿",      subtype: 7, attack: 2, defense: 2, maxHealth: 10, rarity: 5, value: 250, type: "amulet" },
-            { name: "Амулет безсмертя", emoji: "📿🌟",  subtype: 8, maxHealth: 40, rarity: 5, value: 500, type: "amulet" },
+            { name: "Амулет безсмертя", emoji: "📿🌟",  subtype: 8, maxHealth: 40, rarity: 6, value: 500, type: "amulet" },
             { name: "Амулет фенікса", emoji: "📿🔥",    subtype: 9, maxHealth: 30, attack: 3, rarity: 6, value: 1000, type: "amulet" },
-            { name: "Амулет єднання", emoji: "📿🔮",    subtype: 10, maxHealth: 25, defense: 3, attack: 3, rarity: 6, value: 2200, type: "amulet" },
+            { name: "Амулет єднання", emoji: "📿🔮",    subtype: 10, maxHealth: 25, defense: 3, attack: 3, rarity: 7, value: 2200, type: "amulet" },
             
             // Книги
             { name: "Книга бійця", emoji: "📖",         subtype: 3, attack: 1, rarity: 2, value: 5, type: "book" },
             { name: "Книга початківця", emoji: "📖",    subtype: 3, defense: 1, rarity: 2, value: 5, type: "book" },
-            { name: "Книга виживання", emoji: "📖",     subtype: 2, maxHealth: 5, rarity: 2, value: 5, type: "book" },
+            { name: "Книга виживання", emoji: "📖",     subtype: 2, maxHealth: 5, rarity: 1, value: 5, type: "book" },
             { name: "Книга учня", emoji: "📖",          subtype: 4, attack: 1, defense: 1, rarity: 3, value: 10, type: "book" },
             { name: "Книга мечників", emoji: "📖",      subtype: 3, attack: 3, rarity: 3, value: 100, type: "book" },
             { name: "Книга захисників", emoji: "📖",    subtype: 4, defense: 3, rarity: 3, value: 100, type: "book" },
             { name: "Книга знань", emoji: "📖",         subtype: 5, attack: 2, defense: 2, rarity: 4, value: 150, type: "book" },
             { name: "Книга воєнних мистецтв", emoji: "📖", subtype: 1,  attack: 5, defense: 1, rarity: 4, value: 500, type: "book" },
             { name: "Книга древніх", emoji: "📖",       subtype: 3, defense: 5, attack: 1, rarity: 5, value: 500, type: "book" },
-            { name: "Заборонений фоліант", emoji: "📖", subtype: 2, attack: 5, defense: 5, maxHealth: 15, rarity: 5, value: 1000, type: "book" },
-            { name: "Книга пророцтв", emoji: "📖",      subtype: 1, attack: 7, defense: 7, maxHealth: 20, rarity: 6, value: 2000, type: "book" },
+            { name: "Заборонений фоліант", emoji: "📖", subtype: 2, attack: 5, defense: 5, maxHealth: 15, rarity: 6, value: 1000, type: "book" },
+            { name: "Книга пророцтв", emoji: "📖",      subtype: 1, attack: 7, defense: 7, maxHealth: 20, rarity: 7, value: 2000, type: "book" },
             
             // Реліквії
+            { name: "Черепок", emoji: "🏆☠️",      subtype: 9, maxHealth: -2, attack: 1, rarity: 1, value: 10, type: "relic" },
+            { name: "Сувій", emoji: "📜",          subtype: 12, maxHealth: -2, defense: 1, rarity: 1, value: 10, type: "relic" },
+            { name: "Розколина", emoji: "🔮",      subtype: 10, maxHealth: -5, defense: 2, attack: 2, rarity: 2, value: 100, type: "relic" },
+            { name: "Мушля", emoji: "🐚",           subtype: 11, maxHealth: 10, defense: -1, attack: 1, rarity: 2, value: 100, type: "relic" },
             { name: "Святий тютюн", emoji: "🏆",    subtype: 1, maxHealth: 10, rarity: 3, value: 30, type: "relic" },
             { name: "Камінці безодні", emoji: "🏆", subtype: 2, maxHealth: 20, rarity: 4, value: 100, type: "relic" },
             { name: "Кристал влади", emoji: "🏆",   subtype: 3, attack: 5, rarity: 4, value: 250, type: "relic" },
             { name: "Чиста руна", emoji: "🏆",      subtype: 4, defense: 5, rarity: 4, value: 350, type: "relic" },
             { name: "Око дракона", emoji: "🏆🐉",   subtype: 5, attack: 7, defense: 3, rarity: 5, value: 1000, type: "relic" },
-            { name: "Серце дракона", emoji: "🏆🌟", subtype: 6, attack: 8, defense: 8, maxHealth: 30, rarity: 5, value: 1500, type: "relic" },
+            { name: "Серце дракона", emoji: "🏆🌟", subtype: 6, attack: 8, defense: 8, maxHealth: 30, rarity: 7, value: 1500, type: "relic" },
             { name: "Корона вогню", emoji: "👑🔥",  subtype: 7, attack: 5, defense: 5, maxHealth: 25, rarity: 6, value: 2200, type: "relic" },
-            { name: "Палантір", emoji: "🔮",        subtype: 8, attack: 10, defense: 10, maxHealth: 40, rarity: 6, value: 3500, type: "relic" }
+            { name: "Череп ліча", emoji: "👑☠️",   subtype: 9, attack: 7, defense: 3, maxHealth: 15, rarity: 6, value: 2200, type: "relic" },
+            { name: "Палантір", emoji: "🔮",        subtype: 8, attack: 10, defense: 10, maxHealth: 40, rarity: 7, value: 3500, type: "relic" }
         ];
         
         // Додаємо еліксири до бази даних предметів
@@ -1026,6 +1060,8 @@
 
         const sellCoefficient = 0.5;
         const buyCoefficient = 2.0;
+        // шанс знайти квиток замість артефакту
+        const ticketSpawnChance = 0.12;
         // предмети з крамниці
         let store = [];
 
@@ -1134,19 +1170,19 @@
         function getEnemyDefense(enemy) {
             let enemyDefense = enemy.defense;
             if (enemy.item != null && enemy.item.defense) enemyDefense += enemy.item.defense;
-            return enemyDefense;
+            return Math.max(1, enemyDefense);
         }
 
         function getEnemyAttack(enemy) {
             let enemyAttack = enemy.attack;
             if (enemy.item != null && enemy.item.attack) enemyAttack += enemy.item.attack;
-            return enemyAttack;
+            return Math.max(1, enemyAttack);
         }
 
         function getEnemyMaxHealth(enemy) {
             let enemyMaxHealth = enemy.maxHealth;
             if (enemy.item != null && enemy.item.maxHealth) enemyMaxHealth += enemy.item.maxHealth;
-            return enemyMaxHealth;
+            return Math.max(1, enemyMaxHealth);
         }
 
         function addTerraLight(playerX, playerY) {
@@ -1332,6 +1368,7 @@
                 if (x === player.position.x && y === player.position.y) {
                     cell.innerHTML = addEmoji(player.emoji, '30px');
                     cell.classList.add('player-cell');
+                    if (gameMap[y][x].type === 'store') cell.classList.add('store-cell');
                     cell.id = 'player-on-map';
                     return;
                 }
@@ -1368,6 +1405,7 @@
                     if (gameMap[y][x].type === 'store') {
                         cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
                         cell.classList.add('store-cell');
+
                     }
 
                     if (gameMap[y][x].type === 'fruit') {
@@ -1459,7 +1497,12 @@
             
             // Перевіряємо чи є там артефакт
             if (gameMap[y][x].type === 'artifact') {
-                pickUpArtifact(x, y);
+                // Перевіряємо чи є там квиток
+                if (gameMap[y][x].artifact.type == 'ticket') {
+                    pickUpTicket(x, y);
+                } else {
+                    pickUpArtifact(x, y);
+                }
                 return;
             }
             // Перевіряємо чи є там фрукт
@@ -1521,6 +1564,30 @@
             // Видалення елемента після анімації
             setTimeout(() => { middle.remove();}, 50);
             return middle;
+        }
+
+        // Підбираємо квиток
+        function pickUpTicket(x, y) {
+            const ticket = gameMap[y][x].artifact;
+            const targetOnMap = document.querySelector(`.map-cell[data-x="${x}"][data-y="${y}"]`);
+
+            addLog(`✨ Ви знайшли квиток! Використайте його для гри або у крамниці!`, 'artifact', '#4504ed');
+
+            // Анімація
+            showEventPopup(`${addEmoji(ticket.emoji, '32px')}`, targetOnMap, {
+                fontSize: '40px',
+                horizontalOffset: 5
+            });
+
+            // Видаляємо артефакт з карти
+            gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
+            player.position = { x, y };
+
+            player.tickets++;
+
+            updateMap();
+            updateStats();
+            updateInventory();
         }
 
         // Підбираємо артефакт
@@ -1637,6 +1704,7 @@
                 player.gold += goldFound;
                 player.xp += xpFound;
 
+                const isTicketFound = (Math.random() < ticketSpawnChance);
                 checkLevelUp();
 
                 let messageChest = `🎁 Ви відкрили ${chestName} і отримали ${goldFound} золота та ${xpFound} досвіду!`;
@@ -1645,6 +1713,11 @@
 
                     // піднімає предмет
                     pickUpItem(gameMap[y][x].artifact);
+
+                    // іноді ще можна знайти квиток
+                    if (isTicketFound) {
+                        player.tickets++;
+                    }
                 }
 
                 addLog(messageChest, 'loot');
@@ -1665,6 +1738,12 @@
                     delay: 500,
                     horizontalOffset: 30
                 });
+                if (isTicketFound) {
+                    showEventPopup(`${addEmoji('🎟️', '32px')}`, targetOnMap, {
+                        fontSize: '40px',
+                        delay: 750,
+                    }); 
+                }
 
                 // Видаляємо сундук
                 gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
@@ -1755,11 +1834,12 @@
                 );
                 
                 if (attempts <= 100) {
-                    const artifact = generateArtifact();
+                    // створюємо артефакт, ну або квиток
+                    const item = (Math.random() >= ticketSpawnChance) ? generateArtifact() : {...ticket};
                     gameMap[y][x] = {
                         type: 'artifact',
-                        emoji: artifact.emoji,
-                        artifact: artifact
+                        emoji: item.emoji,
+                        artifact: item
                     };
                 }
             }
@@ -2054,12 +2134,19 @@
             elements.playerXpBar.style.width = `${playerXpPercent}%`;
 
             // оновлюєм кнопку гембла
-            elements.gamblePrice.innerHTML = `${gamblingPrice()}${addEmoji('💰', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')}`;
+            if (player.tickets < 1) {
+                elements.gamblePrice.innerHTML = `${gamblingPrice()}${addEmoji('💰', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')}`;
+                elements.gambleBtn.classList.remove('tickets');
+            } else {
+                elements.gamblePrice.innerHTML = `${player.tickets}${addEmoji('🎟️', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')}`;
+                elements.gambleBtn.classList.add('tickets');
+            }
         }
 
         function signedValue(value) {
             if (value > 0) {
-                return `+${value}`;
+                //return `+${value}`;
+                return `${value}`;
             } else {
                 return `${value}`;
             }
@@ -2101,7 +2188,7 @@
             } else {
                 element.innerHTML = `
                     <div class="inventory-item">
-                        Пусто
+                        <div class="item-name">Пусто</div>
                         <div>${addEmoji(emptySlotsEquipmentsEmojies[slot], '64px', 0, 'filter: grayscale(1) invert(1);opacity: 0.1;')}</div>
                     </div>
                 `;
@@ -2109,8 +2196,14 @@
         }
 
         function updateStore() {
-            // оновлюєм ціну оновлення в крамниці
-            updateStorePrice.innerHTML = player.level * 25;
+            // оновлюєм кнопку оновлення
+            if (player.tickets < 1) {
+                elements.updateStorePrice.innerHTML = `${player.level * 25}${addEmoji('💰', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')}`;
+                elements.updateStoreBtn.classList.remove('tickets');
+            } else {
+                elements.updateStorePrice.innerHTML = `${player.tickets}${addEmoji('🎟️', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')}`;
+                elements.updateStoreBtn.classList.add('tickets');
+            }
 
             elements.storeItems.innerHTML = '';
 
@@ -2175,13 +2268,22 @@
             const itemsToBuy = rand(4, 6);
             const additionalArtifacts = rand(1, 3);
 
-            for (i = 0; i < itemsToBuy; i++) {
-                let tmpItem = generateItem(true, undefined, true);
-                if (tmpItem != null) store.push(tmpItem);
-            }
-            for (i = 0; i < additionalArtifacts; i++) {
-                let tmpItem = generateItem(true, undefined, true, artifacts);
-                if (tmpItem != null) store.push(tmpItem);
+            // звичайна крамниця
+            if (Math.random() < 0.99) {
+                for (i = 0; i < itemsToBuy; i++) {
+                    let tmpItem = generateItem(true, undefined, true);
+                    if (tmpItem != null) store.push(tmpItem);
+                }
+                for (i = 0; i < additionalArtifacts; i++) {
+                    let tmpItem = generateItem(true, undefined, true, artifacts);
+                    if (tmpItem != null) store.push(tmpItem);
+                }
+            // крамниця однакових магічних артефактів
+            } else {
+                const magicItem = chooseOne(artifacts);
+                for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
+                    store.push(makeItemMagic(magicItem));
+                }
             }
 
             store.sort((a, b) => {
@@ -2192,7 +2294,8 @@
                     return orderA - orderB; // спочатку по type
                 }
 
-                return a.value - b.value; // якщо type однакові — по value
+                //return a.value - b.value; // якщо type однакові — по value
+                return b.value - a.value; // якщо type однакові — по value
             });
         }
 
@@ -2316,11 +2419,12 @@
             // співвідношення
             const rarityTable = [
                 { 'rarity': 1, 'playerLevel': 1 },
-                { 'rarity': 2, 'playerLevel': 2 },
-                { 'rarity': 3, 'playerLevel': 4 },
+                { 'rarity': 2, 'playerLevel': 3 },
+                { 'rarity': 3, 'playerLevel': 5 },
                 { 'rarity': 4, 'playerLevel': 7 },
-                { 'rarity': 5, 'playerLevel': 11 },
-                { 'rarity': 6, 'playerLevel': 16 },
+                { 'rarity': 5, 'playerLevel': 10 },
+                { 'rarity': 6, 'playerLevel': 13 },
+                { 'rarity': 7, 'playerLevel': 16 },
             ];
 
             // 1. Відфільтровуємо лише ті rarity, які <= рівню гравця
@@ -2377,36 +2481,6 @@
             }
         }
 
-        function rarityTreshold(rarity, playerLevel) {
-            const rarityTable = [
-                { 'rarity': 1, 'playerLevel': 1 },
-                { 'rarity': 2, 'playerLevel': 2 },
-                { 'rarity': 3, 'playerLevel': 5 },
-                { 'rarity': 4, 'playerLevel': 9 },
-                { 'rarity': 5, 'playerLevel': 15 },
-                { 'rarity': 6, 'playerLevel': 22 },
-            ];
-
-            // Знаходимо запис для запитаної рідкості
-            const requested = rarityTable.find(r => r.rarity === rarity);
-
-            if (requested && playerLevel >= requested.playerLevel) {
-                // Якщо рівень достатній — повертаємо цю рідкість
-                return rarity;
-            }
-
-            // Інакше — шукаємо максимально доступну рідкість для поточного рівня
-            let available = rarityTable
-                .filter(r => playerLevel >= r.playerLevel)
-                .map(r => r.rarity);
-
-            if (available.length === 0) {
-                return null; // Якщо взагалі нічого не доступно
-            }
-
-            return Math.max(...available); // Найвища доступна рідкість
-        }
-
         // Генеруємо випадковий предмет
         function generateItem(isForced = false, rarityBias = -1, mustBeModifed = false, itemHandyPool = null) {
             // 60% шанс отримати предмет
@@ -2440,12 +2514,26 @@
             // Вибираємо випадковий предмет з доступних
             let itemTemplate = {...availableItems[Math.floor(Math.random() * availableItems.length)]};
 
-            // Особливі параметри
-            let itemSpecialParams = {};
 
             const isModified = mustBeModifed || (Math.random() < 0.25);
 
-            if (isModified && equipableTypes.includes(itemTemplate.type)) {
+            if (isModified) {
+                itemTemplate = makeItemMagic({...itemTemplate});
+            }
+            
+            // Створюємо копію предмета для гравця
+            return {
+                ...itemTemplate,
+                id: Date.now() + Math.floor(Math.random() * 1000)
+            };
+        }
+
+        function makeItemMagic(magicItem) {
+            let itemTemplate = {...magicItem};
+            // Особливі параметри
+            let itemSpecialParams = {};
+
+            if (equipableTypes.includes(itemTemplate.type)) {
                 // hue main param
                 //console.log([`name: ${itemTemplate.name}`]);
                 if (Math.random() < 0.5) {
@@ -2457,8 +2545,6 @@
                     if (itemTemplate.type == 'weapon') {
                         itemTemplate.critChance += Math.random() * 0.2;
                     }
-
-                    //itemTemplate.value = Math.floor(itemTemplate.value * (1 + (0.3 * attackParam)));
                 }
                 if (Math.random() < 0.5) {
                     const defenseParam = rand(1, Math.max(1, Math.floor((itemTemplate.defense || 1) * 0.25)));
@@ -2466,8 +2552,6 @@
 
                     itemTemplate.defense = (itemTemplate.defense || 0) + defenseParam;
                     itemSpecialParams['contrast'] = rand(80, 200) / 100;
-
-                    //itemTemplate.value = Math.floor(itemTemplate.value * (1 + (0.25 * defenseParam)));
                 }
                 if (Math.random() < 0.5) {
                     const maxHealthParam = rand(1, Math.max(1, Math.floor((itemTemplate.maxHealth || 1) * 0.25)));
@@ -2475,20 +2559,13 @@
 
                     itemTemplate.maxHealth = (itemTemplate.maxHealth || 0) + maxHealthParam;
                     itemSpecialParams['brightness'] = rand(80, 150) / 100;
-
-                    //itemTemplate.value = Math.floor(itemTemplate.value * (1 + (0.25 * maxHealthParam)));
                 }
 
                 itemTemplate.value = newPriceForItem(itemTemplate);
             }
             itemTemplate['specialParams'] = itemSpecialParams;
-            //console.log([`---`]);
-            
-            // Створюємо копію предмета для гравця
-            return {
-                ...itemTemplate,
-                id: Date.now() + Math.floor(Math.random() * 1000)
-            };
+
+            return itemTemplate;
         }
         
         // Оновлюємо функцію для використання предметів
@@ -3119,13 +3196,19 @@
         function gamble() {
             // в крамниці не граєм
             if (player.atStore) return;
-            if (player.gold < gamblingPrice()) {
+
+            // якщо немає ні золота ні квитків
+            if (player.gold < gamblingPrice() && player.tickets < 1) {
                 addLog(`🎰❌ У вас немає ${gamblingPrice()} 💰 золота для гемблінгу!`, 'system');
                 showEventPopup(`${addEmoji('❌', '40px')}`, elements.gambleBtn);
                 return;
             }
 
-            player.gold -= gamblingPrice();
+            if (player.tickets < 1) {
+                player.gold -= gamblingPrice();
+            } else {
+                player.tickets--;
+            }
             const localRandom = Math.random();
 
             // 31% - art / 23% - chest / 23% - fruits / 15% - xp / 8% - jackpot 
@@ -3240,12 +3323,16 @@
         function updateStorePrices() {
             const updatePrice = player.level * 25;
 
-            if (player.gold < updatePrice) {
+            if (player.gold < updatePrice && player.tickets < 1) {
                 addLog(`💰 Ви не можете оновити асортимент крамниці адже не вистачає ${updatePrice} золота!`, 'system', 'red');
                 return;
             }
 
-            player.gold -= updatePrice;
+            if (player.tickets > 0) {
+                player.tickets--;
+            } else {
+                player.gold -= updatePrice;
+            }
 
             generateStore();
             updateStore();
