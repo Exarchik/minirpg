@@ -316,6 +316,10 @@
             border-radius: 3px;
             min-width: 60px;
             text-align: center;
+            position: relative;
+        }
+        .equipment-slot:hover .item-actions {
+            display: block;
         }
         #equipment .equipment-slot {
             min-height: 122px;
@@ -961,9 +965,9 @@
             // Реліквії
             { name: "Черепок", emoji: "🏆☠️",      subtype: 9, maxHealth: -2, attack: 1, rarity: 1, value: 10, type: "relic" },
             { name: "Сувій", emoji: "📜",          subtype: 12, maxHealth: -2, defense: 1, rarity: 1, value: 10, type: "relic" },
-            { name: "Розколина", emoji: "🔮",      subtype: 10, maxHealth: -5, defense: 2, attack: 2, rarity: 2, value: 100, type: "relic" },
             { name: "Мушля", emoji: "🐚",           subtype: 11, maxHealth: 10, defense: -1, attack: 1, rarity: 2, value: 100, type: "relic" },
-            { name: "Святий тютюн", emoji: "🏆",    subtype: 1, maxHealth: 10, rarity: 3, value: 30, type: "relic" },
+            { name: "Святий тютюн", emoji: "🏆",    subtype: 1, maxHealth: 10, defense: 1, attack: -1, rarity: 2, value: 30, type: "relic" },
+            { name: "Есенція", emoji: "🔮",        subtype: 10, maxHealth: -5, defense: 2, attack: 2, rarity: 3, value: 100, type: "relic" },
             { name: "Камінці безодні", emoji: "🏆", subtype: 2, maxHealth: 20, rarity: 4, value: 100, type: "relic" },
             { name: "Кристал влади", emoji: "🏆",   subtype: 3, attack: 5, rarity: 4, value: 250, type: "relic" },
             { name: "Чиста руна", emoji: "🏆",      subtype: 4, defense: 5, rarity: 4, value: 350, type: "relic" },
@@ -1571,7 +1575,7 @@
             const ticket = gameMap[y][x].artifact;
             const targetOnMap = document.querySelector(`.map-cell[data-x="${x}"][data-y="${y}"]`);
 
-            addLog(`✨ Ви знайшли квиток! Використайте його для гри або у крамниці!`, 'artifact', '#4504ed');
+            addLog(`✨🎟️ Ви знайшли квиток! Використайте його для гри або у крамниці!`, 'artifact', '#4504ed');
 
             // Анімація
             showEventPopup(`${addEmoji(ticket.emoji, '32px')}`, targetOnMap, {
@@ -1713,11 +1717,6 @@
 
                     // піднімає предмет
                     pickUpItem(gameMap[y][x].artifact);
-
-                    // іноді ще можна знайти квиток
-                    if (isTicketFound) {
-                        player.tickets++;
-                    }
                 }
 
                 addLog(messageChest, 'loot');
@@ -1738,11 +1737,15 @@
                     delay: 500,
                     horizontalOffset: 30
                 });
+
+                // іноді ще можна знайти квиток
                 if (isTicketFound) {
+                    addLog(`✨🎟️ Ви знайшли квиток! Використайте його для гри або у крамниці!`, 'artifact', '#4504ed');
+                    player.tickets++;
                     showEventPopup(`${addEmoji('🎟️', '32px')}`, targetOnMap, {
                         fontSize: '40px',
                         delay: 750,
-                    }); 
+                    });
                 }
 
                 // Видаляємо сундук
@@ -2184,7 +2187,7 @@
         function updateEquipmentSlot(slot) {
             const element = elements[`${slot}Slot`];
             if (player.equipment[slot]) {
-                element.innerHTML = getItemView(player.equipment[slot]);
+                element.innerHTML = getItemView(player.equipment[slot], undefined, undefined, slot);
             } else {
                 element.innerHTML = `
                     <div class="inventory-item">
@@ -2218,7 +2221,7 @@
 
         // відображення предмету
         // viewType ('inventory' - в рюкзаку, 'equipment' - те шо вдягнуте, 'store' - в крамниці)
-        function getItemView(item, index = -1, viewType = 'equipment') {
+        function getItemView(item, index = -1, viewType = 'equipment', equipmentSlot = '') {
             let bonusText = '';
             if (item.attack) bonusText += ` ⚔️${signedValue(item.attack)}`;
             if (item.defense) bonusText += ` 🛡️${signedValue(item.defense)}`;
@@ -2233,19 +2236,27 @@
 
             const itemEmoji = addEmojiItem(item.emoji, currentSubtype, currentSpecialParams);
 
+            const equipmentTypeIndex = equipableTypes.indexOf(equipmentSlot);
+
             const inventoryIndex = (index != -1 && viewType == 'inventory') ? `[${index + 1}]` : '';
 
-            const inventoryActions = (index != -1 && viewType == 'inventory') ? `<div class="item-actions">
-                                                                                    <div class="item-action" onclick="useItem(${index})">${item.type.startsWith('potion') ? 'Випити' : 'Екіпірувати'}</div>
-                                                                                    ${item.canSell !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.floor(item.value * sellCoefficient)}💰)</div>` : ''}
-                                                                                </div>` : '';
-
-            const storeActions = (index != -1 && viewType == 'store') ? `<div class="item-actions">
-                                                                            <div class="item-action" onclick="buyItem(${index})">Купити (${Math.floor(item.value * buyCoefficient)}💰)</div>
-                                                                        </div>` : '';
-            const storePriceBlock = (index != -1 && viewType == 'store') ? `<div class="item-desc item-price">
-                                                                                <span class="artifact-bonus store-price">${Math.floor(item.value * buyCoefficient)}💰</span>
-                                                                            </div>` : '';
+            const inventoryActions = (index != -1 && viewType == 'inventory')
+                ? `<div class="item-actions">
+                        <div class="item-action" onclick="useItem(${index})">${item.type.startsWith('potion') ? 'Випити' : 'Екіпірувати'}</div>
+                        ${item.canSell !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.floor(item.value * sellCoefficient)}💰)</div>` : ''}
+                    </div>` : '';
+            const equipmentActions = (equipmentTypeIndex != -1 && viewType == 'equipment')
+                ? `<div class="item-actions">
+                        <div class="item-action" onclick="unequipItem(${equipmentTypeIndex})">Зняти</div>
+                    </div>` : '';
+            const storeActions = (index != -1 && viewType == 'store')
+                ? `<div class="item-actions">
+                        <div class="item-action" onclick="buyItem(${index})">Купити (${Math.floor(item.value * buyCoefficient)}💰)</div>
+                    </div>` : '';
+            const storePriceBlock = (index != -1 && viewType == 'store')
+                ? `<div class="item-desc item-price">
+                        <span class="artifact-bonus store-price">${Math.floor(item.value * buyCoefficient)}💰</span>
+                    </div>` : '';
 
             return `
                 <div class="inventory-item">
@@ -2256,6 +2267,7 @@
                     </div>
                     ${storePriceBlock}
                 </div>
+                ${equipmentActions}
                 ${inventoryActions}
                 ${storeActions}
             `;
@@ -2312,13 +2324,26 @@
 
         // знімаємо предмет
         function unequipItem(index) {
-            const equipmentTypes = ['weapon', 'armor', 'ring', 'amulet', 'book', 'relic'];
-
             if (index < 0 || index > 5 || player.equipment[equipableTypes[index]] == undefined || player.equipment[equipableTypes[index]] == null) return;
 
             const item = player.equipment[equipableTypes[index]];
+
+            let healthPercentage = Math.min(player.health / player.maxHealth, 1);
+            //console.log(`unequip => ${healthPercentage} => ${player.health} / ${player.maxHealth}`);
+
             player.inventory.push(item);
             player.equipment[equipableTypes[index]] = null;
+
+            if (item.maxHealth) {
+                updateStats();
+
+                let currentHealth = player.health;
+                // якщо рівень життя гравця до тимчасово збільшується, то робим гарну онімацію :)
+                setTimeout(() => {
+                    player.health = Math.floor(player.maxHealth * healthPercentage);
+                    updateStats();
+                }, currentHealth < player.maxHealth ? 250 : 0);
+            }
 
             updateInventory();
             updateStats();
@@ -2330,6 +2355,7 @@
 
             // врахуємо перерахунок співвідношення хп до макс хп
             let healthPercentage = Math.min(player.health / player.maxHealth, 1);
+            //console.log(`equip   => ${healthPercentage} => ${player.health} / ${player.maxHealth}`);
             let slot = item.type;
             let unequipedItem;
             
@@ -2347,8 +2373,9 @@
             
             // Оновлюємо здоров'я, якщо змінилось максимальне значення
             // врахуємо перерахунок співвідношення хп до макс хп
-            updateStats();
             if (item.maxHealth || (unequipedItem != null && unequipedItem.maxHealth)) {
+                updateStats();
+
                 let currentHealth = player.health;
                 // якщо рівень життя гравця до тимчасово збільшується, то робим гарну онімацію :)
                 setTimeout(() => {
@@ -2490,11 +2517,11 @@
             const itemTypeRoll = Math.random();
             let itemPool;
             
-            // 0-40% - weapons 41-80% - armors 81-91% - potions 92-100% - artifacts
+            // 0-40% - weapons 41-80% - armors 81-87% - potions 89-100% - artifacts
             if (itemHandyPool == null) {
                 if (itemTypeRoll < 0.4) itemPool = weapons;
                 else if (itemTypeRoll < 0.8) itemPool = armors;
-                else if (itemTypeRoll < 0.91) itemPool = potions;
+                else if (itemTypeRoll < 0.87) itemPool = potions;
                 else itemPool = artifacts;
             } else {
                 itemPool = itemHandyPool;
@@ -2615,14 +2642,22 @@
             let rarity = getBiasedRarity(player.level);
 
             // Фільтруємо артефакти і зілля за рідкістю
-            let items = [...artifacts, ...potions];
+            let items;
+            if (Math.random() < 0.5) {
+                items = [...artifacts, ...potions];
+            } else {
+                items = [...artifacts];
+            }
             
             const availableArtifacts = items.filter(item => item.rarity <= rarity);
             
             if (availableArtifacts.length === 0) return null;
             
             // Вибираємо випадковий артефакт з доступних
-            const artifactTemplate = availableArtifacts[Math.floor(Math.random() * availableArtifacts.length)];
+            let artifactTemplate = availableArtifacts[Math.floor(Math.random() * availableArtifacts.length)];
+            if (Math.random() < 0.25) {
+                artifactTemplate = makeItemMagic(artifactTemplate);
+            }
             
             // Створюємо копію артефакта для гравця
             return {
@@ -2658,13 +2693,13 @@
             
             // Базова сила ворога залежить від рівня гравця
             const basePower = 2 + player.level;
-            let powerMultiplier = 1.6;
-            
-            if (enemy.elite) powerMultiplier = 2.5;
-            if (enemy.boss) powerMultiplier = 3.4;
+            let powerMultiplier = 1.5;
+            if (enemy.elite) powerMultiplier = 2.3;
+            if (enemy.boss) powerMultiplier = 3.2;
             
             // Характеристики ворога
-            enemy.health = Math.floor(basePower * powerMultiplier * (0.8 + Math.random() * 0.4));
+            //enemy.health = Math.floor(basePower * powerMultiplier * (0.8 + Math.random() * 0.4));
+            enemy.health = Math.floor(basePower * powerMultiplier * (1 + Math.random() * 0.6));
             
             // Атака та захист з урахуванням здібностей
             enemy.attack = Math.floor(basePower * powerMultiplier * (0.5 + Math.random() * 0.5));
@@ -2902,6 +2937,17 @@
                             color: '#88f',
                             fontSize: '18px',
                             delay: 1000,
+                        });
+                    }
+
+                    // іноді ще можна підняти з ворога квиток
+                    if (enemy.boss && Math.random() < 0.3 || enemy.elite && Math.random() < 0.1) {
+                        addLog(`✨🎟️ Ви знайшли квиток! Використайте його для гри або у крамниці!`, 'artifact', '#4504ed');
+                        player.tickets++;
+                        showEventPopup(`${addEmoji('🎟️', '32px')}`, elements.playerEmoji, {
+                            fontSize: '40px',
+                            delay: (enemy.item) ? 1250 : 1000,
+                            horizontalOffset: (enemy.item) ? -25 : 0
                         });
                     }
                     
