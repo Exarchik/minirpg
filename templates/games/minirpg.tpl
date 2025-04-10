@@ -257,6 +257,8 @@
 
         .item-name {
             font-size: 15px;
+            z-index: 10;
+            position: relative;
         }
         .item-desc {
             padding-left: 5px;
@@ -272,6 +274,11 @@
         }
         .item-subinfo-up {
             bottom: 14px;
+        }
+        .item-type-subinfo {
+            position: absolute;
+            top: -6px;
+            right: 3px;
         }
         .item-slot {
             display: inline-block;
@@ -289,6 +296,33 @@
         }
         .item-slot:hover {
             background-color: #555;
+        }
+        .item-weapon {
+            background: radial-gradient(circle, rgba(255,102,0,0.33) 0%, rgba(255,0,0,0.33) 100%);
+        }
+        .item-armor {
+            background: radial-gradient(circle, rgba(0,255,34,0.33) 0%, rgba(59,93,56,0.33) 100%);
+        }
+        .item-ring {
+            background: radial-gradient(circle, rgba(255,253,0,0.33) 0%, rgba(87,89,7,0.33) 100%);
+        }
+        .item-amulet {
+            background: radial-gradient(circle, rgb(0 190 255 / 33%) 0%, rgb(2 33 43 / 45%) 100%);
+        }
+        .item-book {
+            background: radial-gradient(circle, rgb(0 132 235 / 33%) 0%, rgb(5 0 75 / 33%) 100%);
+        }
+        .item-relic {
+            background: radial-gradient(circle, rgb(187 0 255 / 25%) 0%, rgb(38 0 41 / 33%) 100%);
+        }
+        .item-slot.item-potion_attack {
+            background: radial-gradient(circle, rgb(10 255 0 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
+        }
+        .item-slot.item-potion_defense {
+            background: radial-gradient(circle, rgb(0 49 255 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
+        }
+        .item-slot.item-potion_health {
+            background: radial-gradient(circle, rgb(255 0 0 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
         }
         .equipped {
             border: 2px solid gold;
@@ -327,11 +361,14 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 5px;
+            background-color: #252525;
+            padding: 5px;
+            border-radius: 5px;
         }
         .equipment-slot {
             display: block;
             padding: 5px;
-            background-color: #3a3a3a;
+            /*background-color: #3a3a3a;*/
             border-radius: 3px;
             min-width: 60px;
             text-align: center;
@@ -638,12 +675,12 @@
                 </div>
 
                 <div id="equipment">
-                    <div>⚔️ Зброя: <span id="weapon-slot" class="equipment-slot">Пусто</span></div>
-                    <div>🛡️ Броня: <span id="armor-slot" class="equipment-slot">Пусто</span></div>
-                    <div>💍 Кільце: <span id="ring-slot" class="equipment-slot">Пусто</span></div>
-                    <div>📿 Амулет: <span id="amulet-slot" class="equipment-slot">Пусто</span></div>
-                    <div>📖 Книга: <span id="book-slot" class="equipment-slot">Пусто</span></div>
-                    <div>🏆 Реліквія: <span id="relic-slot" class="equipment-slot">Пусто</span></div>
+                    <div>⚔️ Зброя: <span id="weapon-slot" class="equipment-slot item-weapon">Пусто</span></div>
+                    <div>🛡️ Броня: <span id="armor-slot" class="equipment-slot item-armor">Пусто</span></div>
+                    <div>💍 Кільце: <span id="ring-slot" class="equipment-slot item-ring">Пусто</span></div>
+                    <div>📿 Амулет: <span id="amulet-slot" class="equipment-slot item-amulet">Пусто</span></div>
+                    <div>📖 Книга: <span id="book-slot" class="equipment-slot item-book">Пусто</span></div>
+                    <div>🏆 Реліквія: <span id="relic-slot" class="equipment-slot item-relic">Пусто</span></div>
                 </div>
             </div>
 
@@ -742,6 +779,17 @@
             'amulet': '📿🔥',
             'book': '📖',
             'relic': '🔮',
+        };
+        const equipmentEmojies = {
+            'weapon': '⚔️',
+            'armor': '🛡️',
+            'ring': '💍',
+            'amulet': '📿',
+            'book': '📖',
+            'relic': '🔮',
+            'potion_attack': '🧪',
+            'potion_defense': '🧪',
+            'potion_health': '🧪',
         };
         const equipableTypes = ['weapon', 'armor', 'ring', 'amulet', 'book', 'relic'];
 
@@ -2189,7 +2237,7 @@
             // Інвентар
             player.inventory.forEach((item, index) => {
                 const itemElement = document.createElement('div');
-                itemElement.className = 'item-slot';
+                itemElement.className = `item-slot item-${item.type}`;
                 itemElement.innerHTML = getItemView(item, index, 'inventory');
                 
                 elements.inventoryItems.appendChild(itemElement);
@@ -2231,7 +2279,7 @@
 
             store.forEach((item, index) => {
                 const itemElement = document.createElement('div');
-                itemElement.className = `item-slot${(item.value * 2) > player.gold ? ' not-enough-gold': ''}`;
+                itemElement.className = `item-slot item-${item.type}${(item.value * 2) > player.gold ? ' not-enough-gold': ''}`;
                 itemElement.innerHTML = getItemView(item, index, 'store');
 
                 elements.storeItems.appendChild(itemElement);
@@ -2254,6 +2302,9 @@
             itemSpecStyle = itemSpecStyle != '' ?  `color:#0ff;${itemSpecStyle};text-shadow: 2px 2px 0 black;` : itemSpecStyle ;
 
             const itemEmoji = addEmojiItem(item.emoji, currentSubtype, currentSpecialParams);
+
+            const typeEmoji = addEmoji(equipmentEmojies[item.type], '16px');
+            const typeEmojiSubInfo = `<div class="item-type-subinfo">${typeEmoji}</div>`;
 
             const equipmentTypeIndex = equipableTypes.indexOf(equipmentSlot);
             const equipmentSubInfo = (equipmentTypeIndex != -1 && viewType == 'equipment') ? `<div class="item-subinfo">ALT+${equipmentTypeIndex+1}</div>` : '';
@@ -2289,6 +2340,7 @@
                     ${storePriceBlock}
                     ${inventorySubInfo}
                     ${equipmentSubInfo}
+                    ${typeEmojiSubInfo}
                 </div>
                 ${equipmentActions}
                 ${inventoryActions}
@@ -2540,11 +2592,11 @@
             const itemTypeRoll = Math.random();
             let itemPool;
             
-            // 0-40% - weapons 41-80% - armors 81-87% - potions 89-100% - artifacts
+            // 0-40% - weapons 41-80% - armors 81-85% - potions 86-100% - artifacts
             if (itemHandyPool == null) {
                 if (itemTypeRoll < 0.4) itemPool = weapons;
                 else if (itemTypeRoll < 0.8) itemPool = armors;
-                else if (itemTypeRoll < 0.87) itemPool = potions;
+                else if (itemTypeRoll < 0.85) itemPool = potions;
                 else itemPool = artifacts;
             } else {
                 itemPool = itemHandyPool;
@@ -2722,7 +2774,7 @@
             
             // Характеристики ворога
             //enemy.health = Math.floor(basePower * powerMultiplier * (0.8 + Math.random() * 0.4));
-            enemy.health = Math.floor(basePower * powerMultiplier * (1 + Math.random() * 0.6));
+            enemy.health = Math.floor(basePower * powerMultiplier * (1.25 + Math.random() * 0.75));
             
             // Атака та захист з урахуванням здібностей
             enemy.attack = Math.floor(basePower * powerMultiplier * (0.5 + Math.random() * 0.5));
