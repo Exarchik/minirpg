@@ -254,11 +254,17 @@
         .inventory-item {
             /**/
         }
+        .inventory-item:hover .item-image {
+            scale: 1.1;
+        }
 
         .item-name {
             font-size: 15px;
             z-index: 10;
             position: relative;
+        }
+        .item-image {
+            filter: drop-shadow(6px 6px 6px #000000aa);
         }
         .item-desc {
             padding-left: 5px;
@@ -279,7 +285,14 @@
             position: absolute;
             bottom: 6px;
             right: 6px;
+            filter: brightness(1.2) drop-shadow(1px 1px 0px black);
         }
+        /*.item-type-subinfo.weapon {
+            filter: brightness(1.5) contrast(2) hue-rotate(339deg);
+        }
+        .item-type-subinfo.ring {
+            filter: brightness(1.5) contrast(1.2);
+        }*/
         .item-slot {
             display: inline-block;
             margin: 5px;
@@ -295,7 +308,10 @@
             filter: grayscale(1) brightness(0.5);
         }
         .item-slot:hover {
-            background-color: #555;
+            /*background-color: #555;*/
+        }
+        .item-slot:hover .item-image {
+            scale: 1.1;
         }
         .item-weapon {
             background: radial-gradient(circle, rgb(255 102 0 / 64%) 0%, rgb(47 1 1 / 33%) 100%);
@@ -787,9 +803,7 @@
             'amulet': '📿',
             'book': '📖',
             'relic': '🔮',
-            'potion_attack': '🧪',
-            'potion_defense': '🧪',
-            'potion_health': '🧪',
+            'potion': '🧪',
         };
         const equipableTypes = ['weapon', 'armor', 'ring', 'amulet', 'book', 'relic'];
 
@@ -935,10 +949,24 @@
             { type: '🤬', image: 'archidemon.png' },
             { type: '🕸️', image: 'spider-queen.png' },
 
-            // зілля
+                // зілля
             { type: '🧪', subtype: 1, image: 'potion-1.png' },
             { type: '🧪', subtype: 2, image: 'potion-2.png' },
             { type: '🧪', subtype: 3, image: 'potion-3.png' },
+                // icons
+            /*{ type: '🛡️', subtype: -1, image: 'armor-cuirass.png' },*/
+            { type: '📖', subtype: -1, image: 'book-4.png' },
+            { type: '📿', subtype: -1, image: 'amulet-0.png' },
+            
+            /*
+            { type: '⚔️', subtype: -1, image: 'weapon-0.png' },
+            { type: '🛡️', subtype: -1, image: 'armor-0.png' },
+            { type: '💍', subtype: -1, image: 'ring-0.png' },
+            { type: '📿', subtype: -1, image: 'amulet-0.png' },
+            { type: '📖', subtype: -1, image: 'book-0.png' },
+            { type: '🔮', subtype: -1, image: 'relic-0.png' },
+            { type: '🧪', subtype: -1, image: 'potion-0.png' },
+            */
         ];
 
         // перешкоди
@@ -1103,14 +1131,14 @@
             { type: 'Скелет', emoji: '💀💀', color: '#fff', abilities: ['undead', 'disease'] },
             { type: 'Вовк', emoji: '🐕', color: '#aaa', abilities: ['fast', 'predator'] },
             { type: 'Павук', emoji: '🕷️', color: '#8b4513', abilities: ['poison'] },
-            { type: 'Щур', emoji: '🐀', color: '#808080', abilities: ['disease'] },
+            { type: 'Щур', emoji: '🐀', color: '#808080', abilities: ['disease', 'hungry'] },
             { type: 'Зомбі', emoji: '🧟', color: '#5a5', abilities: ['undead', 'tough', 'disease'] },
-            { type: 'Привид', emoji: '👻', color: '#aaf', abilities: ['undead', 'magic_resist'] },
+            { type: 'Привид', emoji: '👻', color: '#aaf', abilities: ['ghost', 'magic_resist'] },
             { type: 'Гарпія', emoji: '🦅', color: '#add8e6', abilities: ['flying', 'fast'] },
             { type: 'Ящіролюд', emoji: '🦎', color: '#ff6347', abilities: ['trap_master'] },
             
             // Елітні монстри
-            { type: 'Орк-воїн', emoji: '👹', color: '#f55', abilities: ['strong', 'tough'], elite: true },
+            { type: 'Орк-воїн', emoji: '👹', color: '#f55', abilities: ['strong', 'tough', 'hungry'], elite: true },
             { type: 'Троль', emoji: '🤢🤢', color: '#228b22', abilities: ['regeneration', 'tough'], elite: true },
             { type: 'Варґ', emoji: '🐺', color: '#4b0082', abilities: ['predator', 'fast'], elite: true },
             { type: 'Вампір', emoji: '🧛', color: '#00ffff', abilities: ['undead', 'bloodsucker', 'magic_resist'], elite: true },
@@ -1231,6 +1259,7 @@
             artifacts = newPrices(artifacts);
         }
 
+        // вибрати єдине випадкове значення з масиву
         function chooseOne(list) {
             if (!Array.isArray(list) || list.length === 0) {
                 throw new Error("Input must be a non-empty array");
@@ -1297,7 +1326,7 @@
                         imgData = {...imgData2};
                     }
                 }
-                const baseSize = 64;
+                const baseSize = icons.frames[imgData.image].sourceSize.w;//64;
                 const scaling = parseInt(size) / baseSize;
 
                 const posX = (icons.frames[imgData.image].frame.x || 1) * scaling;
@@ -1338,6 +1367,7 @@
         // один з ворогів рухається
         function moveRandomEnemy() {
             const _koords = [-1, 0, 1];
+            let enemyMoves = false;
 
             if (enemies.length && Math.random() < 0.4) {
                 const randomIndex = Math.floor(Math.random() * enemies.length);
@@ -1357,9 +1387,31 @@
                         if (!enemy && player.position.x != randomX && player.position.y != randomY) {
                             enemies[randomIndex].position.x = randomX;
                             enemies[randomIndex].position.y = randomY;
+
+                            enemyMoves = true;
                         }
                     }
                 }
+            }
+
+            // після того як порухали воріженьку перевіряєм що в нас є голодні вороги
+            if (enemyMoves && Math.random() < 0.25) {
+                const hungryEnemies = findEnemiesByAbilities('hungry');
+                if (!hungryEnemies.length) return;
+
+                const enemy = chooseOne(hungryEnemies);
+                const fruitCells = findCellByTypes('fruit');
+                fruitCells.forEach((fruit, index) => {
+                    //console.log(isNeighbour(enemy.position.x, enemy.position.y, fruit.position.x, fruit.position.y));
+
+                    // ворог зжер ніштяк
+                    if (isNeighbour(enemy.position.x, enemy.position.y, fruit.position.x, fruit.position.y)) {
+                        addLog(`🍽️ ${enemy.emoji} ${enemy.type} З'їв ${fruit.fruit.emoji} ${fruit.fruit.name}!`, 'enemy');
+
+                        gameMap[fruit.position.y][fruit.position.x] = { type: 'empty', emoji: emptyEmoji };
+                        return;
+                    }
+                });
             }
         }
 
@@ -1503,6 +1555,27 @@
             return enemies.filter(enemy => enemy.abilities.indexOf(abilityName) != -1 );
         }
 
+        function findCellByTypes(typeName) {
+            const found = [];
+
+            for (let y = 0; y < gameMap.length; y++) {
+                for (let x = 0; x < gameMap[y].length; x++) {
+                    const tile = gameMap[y][x];
+                    if (tile.type === typeName) {
+                        found.push({ position: {x, y}, ...tile });
+                    }
+                }
+            }
+
+            return found;
+        }
+
+        function isNeighbour(x, y, targetX, targetY) {
+            const dx = Math.abs(x - targetX);
+            const dy = Math.abs(y - targetY);
+            return (dx <= 1 && dy <= 1) && !(dx === 0 && dy === 0);
+        }
+
         function findPlayerNeighbours(enemyList) {
             const neighbors = enemyList.filter(enemy => {
                 const dx = Math.abs(enemy.position.x - player.position.x);
@@ -1566,6 +1639,17 @@
                 // можна вмерти
                 startDeath(`💀 Ви загинули атрапивши у пастку ${enemy.emoji} ${enemy.type}!`);
                 updateStats();
+            }
+
+            // є невеличка ймовірність що примара телепортується
+            if (Math.random() < 0.1) {
+                let ghostEnemies = findEnemiesByAbilities('ghost');
+                if (ghostEnemies.length) {
+                    let ghost = chooseOne(ghostEnemies);
+                    const emptyCell = chooseOne(findCellByTypes('empty'));
+                    //console.log(emptyCell.position);
+                    ghost.position = emptyCell.position;
+                }
             }
             
             // Перевіряємо чи є там ворог
@@ -2337,8 +2421,8 @@
 
             const itemEmoji = addEmojiItem(item.emoji, currentSubtype, currentSpecialParams);
 
-            const typeEmoji = addEmoji(equipmentEmojies[item.type], '16px');
-            const typeEmojiSubInfo = `<div class="item-type-subinfo">${typeEmoji}</div>`;
+            const typeEmoji = addEmoji(item.type.startsWith('potion') ? equipmentEmojies['potion'] : equipmentEmojies[item.type], '16px', -1);
+            const typeEmojiSubInfo = `<div class="item-type-subinfo ${item.type.startsWith('potion') ? 'potion' : item.type}">${typeEmoji}</div>`;
 
             const equipmentTypeIndex = equipableTypes.indexOf(equipmentSlot);
             const equipmentSubInfo = (equipmentTypeIndex != -1 && viewType == 'equipment') ? `<div class="item-subinfo">ALT+${equipmentTypeIndex+1}</div>` : '';
@@ -2367,7 +2451,7 @@
             return `
                 <div class="inventory-item">
                     <div class="item-name" style="${itemSpecStyle}">${inventoryIndex}${item.name}</div>
-                    <div>${itemEmoji}</div>
+                    <div class="item-image">${itemEmoji}</div>
                     <div class="item-desc">
                         <span class="artifact-bonus">${bonusText}</span>
                     </div>
@@ -2556,16 +2640,28 @@
             const rarityTable = [
                 { 'rarity': 1, 'playerLevel': 1 },
                 { 'rarity': 2, 'playerLevel': 3 },
-                { 'rarity': 3, 'playerLevel': 5 },
-                { 'rarity': 4, 'playerLevel': 7 },
-                { 'rarity': 5, 'playerLevel': 10 },
-                { 'rarity': 6, 'playerLevel': 13 },
-                { 'rarity': 7, 'playerLevel': 16 },
+                { 'rarity': 3, 'playerLevel': 6 },
+                { 'rarity': 4, 'playerLevel': 10 },
+                { 'rarity': 5, 'playerLevel': 15 },
+                { 'rarity': 6, 'playerLevel': 20 },
+                { 'rarity': 7, 'playerLevel': 25 },
             ];
 
             // 1. Відфільтровуємо лише ті rarity, які <= рівню гравця
+            /*
+            const availableRaritiesAll = rarityTable.filter(entry => entry.playerLevel <= playerLevel);
+            const availableRarities = availableRaritiesAll.slice(-3); // тільки 3 найвищі
+            */
+
             const availableRarities = rarityTable.filter(entry => entry.playerLevel <= playerLevel);
             if (availableRarities.length === 0) return null; // якщо нічого не доступно
+           
+            // 1. Вирізаємо нижнє
+            /*const minAllowedRarity = Math.max(1, Math.floor(playerLevel / 3));
+
+            const availableRarities = rarityTable.filter(entry =>
+                entry.playerLevel <= playerLevel && entry.rarity >= minAllowedRarity
+            );*/
 
             // 2. Шукаємо найближчу rarity
             let closestEntry = availableRarities.reduce((prev, curr) =>
@@ -2639,9 +2735,11 @@
             // Визначаємо рідкість на основі рівня гравця
             let rarity = getBiasedRarity(player.level, rarityBias);
             // Фільтруємо предмети за рідкістю
-            const availableItems = itemPool.filter(item => item.rarity <= rarity);
+            //const availableItems = itemPool.filter(item => item.rarity <= rarity);
+            const availableItems = itemPool.filter(item => item.rarity == rarity);
+            //const availableItems = itemPool.filter(item => [rarity - 1, rarity, rarity + 1].includes(item.rarity));
 
-            //console.log(itemPool, rarity);
+            //console.log(rarity);
             if (availableItems.length === 0) {
                 if (isForced && itemHandyPool == null) return generateItem(isForced, rarityBias, mustBeModifed, itemHandyPool);
                 else return null;
@@ -2702,6 +2800,10 @@
                     itemTemplate.maxHealth = (itemTemplate.maxHealth || 0) + maxHealthParam;
                     itemSpecialParams['brightness'] = rand(80, 150) / 100;
                 }
+
+                /*if (Math.random() < 0.5) {
+                    itemSpecialParams['drop-shadow'] = `0 0 1px rgb(${rand(0, 255)}, ${rand(0, 255)}, ${rand(0, 255)})`;
+                }*/
 
                 itemTemplate.value = newPriceForItem(itemTemplate);
             }
@@ -3268,6 +3370,8 @@
                         'fast': 'Швидкий: атакує першим',
                         'poison': 'Отрута: завдає додаткової шкоди',
                         'disease': 'Хвороба: знижує вашу атаку',
+                        'hungry': 'Голодний: знищує харчі',
+                        'ghost': 'Примара: миттєво переміщується',
                         'tough': 'Міцний: більше здоров\'я',
                         'magic_resist': 'Магічний опір: знижує вашу атаку',
                         'flying': 'Літає: ухиляється від атак',
