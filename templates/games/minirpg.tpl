@@ -1199,9 +1199,9 @@
             if (item.attack) paramsSum += (item.attack || 0);
             if (item.defense) paramsSum += (item.defense || 0);
             if (item.maxHealth) paramsSum += (item.maxHealth || 0) / 5;
-            if (item.critChance) paramsSum += (item.critChance || 0) / 0.2;
+            if (item.critChance) paramsSum += (item.critChance || 0) / 0.1;
 
-            return paramToValue(paramsSum);
+            return paramsSum < 1 ? 2 : paramToValue(paramsSum);
         }
 
         // new prices
@@ -2672,26 +2672,32 @@
             if (equipableTypes.includes(itemTemplate.type)) {
                 // hue main param
                 //console.log([`name: ${itemTemplate.name}`]);
+
+                // збільшуєм діапазон можливих значень з кожним рівнем гравця
+                const bonusModif = 0.25 + (player.level * 0.05);
                 if (Math.random() < 0.5) {
-                    const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * 0.25)));
-                    //console.log([`spec attack: ${(itemTemplate.attack || 0)} + ${attackParam}`]);
+                    //const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * 0.25)));
+                    const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * bonusModif)));
+                    //console.log([`${itemTemplate.name} => spec attack: ${(itemTemplate.attack || 0)} + ${attackParam}`]);
 
                     itemTemplate.attack = (itemTemplate.attack || 0) + attackParam;
                     itemSpecialParams['hue-rotate'] = rand(0, 359);
                     if (itemTemplate.type == 'weapon') {
-                        itemTemplate.critChance += Math.random() * 0.2;
+                        itemTemplate.critChance += Math.random() * 0.15;
                     }
                 }
                 if (Math.random() < 0.5) {
-                    const defenseParam = rand(1, Math.max(1, Math.floor((itemTemplate.defense || 1) * 0.25)));
-                    //console.log([`spec defense: ${(itemTemplate.defense || 0)} + ${defenseParam}`]);
+                    //const defenseParam = rand(1, Math.max(1, Math.floor((itemTemplate.defense || 1) * 0.25)));
+                    const defenseParam = rand(1, Math.max(1, Math.floor((itemTemplate.defense || 1) * bonusModif)));
+                    //console.log([`${itemTemplate.name} => spec defense: ${(itemTemplate.defense || 0)} + ${defenseParam}`]);
 
                     itemTemplate.defense = (itemTemplate.defense || 0) + defenseParam;
                     itemSpecialParams['contrast'] = rand(80, 200) / 100;
                 }
                 if (Math.random() < 0.5) {
-                    const maxHealthParam = rand(1, Math.max(1, Math.floor((itemTemplate.maxHealth || 1) * 0.25)));
-                    //console.log([`spec health: ${(itemTemplate.maxHealth || 0)} + ${maxHealthParam}`]);
+                    //const maxHealthParam = rand(1, Math.max(1, Math.floor((itemTemplate.maxHealth || 1) * 0.25)));
+                    const maxHealthParam = rand(1, Math.max(1, Math.floor((itemTemplate.maxHealth || 1) * bonusModif)));
+                    //console.log([`${itemTemplate.name} => spec health: ${(itemTemplate.maxHealth || 0)} + ${maxHealthParam}`]);
 
                     itemTemplate.maxHealth = (itemTemplate.maxHealth || 0) + maxHealthParam;
                     itemSpecialParams['brightness'] = rand(80, 150) / 100;
