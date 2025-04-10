@@ -277,8 +277,8 @@
         }
         .item-type-subinfo {
             position: absolute;
-            top: -6px;
-            right: 3px;
+            bottom: 6px;
+            right: 6px;
         }
         .item-slot {
             display: inline-block;
@@ -298,22 +298,22 @@
             background-color: #555;
         }
         .item-weapon {
-            background: radial-gradient(circle, rgba(255,102,0,0.33) 0%, rgba(255,0,0,0.33) 100%);
+            background: radial-gradient(circle, rgb(255 102 0 / 64%) 0%, rgb(47 1 1 / 33%) 100%);
         }
         .item-armor {
-            background: radial-gradient(circle, rgba(0,255,34,0.33) 0%, rgba(59,93,56,0.33) 100%);
+            background: radial-gradient(circle, rgb(0 255 34 / 44%) 0%, rgba(59, 93, 56, 0.33) 100%);
         }
         .item-ring {
-            background: radial-gradient(circle, rgba(255,253,0,0.33) 0%, rgba(87,89,7,0.33) 100%);
+            background: radial-gradient(circle, rgb(255 253 0 / 40%) 0%, rgba(87, 89, 7, 0.33) 100%);
         }
         .item-amulet {
-            background: radial-gradient(circle, rgb(0 190 255 / 33%) 0%, rgb(2 33 43 / 45%) 100%);
+            background: radial-gradient(circle, rgb(0 190 255 / 50%) 0%, rgb(2 33 43 / 45%) 100%);
         }
         .item-book {
-            background: radial-gradient(circle, rgb(0 132 235 / 33%) 0%, rgb(5 0 75 / 33%) 100%);
+            background: radial-gradient(circle, rgb(0 99 235 / 56%) 0%, rgb(5 0 75 / 33%) 100%);
         }
         .item-relic {
-            background: radial-gradient(circle, rgb(187 0 255 / 25%) 0%, rgb(38 0 41 / 33%) 100%);
+            background: radial-gradient(circle, rgb(187 0 255 / 47%) 0%, rgb(38 0 41 / 33%) 100%);
         }
         .item-slot.item-potion_attack {
             background: radial-gradient(circle, rgb(10 255 0 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
@@ -820,6 +820,7 @@
             { type: '🩸', image: 'blood.png' },
             { type: '🤢', image: 'sick.png' },
             { type: '💪', image: 'muscle.png' },
+            { type: '💫', image: 'trap.png' },
                 // перешкоди
             { type: '🗻', image: 'obs-mountain-2.png' },
             { type: '🌳', image: 'obs-tree-3.png' },
@@ -1106,7 +1107,7 @@
             { type: 'Зомбі', emoji: '🧟', color: '#5a5', abilities: ['undead', 'tough', 'disease'] },
             { type: 'Привид', emoji: '👻', color: '#aaf', abilities: ['undead', 'magic_resist'] },
             { type: 'Гарпія', emoji: '🦅', color: '#add8e6', abilities: ['flying', 'fast'] },
-            { type: 'Кобольд', emoji: '🦎', color: '#ff6347', abilities: ['trap_master'] },
+            { type: 'Ящіролюд', emoji: '🦎', color: '#ff6347', abilities: ['trap_master'] },
             
             // Елітні монстри
             { type: 'Орк-воїн', emoji: '👹', color: '#f55', abilities: ['strong', 'tough'], elite: true },
@@ -1498,6 +1499,20 @@
             });
         }
 
+        function findEnemiesByAbilities(abilityName) {
+            return enemies.filter(enemy => enemy.abilities.indexOf(abilityName) != -1 );
+        }
+
+        function findPlayerNeighbours(enemyList) {
+            const neighbors = enemyList.filter(enemy => {
+                const dx = Math.abs(enemy.position.x - player.position.x);
+                const dy = Math.abs(enemy.position.y - player.position.y);
+
+                return dx <= 1 && dy <= 1 && !(dx === 0 && dy === 0);
+            });
+            return neighbors;
+        }
+
         // Переміщення гравця
         function movePlayer(x, y) {
             if (player.health <= 0) {
@@ -1532,6 +1547,25 @@
             if (dx > 1 || dy > 1 || (dx === 0 && dy === 0)) {
                 addLog('🚫 Ви можете рухатись лише на сусідні клітинки!', 'system');
                 return;
+            }
+
+            // шукаєм поруч ворога з навичкою trap_master, з ймовірністю 33% втрапляєм у пастку
+            const trapMasters = findPlayerNeighbours(findEnemiesByAbilities('trap_master'));
+            if (trapMasters.length && Math.random() < 0.33) {
+                const enemy = trapMasters[0];
+                const enemyDamage = Math.max(1, getEnemyAttack(enemy) - player.defense + Math.floor(Math.random() * 5) - 2);
+
+                player.health -= enemyDamage;
+                showEventPopup(`-${enemyDamage} ${addEmoji('❤️')}${addEmoji('💫')}`, document.getElementById('player-on-map'), {
+                    color: '#f00',
+                    fontSize: '20px',
+                    horizontalOffset: 5
+                });
+                addLog(`💫${enemy.emoji} ${enemy.type} Влаштував пастку: -${enemyDamage}❤️!`, 'enemy');
+
+                // можна вмерти
+                startDeath(`💀 Ви загинули атрапивши у пастку ${enemy.emoji} ${enemy.type}!`);
+                updateStats();
             }
             
             // Перевіряємо чи є там ворог
@@ -2786,6 +2820,8 @@
                 enemy.defense += 2;
                 enemy.health = Math.floor(enemy.health * 1.3);
             }
+
+            // magic_resist - збільшує захист ворога на 1 і трохи нижче блокує 20% усього демагу - хітра жопа
             if (enemy.abilities.includes('magic_resist')) enemy.defense += 1;
             
             enemy.maxHealth = enemy.health;
@@ -3154,7 +3190,8 @@
                     updateStats();
 
                     // Гравець - мрець
-                    if (player.health <= 0) {
+                    startDeath(`💀 Ви загинули в бою з ${enemy.emoji} ${enemy.type}!`);
+                    /*if (player.health <= 0) {
                         // Показуєм кнопку відродження
                         elements.resurrectBtn.style.display = 'inline-block';
                         // Ховаєм кнопку гемблінга
@@ -3168,7 +3205,7 @@
                             fontSize: '40px',
                         });
                         return;
-                    }
+                    }*/
                     
                     // Продовжуємо бій
                     setTimeout(battleStep, 1000);
@@ -3177,6 +3214,24 @@
             
             // Починаємо бій
             battleStep();
+        }
+
+        function startDeath(message) {
+            if (player.health <= 0) {
+                // Показуєм кнопку відродження
+                elements.resurrectBtn.style.display = 'inline-block';
+                // Ховаєм кнопку гемблінга
+                elements.gambleBtn.style.display = 'none';
+
+                elements.playerEmoji.style.filter = `grayscale(100%)`;
+                addLog(message, 'system');
+                showGameMessage(`Поразка`, `${message} Натисніть "Відродитись", щоб продовжити гру.`, 0);
+
+                showEventPopup(`${addEmoji('💀', '40px')}`, document.getElementById('player-on-map'), {
+                    fontSize: '40px',
+                });
+                return;
+            }
         }
 
         // Показуємо ворога
