@@ -154,13 +154,14 @@
         }
 
         #log {
-            height: 23vh;
+            height: 17vh;
             overflow-y: scroll;
             border: 1px solid #444;
             padding: 10px;
             margin-top: 25px;
             background-color: #252525;
             line-height: 1.5;
+            font-size: 14px;
         }
         .player { color: #55f; }
         .enemy { color: #f55; }
@@ -229,10 +230,20 @@
             padding: 10px;
             background-color: #252525;
             border-radius: 5px;
-            overflow-y: scroll;
-            height: 435px;
+            /*overflow-y: scroll;*/
+            /*height: 435px;*/
+            height: 62vh;
             position: relative;
         }
+        #inventory #inventory-items {
+            overflow-y: auto;
+            height: 94%;
+        }
+        #store-items {
+            overflow-y: auto;
+            height: 94%;
+        }
+
         #closeInventoryBtn, #closeStoreBtn {
             position: absolute;
             z-index: 20;
@@ -421,6 +432,9 @@
             cursor: pointer;
             border-radius: 3px;
             transition: all 0.2s;
+        }
+        .map-cell:not(.sight-cell) {
+            opacity: 0.5;
         }
         .map-cell:hover {
             background-color: #555;
@@ -1000,8 +1014,8 @@
         // Розширена база даних броні
         let armors = [
             { name: "Плащ", emoji: "🥼",            subtype: 1, defense: 1, rarity: 1, value: 5, type: "armor" },
-            { name: "Шкіряна броня", emoji: "🧥",   subtype: 2, defense: 2, rarity: 2, value: 10, type: "armor" },
-            { name: "Шкапова броня", emoji: "🧥✨", subtype: 1, defense: 2, maxHealth: 5, rarity: 2, value: 25, type: "armor" },
+            { name: "Шкіряний жилет", emoji: "🧥",   subtype: 2, defense: 2, rarity: 2, value: 10, type: "armor" },
+            { name: "Шкіряна броня", emoji: "🧥✨", subtype: 1, defense: 2, maxHealth: 5, rarity: 2, value: 25, type: "armor" },
             { name: "Кольчуга", emoji: "⛓️",        subtype: 3, defense: 3, rarity: 3, value: 25, type: "armor" },
             { name: "Бехтер", emoji: "⛓️✨",        subtype: 3, defense: 3, maxHealth: 5, rarity: 3, value: 50, type: "armor" },
             { name: "Луската броня", emoji: "⛓️",   subtype: 4, defense: 4, rarity: 4, value: 50, type: "armor" },
@@ -1046,21 +1060,21 @@
             { name: "Амулет єднання", emoji: "📿🔮",    subtype: 10, maxHealth: 25, defense: 3, attack: 3, rarity: 7, value: 2200, type: "amulet" },
             
             // Книги
-            { name: "Книга бійця", emoji: "📖",         subtype: 3, attack: 1, rarity: 2, value: 5, type: "book" },
-            { name: "Книга початківця", emoji: "📖",    subtype: 3, defense: 1, rarity: 2, value: 5, type: "book" },
+            { name: "Посібник", emoji: "📖",           subtype: 3, attack: 1, rarity: 2, value: 5, type: "book" },
+            { name: "Підручник", emoji: "📖",           subtype: 3, defense: 1, rarity: 2, value: 5, type: "book" },
             { name: "Книга виживання", emoji: "📖",     subtype: 2, maxHealth: 5, rarity: 1, value: 5, type: "book" },
             { name: "Книга учня", emoji: "📖",          subtype: 4, attack: 1, defense: 1, rarity: 3, value: 10, type: "book" },
             { name: "Книга мечників", emoji: "📖",      subtype: 3, attack: 3, rarity: 3, value: 100, type: "book" },
             { name: "Книга захисників", emoji: "📖",    subtype: 4, defense: 3, rarity: 3, value: 100, type: "book" },
             { name: "Книга знань", emoji: "📖",         subtype: 5, attack: 2, defense: 2, rarity: 4, value: 150, type: "book" },
             { name: "Книга воєнних мистецтв", emoji: "📖", subtype: 1,  attack: 5, defense: 1, rarity: 4, value: 500, type: "book" },
-            { name: "Книга древніх", emoji: "📖",       subtype: 3, defense: 5, attack: 1, rarity: 5, value: 500, type: "book" },
-            { name: "Заборонений фоліант", emoji: "📖", subtype: 2, attack: 5, defense: 5, maxHealth: 15, rarity: 6, value: 1000, type: "book" },
+            { name: "Гримуар", emoji: "📖",       subtype: 3, defense: 5, attack: 1, rarity: 5, value: 500, type: "book" },
+            { name: "Фоліант", emoji: "📖", subtype: 2, attack: 5, defense: 5, maxHealth: 15, rarity: 6, value: 1000, type: "book" },
             { name: "Книга пророцтв", emoji: "📖",      subtype: 1, attack: 7, defense: 7, maxHealth: 20, rarity: 7, value: 2000, type: "book" },
             
             // Реліквії
             // черепок єдиний виключно негативний релікт -2хп
-            { name: "Черепок", emoji: "🏆☠️",      subtype: 9, maxHealth: -2, rarity: 1, value: 1, type: "relic" },
+            { name: "Мітка", emoji: "🏆☠️",      subtype: 9, maxHealth: -2, rarity: 1, value: 1, type: "relic" },
             // сувій це порожній релікт
             { name: "Сувій", emoji: "📜",          subtype: 12, rarity: 1, value: 2, type: "relic" },
             { name: "Мушля", emoji: "🐚",           subtype: 11, maxHealth: 10, defense: -1, attack: 1, rarity: 2, value: 100, type: "relic" },
@@ -1126,6 +1140,36 @@
                 color: "#673ab7"  // Фіолетовий
             }
         ];
+
+        const bookNameParts = {
+            part1: [
+                "Ars", "Via", "Lex", "Ferrum", "Virtus", "Pugna", "Bellum", "Gladius", "Disciplina",
+                "Animus", "Militia", "Honos", "Sanguis", "Corpus", "Vox", "Fatum", "Umbra", "Clamor",
+                "Tempus", "Vigilantia", "Ignis", "Scutum", "Hostis", "Dominatio", "Victoria", "Praeceptum",
+                "Potentia", "Mysteria", "Vis", "Incantatio", "Maleficium", "Elementum", "Sigillum",
+                "Voluntas", "Lux", "Tenebrae", "Spiritus", "Flamma", "Ordo", "Somnium", "Numen",
+                "Dominium", "Astrum", "Forma", "Aeon", "Symbolum", "Praedictio", "Manus", "Herba",
+                "Sanctio", "Vita", "Remedium", "Lacrima", "Aura", "Flos", "Balsamum", "Sanatio", "Radix",
+                "Pax", "Respiro", "Metus", "Memoria", "Custodia", "Somnus", "Lamina", "Solis", "Noctis",
+                "Venenum", "Vocatio", "Aqua", "Caelum", "Terra", "Aether", "Mens", "Praesidium",
+                "Oraculum", "Cinis", "Tempestas", "Tenebra", "Silva", "Crux", "Fluctus"
+            ],
+            part2: [
+                "Invictus", "Caelestis", "Internus", "Perpetuus", "Obscurus", "Honesta", "Solitaria",
+                "Vetus", "Ultima", "Occultus", "Sacra", "Viva", "Fidelis", "Mortalis", "Cantans",
+                "Silens", "Damnata", "Aeterna", "Cruenta", "Nobilis", "Ferrea", "Ardens", "Severa",
+                "Implacabilis", "Victoriosa", "Strenua", "Arcana", "Antiqua", "Magna", "Divina",
+                "Perdita", "Profunda", "Inferna", "Ignota", "Eterna", "Primordialis", "Silentia",
+                "Interdicta", "Volatilis", "Astralis", "Incensa", "Mystica", "Maligna", "Invocata",
+                "Velata", "Runica", "Sanctus", "Vitalis", "Pacifica", "Benedicta", "Clara", "Salvifica",
+                "Serena", "Gravis", "Luminosa", "Naturalis", "Vivifica", "Medicinalis", "Florens",
+                "Sincera", "Alba", "Lenis", "Sapida", "Dulcis", "Erratica", "Fracta", "Purificata",
+                "Profanata", "Nemorosa", "Fulgida", "Vasta", "Invisibilis", "Fortunata", "Nocturna",
+                "Gelida", "Cauta", "Cinerosa", "Ignita", "Spiritualis", "Tranquilla", "Periculosa",
+                "Defensiva"
+            ]
+        };
+
 
         const enemyTypes = [
             // Звичайні монстри
@@ -1288,9 +1332,9 @@
             return Math.max(1, enemyMaxHealth);
         }
 
-        function addTerraLight(playerX, playerY) {
-            for (j = playerY - 1; j <= playerY + 1; j++) {
-                for (i = playerX - 1; i <= playerX + 1; i++) {
+        function addTerraLight(playerX, playerY, dist = 1) {
+            for (j = playerY - dist; j <= playerY + dist; j++) {
+                for (i = playerX - dist; i <= playerX + dist; i++) {
                     if (gameMap[j] != null && gameMap[j][i] != null) {
                         terraCognita.add(`${i},${j}`);
                     }
@@ -1404,10 +1448,8 @@
                 const enemy = chooseOne(hungryEnemies);
                 const fruitCells = findCellByTypes('fruit');
                 fruitCells.forEach((fruit, index) => {
-                    //console.log(isNeighbour(enemy.position.x, enemy.position.y, fruit.position.x, fruit.position.y));
-
                     // ворог зжер ніштяк
-                    if (isNeighbour(enemy.position.x, enemy.position.y, fruit.position.x, fruit.position.y)) {
+                    if (isNeighbour(enemy.position, fruit.position)) {
                         addLog(`🍽️ ${enemy.emoji} ${enemy.type} З'їв ${fruit.fruit.emoji} ${fruit.fruit.name}!`, 'enemy');
 
                         gameMap[fruit.position.y][fruit.position.x] = { type: 'empty', emoji: emptyEmoji };
@@ -1474,7 +1516,7 @@
             const cells = document.querySelectorAll('.map-cell');
             
             visitedCells.add(`${player.position.x},${player.position.y}`);
-            addTerraLight(player.position.x, player.position.y);
+            addTerraLight(player.position.x, player.position.y, 2);
             
             cells.forEach(cell => {
                 const x = parseInt(cell.dataset.x);
@@ -1490,10 +1532,14 @@
                 if (terraCognita.has(`${x},${y}`)) {
                     cell.classList.remove('incognita-cell');
                 }
+                if (isNeighbour({x, y}, player.position, 3)) {
+                    cell.classList.add('sight-cell');
+                }
                 
                 if (x === player.position.x && y === player.position.y) {
                     cell.innerHTML = addEmoji(player.emoji, '30px');
                     cell.classList.add('player-cell');
+                    cell.classList.add('sight-cell');
                     if (gameMap[y][x].type === 'store') cell.classList.add('store-cell');
                     cell.id = 'player-on-map';
                     return;
@@ -1507,7 +1553,7 @@
                     }
 
                     const enemy = enemies.find(e => e.position.x === x && e.position.y === y);
-                    if (enemy) {
+                    if (enemy && isNeighbour(enemy.position, player.position, 3)) {
                         cell.innerHTML = addEmoji(enemy.emoji, '30px');
                         
                         if (enemy.boss) cell.classList.add('boss-cell');
@@ -1572,10 +1618,10 @@
             return found;
         }
 
-        function isNeighbour(x, y, targetX, targetY) {
-            const dx = Math.abs(x - targetX);
-            const dy = Math.abs(y - targetY);
-            return (dx <= 1 && dy <= 1) && !(dx === 0 && dy === 0);
+        function isNeighbour(position, targetPosition, dist = 1) {
+            const dx = Math.abs(position.x - targetPosition.x);
+            const dy = Math.abs(position.y - targetPosition.y);
+            return (dx <= dist && dy <= dist) && !(dx === 0 && dy === 0);
         }
 
         function findPlayerNeighbours(enemyList) {
@@ -1590,6 +1636,9 @@
 
         // Переміщення гравця
         function movePlayer(x, y) {
+            if (x < 0 || y < 0 || x > (mapSize - 1) || y > (mapSize - 1)) {
+                return;
+            }
             if (player.health <= 0) {
                 addLog('💀 Ви мертві і не можете рухатись!', 'system');
                 return;
@@ -1895,7 +1944,7 @@
                 player.gold += goldFound;
                 player.xp += xpFound;
 
-                const isTicketFound = (Math.random() < ticketSpawnChance);
+                const isTicketFound = (Math.random() < ticketSpawnChance) || isGoldenChest;
                 checkLevelUp();
 
                 let messageChest = `🎁 Ви відкрили ${chestName} і отримали ${goldFound} золота та ${xpFound} досвіду!`;
@@ -1943,31 +1992,97 @@
             }
         }
 
+        // розподіл ворогів по рівням
+        function getEnemyTypeCounts(playerLevel) {
+            const totalEnemies = 5 + (playerLevel < 20 ? playerLevel : 20);
+
+            // 🟡 Еліта: від 15% (рівень 1) до 30% (рівень 10+)
+            let eliteRatio = 0.15;
+            if (playerLevel >= 10) {
+                eliteRatio = 0.30;
+            } else if (playerLevel > 1) {
+                const scale = (playerLevel - 1) / 9;
+                eliteRatio = 0.15 + scale * (0.15);
+            }
+
+            // 🔴 Боси: від рівня 4 до 15%, завжди мінімум 1 після 3 рівня
+            let bossRatio = 0;
+            if (playerLevel >= 10) {
+                bossRatio = 0.15;
+            } else if (playerLevel >= 4) {
+                const scale = (playerLevel - 3) / 7;
+                bossRatio = 0.15 * scale;
+            }
+
+            let bossCount = Math.floor(totalEnemies * bossRatio);
+            let eliteCount = Math.floor(totalEnemies * eliteRatio);
+
+            // 🛡 Гарантуємо 1 боса з рівня 3
+            if (playerLevel >= 3 && bossCount === 0) {
+                bossCount = 1;
+            }
+
+            // 🔢 Коригуємо нормальних ворогів
+            let normalCount = totalEnemies - bossCount - eliteCount;
+
+            // Якщо нормальних менше нуля — віднімаємо від еліти (переважно)
+            if (normalCount < 0) {
+                const overflow = -normalCount;
+                if (eliteCount >= overflow) {
+                    eliteCount -= overflow;
+                } else {
+                    const rest = overflow - eliteCount;
+                    eliteCount = 0;
+                    bossCount = Math.max(1, bossCount - rest); // босів лишаємо хоча б 1
+                }
+                normalCount = 0;
+            }
+
+            return [
+                { type: 'normal', count: normalCount },
+                { type: 'elite', count: eliteCount },
+                { type: 'boss', count: bossCount }
+            ];
+        }
+
+
         // Додаємо ворогів на карту
         function spawnEnemies() {
-            const enemyCount = 5 + player.level;
+            /*const enemyCount = 5 + player.level;
+            // шанс боса залежить від рівня гравця > 3, і варіюється від 0 до 22% ймовірності
+            let bossChance = Math.min(0.22, Math.max(0, (player.level - 3) * 0.03));
+            // шанс елітного залежить від рівня гравця і варіюється від 0 до 40% ймовірності
+            let eliteChance = Math.min(0.4, Math.max(0, player.level * 0.06));*/
+
+            enemyCounts = getEnemyTypeCounts(player.level);
             
-            for (let i = 0; i < enemyCount; i++) {
-                let x, y;
-                let attempts = 0;
-
-                do {
-                    x = Math.floor(Math.random() * mapSize);
-                    y = Math.floor(Math.random() * mapSize);
-
-                    attempts++;
-                    if (attempts > 100) break; // Захист від нескінченного циклу
-                } while (
-                    (x === player.position.x && y === player.position.y) ||
-                    enemies.some(e => e.position.x === x && e.position.y === y) ||
-                    gameMap[y][x].type !== 'empty'
-                );
-
-                if (attempts <= 100) {
-                    const enemy = generateEnemy();
-                    enemy.position = { x, y };
-                    enemies.push(enemy);
+            enemyCounts.forEach((ec) => {
+                for (let i = 0; i < ec.count; i++) {
+                    spawnEnemy(ec.type);
                 }
+            });
+        }
+
+        function spawnEnemy(diffType = 'normal') {
+            let x, y;
+            let attempts = 0;
+
+            do {
+                x = Math.floor(Math.random() * mapSize);
+                y = Math.floor(Math.random() * mapSize);
+
+                attempts++;
+                if (attempts > 100) break; // Захист від нескінченного циклу
+            } while (
+                (x === player.position.x && y === player.position.y) ||
+                enemies.some(e => e.position.x === x && e.position.y === y) ||
+                gameMap[y][x].type !== 'empty'
+            );
+
+            if (attempts <= 100) {
+                let enemy = generateEnemy(diffType);
+                enemy.position = { x, y };
+                enemies.push(enemy);
             }
         }
 
@@ -1998,7 +2113,7 @@
                 gameMap[y][x] = {
                     type: 'chest',
                     emoji: `${(isGold ? '📦👑' : '📦')}`,
-                    artifact: item
+                    artifact: isGold ? makeItemMagic(item) : item,
                 };
             }
         }
@@ -2036,6 +2151,13 @@
             
             // Додаємо скарби
             const treasureCount = amount == -1 ? 3 : amount;
+            spawnGold(treasureCount);
+
+            updateMap();
+        }
+
+        // spawn gold
+        function spawnGold(treasureCount) {
             for (let i = 0; i < treasureCount; i++) {
                 let x, y;
                 let attempts = 0;
@@ -2056,8 +2178,6 @@
                     gameMap[y][x] = { type: 'treasure', emoji: '💰' };
                 }
             }
-            
-            updateMap();
         }
 
         function spawnFruits(amount = -1) {
@@ -2379,7 +2499,7 @@
                 element.innerHTML = `
                     <div class="inventory-item">
                         <div class="item-name">Пусто</div>
-                        <div>${addEmoji(emptySlotsEquipmentsEmojies[slot], '64px', 0, 'filter: grayscale(1) invert(1);opacity: 0.1;')}</div>
+                        <div style="margin-top: 10px;">${addEmoji(emptySlotsEquipmentsEmojies[slot], '64px', 0, 'filter: grayscale(1) invert(1);opacity: 0.1;')}</div>
                     </div>
                 `;
             }
@@ -2657,10 +2777,10 @@
                 { 'rarity': 1, 'playerLevel': 1 },
                 { 'rarity': 2, 'playerLevel': 3 },
                 { 'rarity': 3, 'playerLevel': 6 },
-                { 'rarity': 4, 'playerLevel': 10 },
-                { 'rarity': 5, 'playerLevel': 15 },
-                { 'rarity': 6, 'playerLevel': 20 },
-                { 'rarity': 7, 'playerLevel': 25 },
+                { 'rarity': 4, 'playerLevel': 9 },
+                { 'rarity': 5, 'playerLevel': 12 },
+                { 'rarity': 6, 'playerLevel': 15 },
+                { 'rarity': 7, 'playerLevel': 18 },
             ];
 
             // 1. Відфільтровуємо лише ті rarity, які <= рівню гравця
@@ -2786,6 +2906,7 @@
             // Особливі параметри
             let itemSpecialParams = {};
 
+            let isMagic = false;
             if (equipableTypes.includes(itemTemplate.type)) {
                 // hue main param
                 //console.log([`name: ${itemTemplate.name}`]);
@@ -2802,6 +2923,7 @@
                     if (itemTemplate.type == 'weapon') {
                         itemTemplate.critChance += Math.random() * 0.15;
                     }
+                    isMagic = true;
                 }
                 if (Math.random() < 0.5) {
                     //const defenseParam = rand(1, Math.max(1, Math.floor((itemTemplate.defense || 1) * 0.25)));
@@ -2810,6 +2932,7 @@
 
                     itemTemplate.defense = (itemTemplate.defense || 0) + defenseParam;
                     itemSpecialParams['contrast'] = rand(80, 200) / 100;
+                    isMagic = true;
                 }
                 if (Math.random() < 0.5) {
                     //const maxHealthParam = rand(1, Math.max(1, Math.floor((itemTemplate.maxHealth || 1) * 0.25)));
@@ -2818,6 +2941,7 @@
 
                     itemTemplate.maxHealth = (itemTemplate.maxHealth || 0) + maxHealthParam;
                     itemSpecialParams['brightness'] = rand(80, 150) / 100;
+                    isMagic = true;
                 }
 
                 /*if (Math.random() < 0.5) {
@@ -2826,6 +2950,12 @@
 
                 itemTemplate.value = newPriceForItem(itemTemplate);
             }
+
+            if (isMagic && itemTemplate.type == 'book') {
+                itemTemplate.name = `"${generateBookTitle()}"`;
+                itemTemplate.subtype = rand(1, 5);
+            }
+
             itemTemplate['specialParams'] = itemSpecialParams;
             return itemTemplate;
         }
@@ -2869,11 +2999,21 @@
 
             if (isCursed) {
                 itemSpecialParams = {grayscale: 1, contrast: 1.5};
-                itemTemplate.name = `☠️${itemTemplate.name}`;
+                itemTemplate.name =  `☠️${itemTemplate.name}`;
+                if (itemTemplate.type == 'book') {
+                    itemTemplate.name =  `☠️"${generateBookTitle()}"`;
+                    itemTemplate.subtype = rand(1, 5);
+                }
             }
 
             itemTemplate['specialParams'] = itemSpecialParams;
             return itemTemplate;
+        }
+
+        function generateBookTitle() {
+            const part1 = chooseOne(bookNameParts.part1);
+            const part2 = chooseOne(bookNameParts.part2);
+            return `${part1} ${part2}`;
         }
         
         // Оновлюємо функцію для використання предметів
@@ -2947,27 +3087,37 @@
             };
         }
 
-        // Розширена база даних монстрів
-        function generateEnemy() {
+        // Створюєм монстряку
+        // diffType = 'normal' / 'elite' / 'boss'
+        function generateEnemy(diffType = 'normal') {
             // Визначаємо тип ворога залежно від рівня гравця
-            let enemyPool = enemyTypes;
+            /*let enemyPool = enemyTypes;
             if (player.level < 3) {
                 enemyPool = enemyTypes.filter(e => !e.elite && !e.boss);
-            } else if (player.level < 5) {
+            } else if (player.level < 7) {
                 enemyPool = enemyTypes.filter(e => !e.boss);
+            }*/
+
+            let enemyPool;
+            if (diffType == 'boss') {
+                enemyPool = enemyTypes.filter(e => e.boss);
+            } else if (diffType == 'elite') {
+                enemyPool = enemyTypes.filter(e => e.elite);
+            } else {
+                enemyPool = enemyTypes.filter(e => !e.elite && !e.boss);
             }
             
             // Шанс на елітного ворога
-            let isElite = Math.random() < 0.1 + player.level * 0.02;
+            /*let isElite = Math.random() < 0.1 + player.level * 0.02;
             if (isElite) {
                 enemyPool = enemyTypes.filter(e => e.elite && !e.boss);
-            }
+            }*/
             
             // Шанс на боса (рідкісний)
-            let isBoss = !isElite && Math.random() < 0.03 + player.level * 0.005;
+            /*let isBoss = !isElite && Math.random() < 0.03 + player.level * 0.005;
             if (isBoss) {
                 enemyPool = enemyTypes.filter(e => e.boss);
-            }
+            }*/
             
             const enemyTemplate = enemyPool[Math.floor(Math.random() * enemyPool.length)];
             const enemy = {...enemyTemplate};
@@ -2975,8 +3125,8 @@
             // Базова сила ворога залежить від рівня гравця
             const basePower = 2 + player.level;
             let powerMultiplier = 1.5;
-            if (enemy.elite) powerMultiplier = 2.3;
-            if (enemy.boss) powerMultiplier = 3.2;
+            if (enemy.elite) powerMultiplier = 2.1;
+            if (enemy.boss) powerMultiplier = 3;
             
             // Характеристики ворога
             //enemy.health = Math.floor(basePower * powerMultiplier * (0.8 + Math.random() * 0.4));
@@ -3704,6 +3854,8 @@
             elements.inventoryBtn.style.display = player.inInventory ? 'none' : 'inline-block';
             // показуєм кнопку мапи
             elements.mapBtn.style.display = player.inInventory ? 'inline-block' : 'none';
+
+            elements.log.style.display = player.inInventory ? 'none' : 'block';
         }
 
         function toogleStore() {
@@ -3717,6 +3869,8 @@
             elements.inventory.style.display = 'none';
             // ховаєм мапу
             elements.map.style.display = player.inStore ? 'none' : 'grid';
+
+            elements.log.style.display = player.inStore ? 'none' : 'block';
         }
 
         function beginAll() {
