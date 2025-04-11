@@ -351,7 +351,7 @@
             left: 0;
             background-color: #555;
             border-radius: 3px;
-            z-index: 10;
+            z-index: 15;
             border: 1px #009fff solid;
             box-shadow: 3px 3px 3px #00ffa58a;
         }
@@ -709,7 +709,7 @@
                         <div id="inventory-items"></div>
                     </div>
                     <div id="store" style="display:none;">
-                        <div style="display:inline-block;">🏬 Крамниця</div><button id="updateStoreBtn">🔁 Оновити крамницю (<span id="updateStorePrice">25💰</span>)</button>
+                        <div style="display:inline-block;">🏬 Крамниця</div><button id="updateStoreBtn">🔁 Оновити асортимент (<span id="updateStorePrice">25💰</span>)</button>
                         <button id="closeStoreBtn">❌</button>
                         <div id="store-items"></div>
                     </div>
@@ -2748,11 +2748,10 @@
             // Вибираємо випадковий предмет з доступних
             let itemTemplate = {...availableItems[Math.floor(Math.random() * availableItems.length)]};
 
-
             const isModified = mustBeModifed || (Math.random() < 0.25);
 
             if (isModified) {
-                itemTemplate = makeItemMagic({...itemTemplate});
+                itemTemplate = makeItemMagic(itemTemplate);
             }
             
             // Створюємо копію предмета для гравця
@@ -2762,7 +2761,11 @@
             };
         }
 
+        // робим звичайний предмет магічним
         function makeItemMagic(magicItem) {
+            // є мізерний шанс отримати проклятий предмет
+            if (Math.random() < 0.05) return makeItemCursed(magicItem);
+
             let itemTemplate = {...magicItem};
             // Особливі параметри
             let itemSpecialParams = {};
@@ -2808,7 +2811,52 @@
                 itemTemplate.value = newPriceForItem(itemTemplate);
             }
             itemTemplate['specialParams'] = itemSpecialParams;
+            return itemTemplate;
+        }
 
+        // робим звичайний предмт проклятим
+        function makeItemCursed(magicItem) {
+            let itemTemplate = {...magicItem};
+            // Особливі параметри
+            let itemSpecialParams = {};
+
+            let isCursed = false;
+            if (equipableTypes.includes(itemTemplate.type)) {
+                const bonusModif = 0.25 + (player.level * 0.05);
+                if (Math.random() < 0.5) {
+                    //const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * 0.25)));
+                    const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * bonusModif)));
+                    //console.log([`${itemTemplate.name} => spec attack: ${(itemTemplate.attack || 0)} + ${attackParam}`]);
+
+                    itemTemplate.attack = (itemTemplate.attack || 0) - attackParam;
+                    isCursed = true;
+                }
+                if (Math.random() < 0.5) {
+                    //const defenseParam = rand(1, Math.max(1, Math.floor((itemTemplate.defense || 1) * 0.25)));
+                    const defenseParam = rand(1, Math.max(1, Math.floor((itemTemplate.defense || 1) * bonusModif)));
+                    //console.log([`${itemTemplate.name} => spec defense: ${(itemTemplate.defense || 0)} + ${defenseParam}`]);
+
+                    itemTemplate.defense = (itemTemplate.defense || 0) - defenseParam;
+                    isCursed = true;
+                }
+                if (Math.random() < 0.5) {
+                    //const maxHealthParam = rand(1, Math.max(1, Math.floor((itemTemplate.maxHealth || 1) * 0.25)));
+                    const maxHealthParam = rand(1, Math.max(1, Math.floor((itemTemplate.maxHealth || 1) * bonusModif)));
+                    //console.log([`${itemTemplate.name} => spec health: ${(itemTemplate.maxHealth || 0)} + ${maxHealthParam}`]);
+
+                    itemTemplate.maxHealth = (itemTemplate.maxHealth || 0) - maxHealthParam;
+                    isCursed = true;
+                }
+
+                itemTemplate.value = newPriceForItem(itemTemplate);
+            }
+
+            if (isCursed) {
+                itemSpecialParams = {grayscale: 1, contrast: 1.5};
+                itemTemplate.name = `☠️${itemTemplate.name}`;
+            }
+
+            itemTemplate['specialParams'] = itemSpecialParams;
             return itemTemplate;
         }
         
