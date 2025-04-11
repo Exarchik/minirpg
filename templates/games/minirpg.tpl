@@ -1059,8 +1059,10 @@
             { name: "Книга пророцтв", emoji: "📖",      subtype: 1, attack: 7, defense: 7, maxHealth: 20, rarity: 7, value: 2000, type: "book" },
             
             // Реліквії
-            { name: "Черепок", emoji: "🏆☠️",      subtype: 9, maxHealth: -2, attack: 1, rarity: 1, value: 10, type: "relic" },
-            { name: "Сувій", emoji: "📜",          subtype: 12, maxHealth: -2, defense: 1, rarity: 1, value: 10, type: "relic" },
+            // черепок єдиний виключно негативний релікт -2хп
+            { name: "Черепок", emoji: "🏆☠️",      subtype: 9, maxHealth: -2, rarity: 1, value: 1, type: "relic" },
+            // сувій це порожній релікт
+            { name: "Сувій", emoji: "📜",          subtype: 12, rarity: 1, value: 2, type: "relic" },
             { name: "Мушля", emoji: "🐚",           subtype: 11, maxHealth: 10, defense: -1, attack: 1, rarity: 2, value: 100, type: "relic" },
             { name: "Святий тютюн", emoji: "🏆",    subtype: 1, maxHealth: 10, defense: 1, attack: -1, rarity: 2, value: 30, type: "relic" },
             { name: "Есенція", emoji: "🔮",        subtype: 10, maxHealth: -5, defense: 2, attack: 2, rarity: 3, value: 100, type: "relic" },
@@ -2404,13 +2406,27 @@
             });
         }
 
+        // порівняння параметрів предмета гравця і товару
+        function comparePlayerParamValue(item, paramType) {
+            if (equipableTypes.includes(item.type)) {
+                const tmpEquipment = (player.equipment[item.type] || {attack:0, defense:0, maxHealth:0});
+                const playerItemValue = (tmpEquipment[paramType] || 0);
+                const compareItemValue = (item[paramType] || 0);
+
+                if (playerItemValue < compareItemValue) return `<span style="color:#0f0;font-weight:bold;">${signedValue(item[paramType])}</span>`;
+                else if (playerItemValue > compareItemValue) return `<span style="color:#ff5500;font-weight:bold;">${signedValue(item[paramType])}</span>`;
+            }
+
+            return `<span style="color:#fff;font-weight:bold;">${signedValue(item[paramType])}</span>`;
+        }
+
         // відображення предмету
         // viewType ('inventory' - в рюкзаку, 'equipment' - те шо вдягнуте, 'store' - в крамниці)
         function getItemView(item, index = -1, viewType = 'equipment', equipmentSlot = '') {
             let bonusText = '';
-            if (item.attack) bonusText += ` ⚔️${signedValue(item.attack)}`;
-            if (item.defense) bonusText += ` 🛡️${signedValue(item.defense)}`;
-            if (item.maxHealth) bonusText += ` ❤️${signedValue(item.maxHealth)}`;
+            if (item.attack) bonusText += ` ⚔️${viewType == 'store' ? comparePlayerParamValue(item, 'attack') : signedValue(item.attack)}`;
+            if (item.defense) bonusText += ` 🛡️${viewType == 'store' ? comparePlayerParamValue(item, 'defense') : signedValue(item.defense)}`;
+            if (item.maxHealth) bonusText += ` ❤️${viewType == 'store' ? comparePlayerParamValue(item, 'maxHealth') : signedValue(item.maxHealth)}`;
             if (item.critChance) bonusText += ` 💥${Math.floor(item.critChance*100)}%`;
             if (item.description) bonusText = ` ${item.description}`;
             
@@ -2453,7 +2469,7 @@
                     <div class="item-name" style="${itemSpecStyle}">${inventoryIndex}${item.name}</div>
                     <div class="item-image">${itemEmoji}</div>
                     <div class="item-desc">
-                        <span class="artifact-bonus">${bonusText}</span>
+                        <span class="artifact-bonus">${bonusText != '' ? bonusText : `&nbsp;`}</span>
                     </div>
                     ${storePriceBlock}
                     ${inventorySubInfo}
