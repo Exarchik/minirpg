@@ -400,12 +400,25 @@
             font-size: 15px;
             z-index: 10;
             position: relative;
+            text-align: right;
+            top: -5px;
         }
         .item-image {
             filter: drop-shadow(6px 6px 6px #000000aa);
+            position: absolute;
+            right: 8px;
+            top: 34px;
+        }
+        .item-image-empty {
+            text-align: left;
+            margin: -6px 0 0 20px;
         }
         .item-desc {
-            padding-left: 5px;
+            padding: 0 0 10px 5px;
+            width: 100%;
+            position: relative;
+            text-align: left;
+            border-top: inherit;
         }
         .item-desc.item-price {
             border-top: 1px inset #777;
@@ -421,8 +434,8 @@
         }
         .item-type-subinfo {
             position: absolute;
-            bottom: 6px;
-            right: 6px;
+            top: -4px;
+            left: 4px;
             filter: brightness(1.2) drop-shadow(1px 1px 0px black);
         }
         /*.item-type-subinfo.weapon {
@@ -452,31 +465,31 @@
             scale: 1.1;
         }
         .item-weapon {
-            background: radial-gradient(circle, rgb(255 102 0 / 64%) 0%, rgb(47 1 1 / 33%) 100%);
+            background: radial-gradient(at 90% 90%, rgb(255 102 0 / 64%) 0%, rgb(47 1 1 / 33%) 100%);
         }
         .item-armor {
-            background: radial-gradient(circle, rgb(0 255 34 / 44%) 0%, rgba(59, 93, 56, 0.33) 100%);
+            background: radial-gradient(at 90% 90%, rgb(0 255 34 / 44%) 0%, rgba(59, 93, 56, 0.33) 100%);
         }
         .item-ring {
-            background: radial-gradient(circle, rgb(255 253 0 / 40%) 0%, rgba(87, 89, 7, 0.33) 100%);
+            background: radial-gradient(at 90% 90%, rgb(255 253 0 / 40%) 0%, rgba(87, 89, 7, 0.33) 100%);
         }
         .item-amulet {
-            background: radial-gradient(circle, rgb(0 190 255 / 50%) 0%, rgb(2 33 43 / 45%) 100%);
+            background: radial-gradient(at 90% 90%, rgb(0 190 255 / 50%) 0%, rgb(2 33 43 / 45%) 100%);
         }
         .item-book {
-            background: radial-gradient(circle, rgb(0 99 235 / 56%) 0%, rgb(5 0 75 / 33%) 100%);
+            background: radial-gradient(at 90% 90%, rgb(0 99 235 / 56%) 0%, rgb(5 0 75 / 33%) 100%);
         }
         .item-relic {
-            background: radial-gradient(circle, rgb(187 0 255 / 47%) 0%, rgb(38 0 41 / 33%) 100%);
+            background: radial-gradient(at 90% 90%, rgb(187 0 255 / 47%) 0%, rgb(38 0 41 / 33%) 100%);
         }
         .item-slot.item-potion_attack {
-            background: radial-gradient(circle, rgb(10 255 0 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
+            background: radial-gradient(at 90% 90%, rgb(10 255 0 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
         }
         .item-slot.item-potion_defense {
-            background: radial-gradient(circle, rgb(0 49 255 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
+            background: radial-gradient(at 90% 90%, rgb(0 49 255 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
         }
         .item-slot.item-potion_health {
-            background: radial-gradient(circle, rgb(255 0 0 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
+            background: radial-gradient(at 90% 90%, rgb(255 0 0 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
         }
         .equipped {
             border: 2px solid gold;
@@ -533,7 +546,7 @@
             display: block;
         }
         #equipment .equipment-slot {
-            min-height: 122px;
+            min-height: 108px;
         }
         #map-container {
             /*margin: 15px 0;*/
@@ -834,12 +847,12 @@
                 </div>
 
                 <div id="equipment">
-                    <div>⚔️ Зброя: <span id="weapon-slot" class="equipment-slot item-weapon">Пусто</span></div>
-                    <div>🛡️ Броня: <span id="armor-slot" class="equipment-slot item-armor">Пусто</span></div>
-                    <div>💍 Кільце: <span id="ring-slot" class="equipment-slot item-ring">Пусто</span></div>
-                    <div>📿 Амулет: <span id="amulet-slot" class="equipment-slot item-amulet">Пусто</span></div>
-                    <div>📖 Книга: <span id="book-slot" class="equipment-slot item-book">Пусто</span></div>
-                    <div>🏆 Реліквія: <span id="relic-slot" class="equipment-slot item-relic">Пусто</span></div>
+                    <div>Зброя: <span id="weapon-slot" class="equipment-slot item-weapon">Пусто</span></div>
+                    <div>Броня: <span id="armor-slot" class="equipment-slot item-armor">Пусто</span></div>
+                    <div>Кільце: <span id="ring-slot" class="equipment-slot item-ring">Пусто</span></div>
+                    <div>Амулет: <span id="amulet-slot" class="equipment-slot item-amulet">Пусто</span></div>
+                    <div>Книга: <span id="book-slot" class="equipment-slot item-book">Пусто</span></div>
+                    <div>Реліквія: <span id="relic-slot" class="equipment-slot item-relic">Пусто</span></div>
                 </div>
             </div>
 
@@ -2706,7 +2719,7 @@
                 element.innerHTML = `
                     <div class="inventory-item">
                         <div class="item-name">Пусто</div>
-                        <div style="margin-top: 10px;">${addEmoji(emptySlotsEquipmentsEmojies[slot], '64px', 0, 'filter: grayscale(1) invert(1);opacity: 0.1;')}</div>
+                        <div class="item-image-empty">${addEmoji(emptySlotsEquipmentsEmojies[slot], '64px', 0, 'filter: grayscale(1) invert(1);opacity: 0.1;')}</div>
                     </div>
                 `;
             }
