@@ -348,8 +348,19 @@
         #store-items .item-slot.item-potion_health {
             background: radial-gradient(at 90% 60%, rgb(255 0 0 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
         }
+
+        /* magic */
+        .item-slot.magic .item-name { text-shadow: 2px 2px 0 black; }
+        .item-slot.magic.magic-1 .item-name { color: #0f0 !important; }
+        .item-slot.magic.magic-2 .item-name { color: #3e92ed !important; font-weight: bold; }
+        .item-slot.magic.magic-3 .item-name { color: #ed983e !important; font-weight: bold; text-shadow: 3px 3px 2px black !important;}
+
+        /* cursed */
         .item-slot.cursed {
             background: radial-gradient(at 100% 100%, rgb(0 0 0) 0%, rgb(145 145 145) 100%) !important;
+        }
+        .item-slot.cursed .item-subinfo-up, .item-slot.cursed .item-subinfo {
+            color: #222;
         }
 
 
@@ -552,6 +563,7 @@
         }
         .map-cell:not(.sight-cell) {
             opacity: 0.5;
+            filter: grayscale(1) blur(1px);
         }
         .map-cell:hover {
             background-color: #555;
@@ -1117,15 +1129,52 @@
         // Ігрові квитки можна використати для гемблінгу, або зміни асортименту магазину
         const ticket = { name: 'Квиток', emoji: '🎟️', rarity: 1, value: 200, type: 'ticket' };
 
+        let synonyms = [
+            // зброя
+            { name: "Дерев'яний меч",   aliases: ["Дубовий меч", "Тренувальник", "Грабовий меч", "Бокуто"] },
+            { name: "Кинджал",          aliases: ["Ніж", "Стилет", "Лезо", "Малий меч", "Тихий клинок", "Дирк"] },
+            { name: "Дубина",           aliases: ["Булава", "Палиця", "Дубець", "Дрючок"] },
+            { name: "Сокира",           aliases: ["Топір", "Сокирка", "Рубало", "Колун", "Головоруб", "Сікач"] },
+            { name: "Спис",             aliases: ["Піка", "Ратище", "Протазан", "Острога", "Еспонтон"] },
+            { name: "Меч",              aliases: ["Клинок", "Шабля", "Довгий меч"] },
+            { name: "Кистінь",          aliases: ["Обушок", "Бойовий бич", "Ціп", "Гупілон"] },
+            { name: "Бойовий молот",    aliases: ["Молот", "Кувалда", "Трощило", "Клевець", "Киянка"] },
+            { name: "Лук",              aliases: ["Довгий лук", "Короткий лук", "Дальнобій"] },
+            { name: "Арбалет",          aliases: ["Самостріл", "Болтер", "Міні-баліста", "Снайпер"] },
+            { name: "Магічний меч",     aliases: ["Чар-клинок", "Зачарований", "Чар-сталь", "Сяйво"] },
+            { name: "Катана",           aliases: ["Японський меч", "Вакідзаші", "Тачі", "Дайкатана"] },
+            { name: "Вогняний меч",     aliases: ["Полум'я", "Палаючий меч", "Жар-лезо", "Меч вогню", "Іскра"] },
+            { name: "Міфічний клинок",  aliases: ["Легендарний", "Фантом-лезо", "Міф-сталь", "Герой-меч", "Містик"] },
+
+            // броня
+            { name: "Плащ",             aliases: ["Накидка", "Легкий плащ"] },
+            { name: "Шкіряний жилет",   aliases: ["Жилет", "Тканий жилет", "Куртка", "Гамбезон"] },
+            { name: "Шкіряна броня",    aliases: ["Шкірянка", "Стара броня"] },
+            { name: "Кольчуга",         aliases: ["Байдана", "Гауберк"] },
+            { name: "Бектер",           aliases: ["Бахтерець", "Юшман"] },
+            { name: "Луската броня",    aliases: ["Бригантина", "Луска"] },
+            { name: "Кіраса",           aliases: ["Лорика", "Сталь", "Зерцало"] },
+            { name: "Панцир",           aliases: ["Кована броня"] },
+            { name: "Латна броня",      aliases: ["Лати", "Тяжка броня"] },
+            { name: "Обладунки",        aliases: ["Важка броня"] },
+            { name: "Міфічна броня",    aliases: ["Княжа броня"] },
+            { name: "Елітна броня",     aliases: ["Елітні лати"] },
+            { name: "Драконяча шкура",  aliases: ["Луска дракона", "Дракон"] },
+            { name: "Легендарна броня", aliases: ["Легенда", "Епос"] },
+            { name: "Кристальна броня", aliases: ["Кристал", "Магічна броня"] },
+            { name: "Ельфійська броня", aliases: ["Сонячна броня", "Броня ночі"] }
+        ];
+
+
         // Оновлена база даних зброї з параметрами критичної шкоди
         let weapons = [
             { name: "Дерев'яний меч", emoji: "🗡",  subtype: 1, attack: 1, critChance: 0.03, rarity: 1, value: 5, type: "weapon" },
             { name: "Кинджал", emoji: "🔪",         subtype: 2, attack: 2, critChance: 0.15, rarity: 2, value: 25, type: "weapon" },
-            { name: "Дубець", emoji: "🏏",          subtype: 3, attack: 3, critChance: 0.08, rarity: 2, value: 45, type: "weapon" },
+            { name: "Дубина", emoji: "🏏",          subtype: 3, attack: 3, critChance: 0.08, rarity: 2, value: 45, type: "weapon" },
             { name: "Сокира", emoji: "🪓",          subtype: 4, attack: 4, critChance: 0.1, rarity: 3, value: 85, type: "weapon" },
             { name: "Спис", emoji: "🔱",            subtype: 5, attack: 5, critChance: 0.1, rarity: 3, value: 135, type: "weapon" },
             { name: "Меч", emoji: "🗡️",             subtype: 6, attack: 6, critChance: 0.12, rarity: 4, value: 220, type: "weapon" },
-            { name: "Обушок", emoji: "🏏",          subtype: 7, attack: 7, critChance: 0.1, rarity: 4, value: 310, type: "weapon" },
+            { name: "Кистінь", emoji: "🏏",         subtype: 7, attack: 7, critChance: 0.1, rarity: 4, value: 310, type: "weapon" },
             { name: "Бойовий молот", emoji: "🔨",   subtype: 8, attack: 8, critChance: 0.07, rarity: 4, value: 420, type: "weapon" },
             { name: "Лук", emoji: "🏹",             subtype: 9, attack: 6, critChance: 0.2, rarity: 5, value: 260, type: "weapon" },
             { name: "Арбалет", emoji: "🎯",         subtype: 10, attack: 8, critChance: 0.25, rarity: 5, value: 555, type: "weapon" },
@@ -1141,7 +1190,7 @@
             { name: "Шкіряний жилет", emoji: "🧥",   subtype: 2, defense: 2, rarity: 2, value: 10, type: "armor" },
             { name: "Шкіряна броня", emoji: "🧥✨", subtype: 1, defense: 2, maxHealth: 5, rarity: 2, value: 25, type: "armor" },
             { name: "Кольчуга", emoji: "⛓️",        subtype: 3, defense: 3, rarity: 3, value: 25, type: "armor" },
-            { name: "Бехтер", emoji: "⛓️✨",        subtype: 3, defense: 3, maxHealth: 5, rarity: 3, value: 50, type: "armor" },
+            { name: "Бектер", emoji: "⛓️✨",        subtype: 3, defense: 3, maxHealth: 5, rarity: 3, value: 50, type: "armor" },
             { name: "Луската броня", emoji: "⛓️",   subtype: 4, defense: 4, rarity: 4, value: 50, type: "armor" },
             { name: "Кіраса", emoji: "🛡️🛡️",        subtype: 5, defense: 5, rarity: 4, value: 100, type: "armor" },
             { name: "Панцир", emoji: "🛡️✨",        subtype: 5, defense: 5, maxHealth: 10, rarity: 4, value: 200, type: "armor" },
@@ -1184,7 +1233,7 @@
             { name: "Амулет єднання", emoji: "📿🔮",    subtype: 10, maxHealth: 25, defense: 3, attack: 3, rarity: 7, value: 2200, type: "amulet" },
             
             // Книги
-            { name: "Записник", emoji: "📖",            subtype: 7, rarity: 1, value: 2, type: "book" },
+            { name: "Записник", emoji: "📖",            subtype: 7,            rarity: 1, value: 2, type: "book" },
             { name: "Посібник", emoji: "📖",            subtype: 3, attack: 1, rarity: 2, value: 5, type: "book" },
             { name: "Підручник", emoji: "📖",           subtype: 3, defense: 1, rarity: 2, value: 5, type: "book" },
             { name: "Книга виживання", emoji: "📖",     subtype: 2, maxHealth: 5, rarity: 1, value: 5, type: "book" },
@@ -1303,8 +1352,8 @@
                 "Profanata", "Nemorosa", "Fulgida", "Vasta", "Invisibilis", "Fortunata", "Nocturna",
                 "Gelida", "Cauta", "Cinerosa", "Ignita", "Spiritualis", "Tranquilla", "Periculosa",
                 "Defensiva", "Demonia", "Satanae", "Irae", "Levitas", "Elixiria", "Obscura", "Bellis",
-                "et Ferro", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII",
-                "Occulta", "per Vulnera", "et Gloria", 
+                "Ferro", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII",
+                "Occulta", "Vulnera", "Gloria", 
             ]
         };
 
@@ -1983,13 +2032,13 @@
                 if (artifact.maxHealth) descArt = `❤️ +${artifact.maxHealth} до максимального здоров'я`;
                 
                 addLog(`✨ Ви знайшли артефакт: ${artifact.emoji} <strong>${artifact.name}</strong> ${descArt}!`, 'artifact', '#4504ed');
-
-                // Анімація
-                showEventPopup(`${addEmoji(artifact.emoji, '32px', artifact.subtype)}`, targetOnMap, {
-                    fontSize: '40px',
-                    horizontalOffset: 5
-                });
             }
+
+            // Анімація
+            showEventPopup(`${addEmoji(artifact.emoji, '32px', artifact.subtype)}`, targetOnMap, {
+                fontSize: '40px',
+                horizontalOffset: 5
+            });
             
             // Видаляємо артефакт з карти
             gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
@@ -2149,7 +2198,7 @@
 
         // розподіл ворогів по рівням
         function getEnemyTypeCounts(playerLevel) {
-            const totalEnemies = 5 + (playerLevel < 20 ? playerLevel : 20);
+            const totalEnemies = 4 + (playerLevel < 20 ? playerLevel : 14);
 
             // 🟡 Еліта: від 15% (рівень 1) до 30% (рівень 10+)
             let eliteRatio = 0.15;
@@ -2632,7 +2681,10 @@
             // Інвентар
             player.inventory.forEach((item, index) => {
                 const itemElement = document.createElement('div');
-                itemElement.className = `item-slot ${(item.status || '')} item-${item.type}`;
+                let magicLevel = Math.abs(item.magicLevel || 0);
+                    magicLevel = item.magicLevel != 0 ? ` ${(item.status || '')} ${(item.status || '')}-${(magicLevel)}` : '';
+
+                itemElement.className = `item-slot ${magicLevel} item-${item.type}`;
                 itemElement.innerHTML = getItemView(item, index, 'inventory');
                 
                 elements.inventoryItems.appendChild(itemElement);
@@ -2674,7 +2726,10 @@
 
             store.forEach((item, index) => {
                 const itemElement = document.createElement('div');
-                itemElement.className = `item-slot ${(item.status || '')} item-${item.type}${(item.value * 2) > player.gold ? ' not-enough-gold': ''}`;
+                let magicLevel = Math.abs(item.magicLevel || 0);
+                    magicLevel = item.magicLevel != 0 ? ` ${(item.status || '')} ${(item.status || '')}-${(magicLevel)}` : '';
+
+                itemElement.className = `item-slot ${magicLevel} item-${item.type}${(item.value * 2) > player.gold ? ' not-enough-gold': ''}`;
                 itemElement.innerHTML = getItemView(item, index, 'store');
 
                 elements.storeItems.appendChild(itemElement);
@@ -2733,7 +2788,7 @@
             const storeActions = (index != -1 && viewType == 'store')
                 ? `<div class="item-actions">
                         <div class="item-action" onclick="buyItem(${index})">${Math.floor(item.value * buyCoefficient)}💰 Купити</div>
-                        <div class="item-action" onclick="buyItem(${index}, true)">${Math.floor(item.value * buyCoefficient)}💰 Купити і ${item.type.startsWith('potion') ? 'випити' : 'екіпірувати'}</div>
+                        <div class="item-action" onclick="buyItem(${index}, true)">${Math.floor(item.value * buyCoefficient)}💰 ... і ${item.type.startsWith('potion') ? 'випити' : 'екіпірувати'}</div>
                     </div>` : '';
             const storePriceBlock = (index != -1 && viewType == 'store')
                 ? `<div class="item-desc item-price">
@@ -2742,7 +2797,8 @@
 
             return `
                 <div class="inventory-item ${(item.status || '')}">
-                    <div class="item-name" style="${itemSpecStyle}">${inventoryIndex}${item.name}</div>
+                    <!--<div class="item-name" style="${itemSpecStyle}">${inventoryIndex}${item.name}</div>-->
+                    <div class="item-name">${inventoryIndex}${item.name}</div>
                     <div class="item-image">${itemEmoji}</div>
                     <div class="item-desc">
                         <span class="artifact-bonus">${bonusText != '' ? bonusText : `&nbsp;`}</span>
@@ -3073,7 +3129,7 @@
             // Особливі параметри
             let itemSpecialParams = {};
 
-            let isMagic = false;
+            let magicLevel = 0;
             if (equipableTypes.includes(itemTemplate.type)) {
                 // hue main param
                 //console.log([`name: ${itemTemplate.name}`]);
@@ -3090,7 +3146,7 @@
                     if (itemTemplate.type == 'weapon') {
                         itemTemplate.critChance += Math.random() * 0.15;
                     }
-                    isMagic = true;
+                    magicLevel++;
                 }
                 if (Math.random() < 0.5) {
                     //const defenseParam = rand(1, Math.max(1, Math.floor((itemTemplate.defense || 1) * 0.25)));
@@ -3099,7 +3155,7 @@
 
                     itemTemplate.defense = (itemTemplate.defense || 0) + defenseParam;
                     itemSpecialParams['contrast'] = rand(80, 200) / 100;
-                    isMagic = true;
+                    magicLevel++;
                 }
                 if (Math.random() < 0.5) {
                     //const maxHealthParam = rand(1, Math.max(1, Math.floor((itemTemplate.maxHealth || 1) * 0.25)));
@@ -3108,7 +3164,7 @@
 
                     itemTemplate.maxHealth = (itemTemplate.maxHealth || 0) + maxHealthParam;
                     itemSpecialParams['brightness'] = rand(80, 150) / 100;
-                    isMagic = true;
+                    magicLevel++;
                 }
 
                 /*if (Math.random() < 0.5) {
@@ -3118,8 +3174,10 @@
                 itemTemplate.value = newPriceForItem(itemTemplate);
             }
 
-            if (isMagic) {
+            if (magicLevel > 0) {
                 itemTemplate.status = 'magic';
+                itemTemplate.magicLevel = magicLevel;
+                itemTemplate.name = findSynonym(itemTemplate.name);
 
                 if (itemTemplate.type == 'book') {
                     itemTemplate.name = `"${generateBookTitle()}"`;
@@ -3137,7 +3195,7 @@
             // Особливі параметри
             let itemSpecialParams = {};
 
-            let isCursed = false;
+            let magicLevel = 0;
             if (equipableTypes.includes(itemTemplate.type)) {
                 const bonusModif = 0.25 + (player.level * 0.05);
                 if (Math.random() < 0.5) {
@@ -3146,7 +3204,7 @@
                     //console.log([`${itemTemplate.name} => spec attack: ${(itemTemplate.attack || 0)} + ${attackParam}`]);
 
                     itemTemplate.attack = (itemTemplate.attack || 0) - attackParam;
-                    isCursed = true;
+                    magicLevel--;
                 }
                 if (Math.random() < 0.5) {
                     //const defenseParam = rand(1, Math.max(1, Math.floor((itemTemplate.defense || 1) * 0.25)));
@@ -3154,7 +3212,7 @@
                     //console.log([`${itemTemplate.name} => spec defense: ${(itemTemplate.defense || 0)} + ${defenseParam}`]);
 
                     itemTemplate.defense = (itemTemplate.defense || 0) - defenseParam;
-                    isCursed = true;
+                    magicLevel--;
                 }
                 if (Math.random() < 0.5) {
                     //const maxHealthParam = rand(1, Math.max(1, Math.floor((itemTemplate.maxHealth || 1) * 0.25)));
@@ -3162,15 +3220,17 @@
                     //console.log([`${itemTemplate.name} => spec health: ${(itemTemplate.maxHealth || 0)} + ${maxHealthParam}`]);
 
                     itemTemplate.maxHealth = (itemTemplate.maxHealth || 0) - maxHealthParam;
-                    isCursed = true;
+                    magicLevel--;
                 }
 
                 itemTemplate.value = newPriceForItem(itemTemplate);
             }
 
-            if (isCursed) {
+            if (magicLevel < 0) {
                 itemSpecialParams = {grayscale: 1, contrast: 1.5};
                 itemTemplate.status = 'cursed';
+                itemTemplate.magicLevel = magicLevel;
+                itemTemplate.name = findSynonym(itemTemplate.name);
 
                 if (itemTemplate.type == 'book') {
                     itemTemplate.name =  `"${generateBookTitle()}"`;
@@ -3194,6 +3254,14 @@
                 part1 = chooseOne(bookNameParts.part1.filter(b1 => b1.length <= (maxBookNameLength - part2.length)));
             }
             return `${part1} ${part2}`;
+        }
+
+        function findSynonym(oldName) {
+            const synonymData = synonyms.find(s => s.name == oldName);
+            if (synonymData != undefined && synonymData.aliases.length) {
+                return chooseOne([...synonymData.aliases, oldName]);
+            }
+            return oldName;
         }
         
         // Оновлюємо функцію для використання предметів
