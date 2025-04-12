@@ -244,6 +244,117 @@
             height: 94%;
         }
 
+        /*new shop visualize*/
+        #inventory-items .item-slot,
+        #store-items .item-slot {
+            display: inline-grid;
+            margin: 5px;
+            padding: 5px;
+            background-color: #444;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            text-align: center;
+            width: 30%;
+            min-height: 90px;
+        }
+        #inventory-items .item-slot .item-name,
+        #store-items .item-slot .item-name {
+            font-size: 15px;
+            z-index: 10;
+            position: relative;
+            text-align: right;
+            top: -6px;
+        }
+        #inventory-items .item-slot .item-image,
+        #store-items .item-slot .item-image {
+            filter: drop-shadow(6px 6px 6px #000000aa);
+            /* width: 49%; */
+            /* display: inline-block; */
+            position: absolute;
+            right: -5px;
+            top: 27px;
+        }
+        #inventory-items .item-slot .item-desc,
+        #store-items .item-slot .item-desc {
+            padding: 0 0 10px 5px;
+            width: 100%;
+            position: relative;
+            text-align: left;
+            border-top: inherit;
+        }
+
+        #inventory-items .item-slot .item-type-subinfo,
+        #store-items .item-slot .item-type-subinfo {
+            position: absolute;
+            top: -6px;
+            left: 3px;
+            right: inherit;
+            bottom: inherit;
+            filter: brightness(1.2) drop-shadow(1px 1px 0px black);
+        }
+
+        #inventory-items .item-slot .item-desc.item-price::before,
+        #store-items .item-slot .item-desc.item-price::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 1px;
+            width: 100%;
+            background: linear-gradient(to left, #00000000 0%, #00000000 40%, #000000 100%);
+        }
+        #inventory-items .item-slot .item-desc.item-price,
+        #store-items .item-slot .item-desc.item-price {
+            padding-bottom: 0px !important;
+        }
+        #inventory-items .item-slot .item-actions,
+        #store-items .item-slot .item-actions {
+            top: 70%;
+        }
+        #inventory-items .item-slot.item-weapon,
+        #store-items .item-slot.item-weapon {
+            background: radial-gradient(at 90% 60%, rgb(255 102 0 / 64%) 0%, rgb(47 1 1 / 33%) 100%);
+        }
+        #inventory-items .item-slot.item-armor,
+        #store-items .item-slot.item-armor {
+            background: radial-gradient(at 90% 60%, rgb(0 255 34 / 44%) 0%, rgba(59, 93, 56, 0.33) 100%);
+        }
+        #inventory-items .item-slot.item-ring,
+        #store-items .item-slot.item-ring {
+            background: radial-gradient(at 90% 60%, rgb(255 253 0 / 40%) 0%, rgba(87, 89, 7, 0.33) 100%);
+        }
+        #inventory-items .item-slot.item-amulet,
+        #store-items .item-slot.item-amulet {
+            background: radial-gradient(at 90% 60%, rgb(0 190 255 / 50%) 0%, rgb(2 33 43 / 45%) 100%);
+        }
+        #inventory-items .item-slot.item-book,
+        #store-items .item-slot.item-book {
+            background: radial-gradient(at 90% 60%, rgb(0 99 235 / 56%) 0%, rgb(5 0 75 / 33%) 100%);
+        }
+        #inventory-items .item-slot.item-relic,
+        #store-items .item-slot.item-relic {
+            background: radial-gradient(at 90% 60%, rgb(187 0 255 / 47%) 0%, rgb(38 0 41 / 33%) 100%);
+        }
+        #inventory-items .item-slot.item-potion_attack,
+        #store-items .item-slot.item-potion_attack {
+            background: radial-gradient(at 90% 60%, rgb(10 255 0 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
+        }
+        #inventory-items .item-slot.item-potion_defense,
+        #store-items .item-slot.item-potion_defense {
+            background: radial-gradient(at 90% 60%, rgb(0 49 255 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
+        }
+        #inventory-items .item-slot.item-potion_health,
+        #store-items .item-slot.item-potion_health {
+            background: radial-gradient(at 90% 60%, rgb(255 0 0 / 57%) 0%, rgb(0 170 255 / 32%) 50%, rgb(79 11 11 / 36%) 100%);
+        }
+        .item-slot.cursed {
+            background: radial-gradient(at 100% 100%, rgb(0 0 0) 0%, rgb(145 145 145) 100%) !important;
+        }
+
+
+
+
         #closeInventoryBtn, #closeStoreBtn {
             position: absolute;
             z-index: 20;
@@ -269,6 +380,11 @@
             scale: 1.1;
         }
 
+        .inventory-item.cursed .item-name {
+            color: #ffffff !important;
+            text-shadow: 2px 2px 2px #000000 !important;
+            filter: initial !important;
+        }
         .item-name {
             font-size: 15px;
             z-index: 10;
@@ -373,6 +489,7 @@
             padding: 3px 6px;
             font-size: 12px;
             cursor: pointer;
+            text-align: left;
         }
         .item-action:hover {
             background-color: #666;
@@ -918,12 +1035,17 @@
             { type: '📿🌟', subtype: 8, image: 'amulet-of-immortality.png' },
             { type: '📿🔥', subtype: 9, image: 'amulet-of-phoenix.png' },
             { type: '📿🔮', subtype: 10, image: 'amulet-of-unity.png' },
-                // книги
+                // книги 10
             { type: '📖', subtype: 1, image: 'book.png' },
             { type: '📖', subtype: 2, image: 'book-2.png' },
             { type: '📖', subtype: 3, image: 'book-3.png' },
             { type: '📖', subtype: 4, image: 'book-4.png' },
             { type: '📖', subtype: 5, image: 'book-5.png' },
+            { type: '📖', subtype: 6, image: 'book-6.png' },
+            { type: '📖', subtype: 7, image: 'book-7.png' },
+            { type: '📖', subtype: 8, image: 'book-8.png' },
+            { type: '📖', subtype: 9, image: 'book-9.png' },
+            { type: '📖', subtype: 10, image: 'book-0.png' },
                 // релікти
             { type: '🏆', subtype: 1, image: 'relic-01.png' },
             { type: '🏆', subtype: 2, image: 'relic-02.png' },
@@ -982,6 +1104,8 @@
             { type: '🧪', subtype: -1, image: 'potion-0.png' },
             */
         ];
+
+        const booksCounter = 10;
 
         // перешкоди
         const obstacles = [
@@ -1060,7 +1184,8 @@
             { name: "Амулет єднання", emoji: "📿🔮",    subtype: 10, maxHealth: 25, defense: 3, attack: 3, rarity: 7, value: 2200, type: "amulet" },
             
             // Книги
-            { name: "Посібник", emoji: "📖",           subtype: 3, attack: 1, rarity: 2, value: 5, type: "book" },
+            { name: "Записник", emoji: "📖",            subtype: 7, rarity: 1, value: 2, type: "book" },
+            { name: "Посібник", emoji: "📖",            subtype: 3, attack: 1, rarity: 2, value: 5, type: "book" },
             { name: "Підручник", emoji: "📖",           subtype: 3, defense: 1, rarity: 2, value: 5, type: "book" },
             { name: "Книга виживання", emoji: "📖",     subtype: 2, maxHealth: 5, rarity: 1, value: 5, type: "book" },
             { name: "Книга учня", emoji: "📖",          subtype: 4, attack: 1, defense: 1, rarity: 3, value: 10, type: "book" },
@@ -1141,8 +1266,18 @@
             }
         ];
 
+
         const bookNameParts = {
             part1: [
+                "Saga de", "Clavicula", "Alchemia", "De Arte", "De Cursu", "Nox", "Fur", "Sol", "Dea", 
+                "Rex", "Os", "Mos", "Vit", "Dom", "Mag", "Sag", "Lum", "Cor", "Spes", "Mors", "Aqua",
+                "Cael", "Silv", "Temp", "Luna", "Mala", "Noxa", "Vera", "Alma", "Fata", "Tela", "Nekra",
+                "Mortis", "Malum", "Una", "Daemon", "Atra", "Letum", "Verus", "Soma", "Era", "Era de", "O",
+                // zodiac
+                "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpius", "Sagittarius", "Capricornus", "Aquarius", "Pisces",
+                // saga
+                "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", 
+                "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", 
                 "Ars", "Via", "Lex", "Ferrum", "Virtus", "Pugna", "Bellum", "Gladius", "Disciplina",
                 "Animus", "Militia", "Honos", "Sanguis", "Corpus", "Vox", "Fatum", "Umbra", "Clamor",
                 "Tempus", "Vigilantia", "Ignis", "Scutum", "Hostis", "Dominatio", "Victoria", "Praeceptum",
@@ -1152,21 +1287,24 @@
                 "Sanctio", "Vita", "Remedium", "Lacrima", "Aura", "Flos", "Balsamum", "Sanatio", "Radix",
                 "Pax", "Respiro", "Metus", "Memoria", "Custodia", "Somnus", "Lamina", "Solis", "Noctis",
                 "Venenum", "Vocatio", "Aqua", "Caelum", "Terra", "Aether", "Mens", "Praesidium",
-                "Oraculum", "Cinis", "Tempestas", "Tenebra", "Silva", "Crux", "Fluctus"
+                "Oraculum", "Cinis", "Tempo", "Tenebra", "Silva", "Crux", "Fluctus", "Ave", "Dux",
+                "Instantus",
             ],
             part2: [
                 "Invictus", "Caelestis", "Internus", "Perpetuus", "Obscurus", "Honesta", "Solitaria",
                 "Vetus", "Ultima", "Occultus", "Sacra", "Viva", "Fidelis", "Mortalis", "Cantans",
                 "Silens", "Damnata", "Aeterna", "Cruenta", "Nobilis", "Ferrea", "Ardens", "Severa",
-                "Implacabilis", "Victoriosa", "Strenua", "Arcana", "Antiqua", "Magna", "Divina",
-                "Perdita", "Profunda", "Inferna", "Ignota", "Eterna", "Primordialis", "Silentia",
+                "Implacabilis", "Victoriosa", "Morte", "Arcana", "Antiqua", "Magna", "Divina",
+                "Perdita", "Profunda", "Inferna", "Ignota", "Eterna", "Primordius", "Silentia",
                 "Interdicta", "Volatilis", "Astralis", "Incensa", "Mystica", "Maligna", "Invocata",
                 "Velata", "Runica", "Sanctus", "Vitalis", "Pacifica", "Benedicta", "Clara", "Salvifica",
                 "Serena", "Gravis", "Luminosa", "Naturalis", "Vivifica", "Medicinalis", "Florens",
-                "Sincera", "Alba", "Lenis", "Sapida", "Dulcis", "Erratica", "Fracta", "Purificata",
+                "Sincera", "Alba", "Lapis", "Sapida", "Dulcis", "Erratica", "Fracta", "Purificata",
                 "Profanata", "Nemorosa", "Fulgida", "Vasta", "Invisibilis", "Fortunata", "Nocturna",
                 "Gelida", "Cauta", "Cinerosa", "Ignita", "Spiritualis", "Tranquilla", "Periculosa",
-                "Defensiva"
+                "Defensiva", "Demonia", "Satanae", "Irae", "Levitas", "Elixiria", "Obscura", "Bellis",
+                "et Ferro", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII",
+                "Occulta", "per Vulnera", "et Gloria", 
             ]
         };
 
@@ -1865,13 +2003,30 @@
         }
 
         // функція із автоекіпом
-        function pickUpItem(item) {
+        function pickUpItem(item, forceEquip = false) {
             // кладем в торбу
             player.inventory.push(item);
-            // якщо немає вдягнутого предмета цього типу і цей тип можна вдягнути - вдягаєм
-            if (player.equipment[item.type] == null && equipableTypes.includes(item.type)) {
-                equipItem(player.inventory.length - 1);
+
+            // покращуєм логіку
+            const isEquipped = !!player.equipment[item.type];
+            const isEquipable = equipableTypes.includes(item.type);
+            const isForced = !!forceEquip;
+
+            const canUseItem = (isEquipable && (!isEquipped || (isForced && isEquipped))) || (!isEquipable && isForced);
+
+            if (canUseItem) {
+                useItem(player.inventory.length - 1);
             }
+
+            // якщо немає вдягнутого предмета цього типу і цей тип можна вдягнути - вдягаєм
+            // ну або якщо треба обов'язково вдягнути
+            /*if ((player.equipment[item.type] == null || forceEquip && player.equipment[item.type]) && equipableTypes.includes(item.type) || !equipableTypes.includes(item.type) && forceEquip) {
+                equipItem(player.inventory.length - 1);
+
+            // напій випиваємо 
+            } else if (!equipableTypes.includes(item.type) && forceEquip) {
+                useItem(player.inventory.length - 1);
+            }*/
         }
 
         function pickUpFruit(x, y) {
@@ -2477,7 +2632,7 @@
             // Інвентар
             player.inventory.forEach((item, index) => {
                 const itemElement = document.createElement('div');
-                itemElement.className = `item-slot item-${item.type}`;
+                itemElement.className = `item-slot ${(item.status || '')} item-${item.type}`;
                 itemElement.innerHTML = getItemView(item, index, 'inventory');
                 
                 elements.inventoryItems.appendChild(itemElement);
@@ -2519,7 +2674,7 @@
 
             store.forEach((item, index) => {
                 const itemElement = document.createElement('div');
-                itemElement.className = `item-slot item-${item.type}${(item.value * 2) > player.gold ? ' not-enough-gold': ''}`;
+                itemElement.className = `item-slot ${(item.status || '')} item-${item.type}${(item.value * 2) > player.gold ? ' not-enough-gold': ''}`;
                 itemElement.innerHTML = getItemView(item, index, 'store');
 
                 elements.storeItems.appendChild(itemElement);
@@ -2544,10 +2699,10 @@
         // viewType ('inventory' - в рюкзаку, 'equipment' - те шо вдягнуте, 'store' - в крамниці)
         function getItemView(item, index = -1, viewType = 'equipment', equipmentSlot = '') {
             let bonusText = '';
-            if (item.attack) bonusText += ` ⚔️${viewType == 'store' ? comparePlayerParamValue(item, 'attack') : signedValue(item.attack)}`;
-            if (item.defense) bonusText += ` 🛡️${viewType == 'store' ? comparePlayerParamValue(item, 'defense') : signedValue(item.defense)}`;
-            if (item.maxHealth) bonusText += ` ❤️${viewType == 'store' ? comparePlayerParamValue(item, 'maxHealth') : signedValue(item.maxHealth)}`;
-            if (item.critChance) bonusText += ` 💥${Math.floor(item.critChance*100)}%`;
+            if (item.attack) bonusText += ` <span class="nowrap">⚔️${viewType == 'store' ? comparePlayerParamValue(item, 'attack') : signedValue(item.attack)}</span>`;
+            if (item.defense) bonusText += ` <span class="nowrap">🛡️${viewType == 'store' ? comparePlayerParamValue(item, 'defense') : signedValue(item.defense)}</span>`;
+            if (item.maxHealth) bonusText += ` <span class="nowrap">❤️${viewType == 'store' ? comparePlayerParamValue(item, 'maxHealth') : signedValue(item.maxHealth)}</span>`;
+            if (item.critChance) bonusText += ` <span class="nowrap">💥${Math.floor(item.critChance*100)}%</span>`;
             if (item.description) bonusText = ` ${item.description}`;
             
             const currentSubtype = typeof item.subtype != 'undefined' ? item.subtype : 0;
@@ -2577,7 +2732,8 @@
                     </div>` : '';
             const storeActions = (index != -1 && viewType == 'store')
                 ? `<div class="item-actions">
-                        <div class="item-action" onclick="buyItem(${index})">Купити (${Math.floor(item.value * buyCoefficient)}💰)</div>
+                        <div class="item-action" onclick="buyItem(${index})">${Math.floor(item.value * buyCoefficient)}💰 Купити</div>
+                        <div class="item-action" onclick="buyItem(${index}, true)">${Math.floor(item.value * buyCoefficient)}💰 Купити і ${item.type.startsWith('potion') ? 'випити' : 'екіпірувати'}</div>
                     </div>` : '';
             const storePriceBlock = (index != -1 && viewType == 'store')
                 ? `<div class="item-desc item-price">
@@ -2585,7 +2741,7 @@
                     </div>` : '';
 
             return `
-                <div class="inventory-item">
+                <div class="inventory-item ${(item.status || '')}">
                     <div class="item-name" style="${itemSpecStyle}">${inventoryIndex}${item.name}</div>
                     <div class="item-image">${itemEmoji}</div>
                     <div class="item-desc">
@@ -2606,11 +2762,16 @@
         function generateStore() {
             // скидуєм крамницю
             store = [];
-            const itemsToBuy = rand(4, 6);
-            const additionalArtifacts = rand(1, 3);
+            // множник для товстих магазинів
+            const storeFullness = Math.random() < 0.05 ? 2 : 1;
+
+            const itemsToBuy = rand(4, 8) * storeFullness;
+            const additionalArtifacts = rand(2, 4) * storeFullness;
+
+            const randometer = Math.random();
 
             // звичайна крамниця
-            if (Math.random() < 0.99) {
+            if (randometer < 0.95) {
                 for (i = 0; i < itemsToBuy; i++) {
                     let tmpItem = generateItem(true, undefined, true);
                     if (tmpItem != null) store.push(tmpItem);
@@ -2618,6 +2779,12 @@
                 for (i = 0; i < additionalArtifacts; i++) {
                     let tmpItem = generateItem(true, undefined, true, artifacts);
                     if (tmpItem != null) store.push(tmpItem);
+                }
+            // бібліотека
+            } else if (randometer < 0.99) {
+                const library = artifacts.filter(a => a.type == 'book');
+                for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
+                    store.push(makeItemMagic(chooseOne(library)));
                 }
             // крамниця однакових магічних артефактів
             } else {
@@ -2723,7 +2890,7 @@
         }
 
         // Купляємо предмет
-        function buyItem(index) {
+        function buyItem(index, forceEquip = false) {
             if (store[index] == undefined) { return; }
 
             const item = store[index];
@@ -2733,7 +2900,7 @@
                 return;
             }
 
-            pickUpItem(item);
+            pickUpItem(item, forceEquip);
             player.gold -= buyPrice;
 
             // Видаляємо предмет з інвентаря
@@ -2951,9 +3118,13 @@
                 itemTemplate.value = newPriceForItem(itemTemplate);
             }
 
-            if (isMagic && itemTemplate.type == 'book') {
-                itemTemplate.name = `"${generateBookTitle()}"`;
-                itemTemplate.subtype = rand(1, 5);
+            if (isMagic) {
+                itemTemplate.status = 'magic';
+
+                if (itemTemplate.type == 'book') {
+                    itemTemplate.name = `"${generateBookTitle()}"`;
+                    itemTemplate.subtype = rand(1, booksCounter);
+                }
             }
 
             itemTemplate['specialParams'] = itemSpecialParams;
@@ -2999,10 +3170,11 @@
 
             if (isCursed) {
                 itemSpecialParams = {grayscale: 1, contrast: 1.5};
-                itemTemplate.name =  `☠️${itemTemplate.name}`;
+                itemTemplate.status = 'cursed';
+
                 if (itemTemplate.type == 'book') {
-                    itemTemplate.name =  `☠️"${generateBookTitle()}"`;
-                    itemTemplate.subtype = rand(1, 5);
+                    itemTemplate.name =  `"${generateBookTitle()}"`;
+                    itemTemplate.subtype = rand(1, booksCounter);
                 }
             }
 
@@ -3011,8 +3183,16 @@
         }
 
         function generateBookTitle() {
-            const part1 = chooseOne(bookNameParts.part1);
-            const part2 = chooseOne(bookNameParts.part2);
+            const maxBookNameLength = 15;
+
+            let part1, part2;
+            if (Math.random() < 0.5) {
+                part1 = chooseOne(bookNameParts.part1);
+                part2 = chooseOne(bookNameParts.part2.filter(b2 => b2.length <= (maxBookNameLength - part1.length)));
+            } else {
+                part2 = chooseOne(bookNameParts.part2);
+                part1 = chooseOne(bookNameParts.part1.filter(b1 => b1.length <= (maxBookNameLength - part2.length)));
+            }
             return `${part1} ${part2}`;
         }
         
