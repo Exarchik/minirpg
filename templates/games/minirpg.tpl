@@ -265,6 +265,7 @@
             position: relative;
             text-align: right;
             top: -6px;
+            height: 23px;
         }
         #inventory-items .item-slot .item-image,
         #store-items .item-slot .item-image {
@@ -350,10 +351,10 @@
         }
 
         /* magic */
-        .item-slot.magic .item-name { text-shadow: 2px 2px 0 black; }
-        .item-slot.magic.magic-1 .item-name { color: #0f0 !important; }
-        .item-slot.magic.magic-2 .item-name { color: #3e92ed !important; font-weight: bold; }
-        .item-slot.magic.magic-3 .item-name { color: #ed983e !important; font-weight: bold; text-shadow: 3px 3px 2px black !important;}
+        .item-slot.magic .item-name, .equipment-slot.magic .item-name { text-shadow: 2px 2px 0 black; }
+        .item-slot.magic.magic-1 .item-name, .equipment-slot.magic.magic-1 .item-name { color: #0f0 !important; }
+        .item-slot.magic.magic-2 .item-name, .equipment-slot.magic.magic-2 .item-name { color: #3e92ed !important; font-weight: bold; }
+        .item-slot.magic.magic-3 .item-name, .equipment-slot.magic.magic-3 .item-name { color: #ed983e !important; font-weight: bold; text-shadow: 3px 3px 2px black !important;}
 
         /* cursed */
         .item-slot.cursed {
@@ -402,6 +403,7 @@
             position: relative;
             text-align: right;
             top: -5px;
+            height: 23px;
         }
         .item-image {
             filter: drop-shadow(6px 6px 6px #000000aa);
@@ -409,10 +411,21 @@
             right: 8px;
             top: 34px;
         }
-        .item-image-empty {
-            text-align: left;
-            margin: -6px 0 0 20px;
+
+        .item-image-background {
+            position: absolute;
+            filter: opacity(0.25) blur(1.5px) grayscale(0) brightness(1);
+            scale: 2;
+            z-index: 0;
+            mix-blend-mode: soft-light;
         }
+        .item-image-background.equipment {
+            clip-path: rect(3px 70px 87% 13px);
+        }
+        .item-image-background.store, .item-image-background.inventory {
+            clip-path: rect(3px 70px 74% 13px);
+        }
+
         .item-desc {
             padding: 0 0 10px 5px;
             width: 100%;
@@ -577,6 +590,7 @@
         .map-cell:not(.sight-cell) {
             opacity: 0.5;
             filter: grayscale(1) blur(1px);
+            animation: initial;
         }
         .map-cell:hover {
             background-color: #555;
@@ -1161,7 +1175,7 @@
 
             // броня
             { name: "Плащ",             aliases: ["Накидка", "Легкий плащ"] },
-            { name: "Шкіряний жилет",   aliases: ["Жилет", "Тканий жилет", "Куртка", "Гамбезон"] },
+            { name: "Шкіряний жилет",   aliases: ["Жилет", "Тканий жилет", "Дублет", "Гамбезон"] },
             { name: "Шкіряна броня",    aliases: ["Шкірянка", "Стара броня"] },
             { name: "Кольчуга",         aliases: ["Байдана", "Гауберк"] },
             { name: "Бектер",           aliases: ["Бахтерець", "Юшман"] },
@@ -1659,34 +1673,97 @@
             }
         }
 
+        function generateObstacleCell() {
+            const obstacleType = Math.random() < 0.7 ? 'tree' : 'mountain';
+            return {
+                type: 'obstacle',
+                obstacle: obstacles.find(o => o.type === obstacleType),
+                emoji: obstacleType === 'tree' ? chooseOne(['🌳', '🌲']) : '🗻',
+                passable: false
+            };
+        }
+
+        function carveTunnel(gameMap, starPoint, desiredRatio = 0.35) {
+            const size = gameMap.length;
+            const totalCells = size * size;
+            const targetEmpty = Math.floor(totalCells * desiredRatio);
+
+            // Стартова точка: центр
+            let x = starPoint.x;
+            let y = starPoint.y;
+
+            // Перетворити початкову клітинку
+            gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
+            let carved = 1;
+
+            const dirs = [
+                { dx: 0, dy: -1 }, // up
+                { dx: 1, dy: 0 },  // right
+                { dx: 0, dy: 1 },  // down
+                { dx: -1, dy: 0 }  // left
+            ];
+
+            while (carved < targetEmpty) {
+                const dir = dirs[Math.floor(Math.random() * dirs.length)];
+                const nx = x + dir.dx;
+                const ny = y + dir.dy;
+
+                if (nx >= 1 && ny >= 1 && nx < (size - 1) && ny < (size - 1)) {
+                    x = nx;
+                    y = ny;
+
+                    const cell = gameMap[y][x];
+                    if (cell.type === 'obstacle') {
+                        gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
+                        carved++;
+                    }
+                }
+            }
+        }
+
         // Ініціалізація карти
         function initMap() {
             gameMap = [];
             enemies = [];
             elements.map.innerHTML = '';
+
+            player.position = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
             
+            // створюєм карту
+            regenerateMap(player.position, 0.55);
+
+            // Додаємо фруктові клітинки при отриманні рівня
+            spawnFruits();
+            
+            // Додаємо ворогів та артефакти на карту
+            spawnEnemies();
+            spawnArtifacts();
+            spawnChest();
+            updateMap();
+        }
+
+        // перестворюєм карту
+        function regenerateMap(playerPosition, density = 0.5, cellsData = []) {
+            elements.map.innerHTML = '';
+            gameMap = [];
+
+            // робим всі точки непрохідними 
             for (let y = 0; y < mapSize; y++) {
                 gameMap[y] = [];
                 for (let x = 0; x < mapSize; x++) {
-                    // 15% шанс на перешкоду (дерево або гора)
-                    const isObstacle = Math.random() < 0.1;
-                    let cellContent;
-                    
-                    if (isObstacle) {
-                        const obstacleType = Math.random() < 0.7 ? 'tree' : 'mountain'; // 70% дерев, 30% гір
-                        cellContent = {
-                            type: 'obstacle',
-                            obstacle: obstacles.find(o => o.type === obstacleType),
-                            emoji: obstacleType === 'tree' ? chooseOne(['🌳', '🌲']) : '🗻',
-                            passable: false
-                        };
-                    } else {
-                        cellContent = { type: 'empty', emoji: emptyEmoji };
-                    }
-                    
-                    gameMap[y][x] = cellContent;
-                    
+                    gameMap[y][x] = generateObstacleCell();
+                }
+            }
+
+            // пробиваєм шлях
+            carveTunnel(gameMap, playerPosition, density);
+            
+            // забиваєм контентом
+            for (let y = 0; y < mapSize; y++) {
+                for (let x = 0; x < mapSize; x++) {
+                    const cellContent = gameMap[y][x];
                     const cell = document.createElement('div');
+
                     cell.className = 'map-cell';
                     cell.dataset.x = x;
                     cell.dataset.y = y;
@@ -1697,18 +1774,30 @@
                     elements.map.appendChild(cell);
                 }
             }
-            
-            // Початкова позиція гравця
-            player.position = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
 
-            // Додаємо фруктові клітинки при отриманні рівня
-            spawnFruits();
-            
-            // Додаємо ворогів та артефакти на карту
-            spawnEnemies();
-            spawnArtifacts();
-            spawnChest();
-            updateMap();
+            if (cellsData.length) {
+                const emptyCells = getAllCellsDataByType();
+                cellsData.forEach((cell) => {
+                    const rPosition = chooseOne(emptyCells);
+                    gameMap[rPosition.y][rPosition.x] = cell;
+                });
+            }
+        }
+
+        function getAllCellsDataByType(cellType = 'empty') {
+            let filteredMap = [];
+            for (j = 0; j < gameMap.length; j++) {
+                for (i = 0; i < gameMap[j].length; i++) {
+                    if (gameMap[j][i].type == cellType && !enemies.filter(e => e.position.x == i && e.position.y == j).length) filteredMap.push({x:i,y:j});
+                }
+            }
+            return filteredMap;
+        }
+
+        function gatherAllMapData() {
+            let mapData = [];
+            for (j = 0; j < gameMap.length; j++) mapData.push(...gameMap[j].filter(gm => !['obstacle', 'empty'].includes(gm.type)));
+            return mapData;
         }
 
         // Оновлена функція для відображення ворогів на карті
@@ -2476,44 +2565,6 @@
             updateStore();
         }
 
-        function respawnObstacles() {
-            // Видаляємо 70-80% старих перешкод
-            for (let y = 0; y < mapSize; y++) {
-                for (let x = 0; x < mapSize; x++) {
-                    if (gameMap[y][x].type === 'obstacle' && Math.random() < 0.75) {
-                        gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
-                    }
-                }
-            }
-            
-            // Додаємо нові перешкоди
-            const newObstacles = Math.floor(mapSize * mapSize * 0.07); // 7% клітинок
-            for (let i = 0; i < newObstacles; i++) {
-                let x, y;
-                let attempts = 0;
-                do {
-                    x = Math.floor(Math.random() * mapSize);
-                    y = Math.floor(Math.random() * mapSize);
-                    attempts++;
-                    if (attempts > 100) break;
-                } while (
-                    (x === player.position.x && y === player.position.y) ||
-                    enemies.some(e => e.position.x === x && e.position.y === y) ||
-                    gameMap[y][x].type !== 'empty'
-                );
-                
-                if (attempts <= 100) {
-                    const obstacleType = Math.random() < 0.7 ? 'tree' : 'mountain';
-                    gameMap[y][x] = {
-                        type: 'obstacle',
-                        obstacle: obstacles.find(o => o.type === obstacleType),
-                        emoji: obstacleType === 'tree' ? chooseOne(['🌳', '🌲']) : '🗻',
-                        passable: false
-                    };
-                }
-            }
-        }
-
         // Функція для показу повідомлення
         function showGameMessage(header, message, duration = 0) {
             const modal = document.getElementById('game-modal');
@@ -2714,12 +2765,20 @@
         function updateEquipmentSlot(slot) {
             const element = elements[`${slot}Slot`];
             if (player.equipment[slot]) {
+                const item = player.equipment[slot];
+
+                let magicLevel = Math.abs(item.magicLevel || 0);
+                if (magicLevel != 0) {
+                    element.classList.add(`${item.status}`);
+                    element.classList.add(`${item.status}-${magicLevel}`);
+                }
+
                 element.innerHTML = getItemView(player.equipment[slot], undefined, undefined, slot);
             } else {
                 element.innerHTML = `
                     <div class="inventory-item">
                         <div class="item-name">Пусто</div>
-                        <div class="item-image-empty">${addEmoji(emptySlotsEquipmentsEmojies[slot], '64px', 0, 'filter: grayscale(1) invert(1);opacity: 0.1;')}</div>
+                        <div class="item-image-background equipment">${addEmoji(emptySlotsEquipmentsEmojies[slot], '64px', 0)}</div>
                     </div>
                 `;
             }
@@ -2785,6 +2844,8 @@
 
             const equipmentTypeIndex = equipableTypes.indexOf(equipmentSlot);
             const equipmentSubInfo = (equipmentTypeIndex != -1 && viewType == 'equipment') ? `<div class="item-subinfo">ALT+${equipmentTypeIndex+1}</div>` : '';
+            //const equipmentShadowImage = (equipmentTypeIndex != -1 && viewType == 'equipment') ? `<div class="item-image-background">${itemEmoji}</div>` : '';
+            const equipmentShadowImage = `<div class="item-image-background ${viewType}">${itemEmoji}</div>`;
 
             const inventoryIndex = (index != -1 && viewType == 'inventory') ? `` : '';
             const inventorySubInfo = (index != -1 && index < 9 && viewType == 'inventory') ? `<div class="item-subinfo-up">[ ${index+1} ]</div><div class="item-subinfo">SHIFT+${index+1}</div>` : '';
@@ -2792,7 +2853,7 @@
             const inventoryActions = (index != -1 && viewType == 'inventory')
                 ? `<div class="item-actions">
                         <div class="item-action" onclick="useItem(${index})">${item.type.startsWith('potion') ? 'Випити' : 'Екіпірувати'}</div>
-                        ${item.canSell !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.floor(item.value * sellCoefficient)}💰)</div>` : ''}
+                        ${item.canSell !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.max(1, Math.floor(item.value * sellCoefficient))}💰)</div>` : ''}
                     </div>` : '';
             const equipmentActions = (equipmentTypeIndex != -1 && viewType == 'equipment')
                 ? `<div class="item-actions">
@@ -2810,9 +2871,9 @@
 
             return `
                 <div class="inventory-item ${(item.status || '')}">
-                    <!--<div class="item-name" style="${itemSpecStyle}">${inventoryIndex}${item.name}</div>-->
                     <div class="item-name">${inventoryIndex}${item.name}</div>
                     <div class="item-image">${itemEmoji}</div>
+                    ${equipmentShadowImage}
                     <div class="item-desc">
                         <span class="artifact-bonus">${bonusText != '' ? bonusText : `&nbsp;`}</span>
                     </div>
@@ -2878,12 +2939,11 @@
 
         // видаляєм крамниці
         function deleteStore() {
-            for (let j = 0; j < gameMap.length; j++) {
-                for (let i = 0; i < gameMap[j].length; i++) {
-                    if (gameMap[j][i].type === 'store') {
-                        gameMap[j][i] = { type: 'empty', emoji: emptyEmoji };
-                    }
-                }
+            const storePosition = getAllCellsDataByType('store');
+            if (storePosition.length > 0) {
+                storePosition.forEach((storePos) => {
+                    gameMap[storePos.y][storePos.x] = { type: 'empty', emoji: emptyEmoji };
+                });
             }
         }
 
@@ -2990,7 +3050,7 @@
                 return;
             }
 
-            const sellPrice = Math.floor(item.value * sellCoefficient); // Продаємо за 50% вартості
+            const sellPrice = Math.max(1, Math.floor(item.value * sellCoefficient)); // Продаємо за 50% вартості мінімальна ціна 1 копійка
             
             player.gold += sellPrice;
             player.inventory.splice(index, 1);
@@ -3167,7 +3227,7 @@
                     //console.log([`${itemTemplate.name} => spec defense: ${(itemTemplate.defense || 0)} + ${defenseParam}`]);
 
                     itemTemplate.defense = (itemTemplate.defense || 0) + defenseParam;
-                    itemSpecialParams['contrast'] = rand(80, 200) / 100;
+                    itemSpecialParams['contrast'] = rand(80, 150) / 100;
                     magicLevel++;
                 }
                 if (Math.random() < 0.5) {
@@ -3352,13 +3412,6 @@
         // diffType = 'normal' / 'elite' / 'boss'
         function generateEnemy(diffType = 'normal') {
             // Визначаємо тип ворога залежно від рівня гравця
-            /*let enemyPool = enemyTypes;
-            if (player.level < 3) {
-                enemyPool = enemyTypes.filter(e => !e.elite && !e.boss);
-            } else if (player.level < 7) {
-                enemyPool = enemyTypes.filter(e => !e.boss);
-            }*/
-
             let enemyPool;
             if (diffType == 'boss') {
                 enemyPool = enemyTypes.filter(e => e.boss);
@@ -3367,18 +3420,6 @@
             } else {
                 enemyPool = enemyTypes.filter(e => !e.elite && !e.boss);
             }
-            
-            // Шанс на елітного ворога
-            /*let isElite = Math.random() < 0.1 + player.level * 0.02;
-            if (isElite) {
-                enemyPool = enemyTypes.filter(e => e.elite && !e.boss);
-            }*/
-            
-            // Шанс на боса (рідкісний)
-            /*let isBoss = !isElite && Math.random() < 0.03 + player.level * 0.005;
-            if (isBoss) {
-                enemyPool = enemyTypes.filter(e => e.boss);
-            }*/
             
             const enemyTemplate = enemyPool[Math.floor(Math.random() * enemyPool.length)];
             const enemy = {...enemyTemplate};
@@ -3412,15 +3453,15 @@
             
             // Нагороди
             enemy.gold = Math.floor(basePower * powerMultiplier * (0.5 + Math.random() * 1));
-            enemy.xp = Math.floor(basePower * powerMultiplier * (0.8 + Math.random() * 0.8));
+            enemy.xp = Math.floor(basePower * powerMultiplier * (0.8 + Math.random() * 1));
             
             if (enemy.elite) {
-                enemy.gold = Math.floor(enemy.gold * 1.5);
-                enemy.xp = Math.floor(enemy.xp * 1.5);
+                enemy.gold = Math.floor(enemy.gold * 1.75);
+                enemy.xp = Math.floor(enemy.xp * 1.75);
             }
             if (enemy.boss) {
-                enemy.gold = Math.floor(enemy.gold * 3);
-                enemy.xp = Math.floor(enemy.xp * 3);
+                enemy.gold = Math.floor(enemy.gold * 3.5);
+                enemy.xp = Math.floor(enemy.xp * 3.5);
             }
             
             // Ворог може мати предмет (частіше для елітних і босів)
@@ -3657,6 +3698,13 @@
                     // Гравець зачистив локацію і отримує бонусяки
                     if (enemies.length < 1) {
                         player.clearedRooms++;
+
+                        // кидаєм гравця в рандомне місце, від якого вже і будем малювать мапу
+                        player.position = {x: rand(1, mapSize - 2), y: rand(1, mapSize - 2)};
+                        const savedData = gatherAllMapData();
+                        const tmpDensity = 0.45 + Math.random() * 0.15;
+                        regenerateMap(player.position, tmpDensity, savedData);
+
                         spawnEnemies();
                         resetTerra();
 
@@ -3774,21 +3822,6 @@
 
                     // Гравець - мрець
                     startDeath(`💀 Ви загинули в бою з ${enemy.emoji} ${enemy.type}!`);
-                    /*if (player.health <= 0) {
-                        // Показуєм кнопку відродження
-                        elements.resurrectBtn.style.display = 'inline-block';
-                        // Ховаєм кнопку гемблінга
-                        elements.gambleBtn.style.display = 'none';
-
-                        elements.playerEmoji.style.filter = `grayscale(100%)`;
-                        addLog(`💀 Ви загинули в бою з ${enemy.emoji} ${enemy.type}!`, 'system');
-                        showGameMessage(`Поразка`, `💀 Ви загинули в бою! Натисніть "Відродитись", щоб продовжити гру.`, 0);
-
-                        showEventPopup(`${addEmoji('💀', '40px')}`, document.getElementById('player-on-map'), {
-                            fontSize: '40px',
-                        });
-                        return;
-                    }*/
                     
                     // Продовжуємо бій
                     setTimeout(battleStep, 1000);
@@ -3896,12 +3929,22 @@
                 player.level++;
                 player.xp -= player.xpToNext;
                 player.xpToNext = getXpByLevel(player.level);//Math.floor(player.xpToNext * 1.4);  // Зменшено множник досвіду
-                player.baseAttack += 1;  // Зменшено приріст атаки за рівень
-                player.baseDefense += 1; // Зменшено приріст захисту за рівень
-                const oldMaxHealth = player.maxHealth;
-                player.health += 5;  // Зменшено приріст здоров'я за рівень
 
-                addLog(`🌟 Вітаємо! Ви досягли ${player.level} рівня! Ваші характеристики зросли.`, 'system');
+                // збільшення характеристик нова логіка
+                // якщо рівень чотний збільшуєм атаку на 1 і хп на 2, якщо ні збільшує захист на 1 і хп на 3
+                const oldMaxHealth = player.maxHealth;
+                let levelinfo = '';
+                if (player.level % 2 == 0) {
+                    player.baseAttack += 1;
+                    player.health += 2;
+                    levelinfo = "Ваша атака ⚔️ збільшилась на 1, а Ваше 💖 здоров'я збільшилось на 2";
+                } else {
+                    player.baseDefense += 1;
+                    player.health += 3;
+                    levelinfo = "Ваш захист 🛡️ збільшився на 1, а Ваше 💖 здоров'я збільшилось на 3";
+                }
+
+                addLog(`🌟 Вітаємо! Ви досягли ${player.level} рівня! ${levelinfo}.`, 'system');
                 showEventPopup(`${addEmojiPlayer('🌟')} ${player.level} ${addEmojiPlayer('🌟')}`, document.getElementById('player-on-map'), {
                     color: '#ff0',
                     fontSize: '20px',
@@ -3910,20 +3953,15 @@
                     popupType: 'slow',
                 });
 
-                if (oldMaxHealth < player.maxHealth) {
-                    addLog(`❤️ Ваше максимальне здоров'я збільшилось до ${player.maxHealth}`, 'system');
-                }
                 // заліковуємо рани
                 player.health = player.maxHealth;
 
                 // Додаємо фруктові клітинки при отриманні рівня
                 spawnFruits();
-                updateStats();
-                
-                // Оновлюємо карту з новими ворогами та артефактами
-                //spawnEnemies();
                 spawnArtifacts();
                 spawnChest();
+
+                updateStats();
                 return true;
             }
             return false;
@@ -4064,19 +4102,20 @@
             player.overpoweredHealth = 0;
             player.health = Math.ceil(player.maxHealth * 0.5);
             addLog('⚡ Ви відродились і частково відновили здоров\'я!', 'system');
-
-            // спавн фрукта після смерті трошки покращить становище в бою
-            spawnFruits(1);
-
-            // Оновлюємо health bar
-            updateStats();
             
             // Вороги також відпочивають (респавняться)
             enemies = [];
-            respawnObstacles();
 
+            const savedData = gatherAllMapData();
+            const tmpDensity = 0.45 + Math.random() * 0.15;
+            regenerateMap(player.position, tmpDensity, savedData);
+
+            // спавн фрукта після смерті трошки покращить становище в бою
+            spawnFruits(1);
             spawnEnemies();
             resetTerra();
+
+            updateStats();
             updateMap();
         }
 
