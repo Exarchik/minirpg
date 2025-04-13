@@ -351,10 +351,10 @@
         }
 
         /* magic */
-        .item-slot.magic .item-name, .equipment-slot.magic .item-name { text-shadow: 2px 2px 0 black; }
-        .item-slot.magic.magic-1 .item-name, .equipment-slot.magic.magic-1 .item-name { color: #0f0 !important; }
-        .item-slot.magic.magic-2 .item-name, .equipment-slot.magic.magic-2 .item-name { color: #3e92ed !important; font-weight: bold; }
-        .item-slot.magic.magic-3 .item-name, .equipment-slot.magic.magic-3 .item-name { color: #ed983e !important; font-weight: bold; text-shadow: 3px 3px 2px black !important;}
+        .item-slot.magic .item-name, .inventory-item.magic .item-name { text-shadow: 2px 2px 0 black; }
+        .item-slot.magic.magic-1 .item-name, .inventory-item.magic.magic-1 .item-name { color: #0f0 !important; }
+        .item-slot.magic.magic-2 .item-name, .inventory-item.magic.magic-2 .item-name { color: #3e92ed !important; font-weight: bold; }
+        .item-slot.magic.magic-3 .item-name, .inventory-item.magic.magic-3 .item-name { color: #ed983e !important; font-weight: bold; text-shadow: 3px 3px 2px black !important;}
 
         /* cursed */
         .item-slot.cursed {
@@ -2767,13 +2767,7 @@
             if (player.equipment[slot]) {
                 const item = player.equipment[slot];
 
-                let magicLevel = Math.abs(item.magicLevel || 0);
-                if (magicLevel != 0) {
-                    element.classList.add(`${item.status}`);
-                    element.classList.add(`${item.status}-${magicLevel}`);
-                }
-
-                element.innerHTML = getItemView(player.equipment[slot], undefined, undefined, slot);
+                element.innerHTML = getItemView(item, undefined, undefined, slot);
             } else {
                 element.innerHTML = `
                     <div class="inventory-item">
@@ -2835,7 +2829,10 @@
             const currentSubtype = typeof item.subtype != 'undefined' ? item.subtype : 0;
             const currentSpecialParams = typeof item.specialParams != 'undefined' ? item.specialParams : {};
             let itemSpecStyle = specialParamsToStyle(currentSpecialParams);
-            itemSpecStyle = itemSpecStyle != '' ?  `color:#0ff;${itemSpecStyle};text-shadow: 2px 2px 0 black;` : itemSpecStyle ;
+                itemSpecStyle = itemSpecStyle != '' ?  `color:#0ff;${itemSpecStyle};text-shadow: 2px 2px 0 black;` : itemSpecStyle ;
+
+            const magicLevel = Math.abs(item.magicLevel || 0);
+            const magicClass = (magicLevel != 0) ? `${item.status} ${item.status}-${magicLevel}` : `${(item.status || '')}`;
 
             const itemEmoji = addEmojiItem(item.emoji, currentSubtype, currentSpecialParams);
 
@@ -2870,7 +2867,7 @@
                     </div>` : '';
 
             return `
-                <div class="inventory-item ${(item.status || '')}">
+                <div class="inventory-item ${magicClass}">
                     <div class="item-name">${inventoryIndex}${item.name}</div>
                     <div class="item-image">${itemEmoji}</div>
                     ${equipmentShadowImage}
