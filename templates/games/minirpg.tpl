@@ -2416,7 +2416,7 @@
 
         // розподіл ворогів по рівням
         function getEnemyTypeCounts(playerLevel) {
-            const totalEnemies = 4 + (playerLevel < 20 ? playerLevel : 14);
+            const totalEnemies = 3 + (playerLevel < 7 ? playerLevel : 10);
 
             // 🟡 Еліта: від 15% (рівень 1) до 30% (рівень 10+)
             let eliteRatio = 0.15;
@@ -2432,7 +2432,7 @@
             if (playerLevel >= 10) {
                 bossRatio = 0.15;
             } else if (playerLevel >= 4) {
-                const scale = (playerLevel - 3) / 7;
+                const scale = (playerLevel - 5) / 7;
                 bossRatio = 0.15 * scale;
             }
 
@@ -2440,7 +2440,7 @@
             let eliteCount = Math.floor(totalEnemies * eliteRatio);
 
             // 🛡 Гарантуємо 1 боса з рівня 3
-            if (playerLevel >= 3 && bossCount === 0) {
+            if (playerLevel >= 5 && bossCount === 0) {
                 bossCount = 1;
             }
 
@@ -3045,8 +3045,8 @@
             // множник для товстих магазинів
             const storeFullness = Math.random() < 0.05 ? 2 : 1;
 
-            // ймовірність появи товару зі знижкою в 75%
-            const promoProbability = 0.01;
+            // 5% ймовірність появи товару зі знижкою в 75%
+            const promoChance = 0.05;
 
             const itemsToBuy = rand(4, 8) * storeFullness;
             const additionalArtifacts = rand(2, 4) * storeFullness;
@@ -3098,7 +3098,7 @@
 
             // додаєм товар зі знижкою
             store.forEach((storeItem) => {
-                if (Math.random() < promoProbability) {
+                if (Math.random() < promoChance) {
                     storeItem.promoValue = Math.max(1, Math.floor(storeItem.value * 0.25));
                 }
             });
