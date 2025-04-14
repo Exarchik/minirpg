@@ -157,12 +157,16 @@
             height: 17vh;
             overflow-y: scroll;
             border: 1px solid #444;
-            padding: 10px;
+            padding: 5px 10px;
             margin-top: 25px;
             background-color: #252525;
             line-height: 1.5;
             font-size: 14px;
         }
+        #log.log-shorted {
+            height: 50px;
+        }
+
         .player { color: #55f; }
         .enemy { color: #f55; }
         .system { color: #5f5; }
@@ -232,16 +236,17 @@
             border-radius: 5px;
             /*overflow-y: scroll;*/
             /*height: 435px;*/
-            height: 62vh;
+            height: 465px;
             position: relative;
         }
         #inventory #inventory-items {
             overflow-y: auto;
-            height: 94%;
+            height: 100%;
         }
         #store-items {
             overflow-y: auto;
-            height: 94%;
+            height: 100%;
+            margin-top: 6px;
         }
 
         /*new shop visualize*/
@@ -364,9 +369,6 @@
             color: #222;
         }
 
-
-
-
         #closeInventoryBtn, #closeStoreBtn {
             position: absolute;
             z-index: 20;
@@ -376,6 +378,23 @@
             color: #000;
             background-color: #555;
         }
+
+        #button-store-wrapper {
+            display: inline-block;
+            position: relative;
+        }
+        #button-store-wrapper.disabled:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #ff4900;
+            transform: rotate(-5deg);
+            transform-origin: center;
+            pointer-events: none;
+        }
         #updateStoreBtn {
             display: inline-block;
             padding: 4px 6px;
@@ -384,6 +403,9 @@
         }
         #updateStoreBtn.tickets {
             background-color: #005aff;
+        }
+        #button-store-wrapper.disabled button#updateStoreBtn {
+            filter: grayscale(1);
         }
         .inventory-item {
             /**/
@@ -649,16 +671,43 @@
             font-size: 12px;
             color: #f8f;
         }
-        /*.artifact-bonus {
-            font-size: 16px;
-            color: #ffffff;
+        .artifact-bonus.store-price {
+            position: relative;
+        }
+        .artifact-bonus.store-price.store-price-old:after {
+            content: '';
             position: absolute;
-            display: block;
-            bottom: 2px;
+            top: 50%;
+            left: 0;
             width: 100%;
-            text-shadow: 2px 2px #000;
-            padding-right: 10px;
-        }*/
+            height: 3px;
+            background: red;
+            transform: rotate(20deg);
+            transform-origin: center;
+            pointer-events: none;
+        }
+        .artifact-bonus.store-price.store-price-promo {
+            font-weight: bold;
+            color: #00ff00;
+            font-size: 16px;
+            position: relative;
+            left: 5px;
+        }
+        .item-slot .promo-tag {
+            position: absolute;
+            top: 0px;
+            left: -7px;
+            background: #ff0000;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px 6px;
+            transform: rotate(-15deg);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 8% 100%);
+            pointer-events: none;
+            z-index: 30;
+        }
         
         /* Стилі для критичної шкоди */
         .critical-hit {
@@ -879,7 +928,10 @@
                         <div id="inventory-items"></div>
                     </div>
                     <div id="store" style="display:none;">
-                        <div style="display:inline-block;">🏬 Крамниця</div><button id="updateStoreBtn">🔁 Оновити асортимент (<span id="updateStorePrice">25💰</span>)</button>
+                        <div id="store-name" style="display:inline-block;">🏬 Крамниця</div>
+                        <div id="button-store-wrapper">
+                            <button id="updateStoreBtn">🔁 Оновити асортимент (<span id="updateStorePrice">25💰</span>)</button>
+                        </div>
                         <button id="closeStoreBtn">❌</button>
                         <div id="store-items"></div>
                     </div>
@@ -976,6 +1028,29 @@
             'potion': '🧪',
         };
         const equipableTypes = ['weapon', 'armor', 'ring', 'amulet', 'book', 'relic'];
+
+        const storeTypes = [
+            // general - все по троху найпоширеніший
+            { name: 'Крамниця', type: 'general', emoji: '🏬', chance: 25, isRefreshing: true },
+            // armory - виключно зброя і броня
+            { name: 'Зброярня', type: 'armory', emoji: '🏬⚔️', chance: 25, isRefreshing: true },
+            // jewelry - ювелірка: кільця і амулети
+            { name: 'Ювелірка', type: 'jewelry', emoji: '🏬💍', chance: 15, isRefreshing: true },
+            // library - бібліотека/книгарня
+            { name: 'Книгарня', type: 'library', emoji: '🏬📖', chance: 15, isRefreshing: true },
+            // antiques - антикваріат - виключно артефакти
+            { name: 'Антиквар', type: 'antiques', emoji: '🏬🔮', chance: 15, isRefreshing: true },
+            // medic - лєчілка + еліксири (1-2 штукі) 
+            //{ name: 'Шпиталь', type: 'medic', emoji: '🏬💖', chance: 0.15, isRefreshing: false },
+            // містичний магаз з одним типом артефакту у різних варіаціях але неможливо оновити асортимент
+            { name: 'Містична лавка', type: 'mystic', emoji: '🏬✨', chance: 1, isRefreshing: false },
+        ];
+        let lastChosenStores = []; // зберігаємо type або name
+
+        // одна й та сам крамниця буде траплятись мінімум через 3 
+        const storeHistoryLimit = 3;
+
+        let currentStoreType = 'general';
 
         const extraStyleMainIcons = 'vertical-align: sub !important; margin-left: 4px; margin-bottom: 2px';
 
@@ -1353,7 +1428,7 @@
                 "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpius", "Sagittarius", "Capricornus", "Aquarius", "Pisces",
                 // saga
                 "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", 
-                "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", "Saga de", 
+                "Saga", "Saga", "Saga", "Saga", "Saga", "Saga", "Sag", "Saga", 
                 "Ars", "Via", "Lex", "Ferrum", "Virtus", "Pugna", "Bellum", "Gladius", "Disciplina",
                 "Animus", "Militia", "Honos", "Sanguis", "Corpus", "Vox", "Fatum", "Umbra", "Clamor",
                 "Tempus", "Vigilantia", "Ignis", "Scutum", "Hostis", "Dominatio", "Victoria", "Praeceptum",
@@ -1364,7 +1439,11 @@
                 "Pax", "Respiro", "Metus", "Memoria", "Custodia", "Somnus", "Lamina", "Solis", "Noctis",
                 "Venenum", "Vocatio", "Aqua", "Caelum", "Terra", "Aether", "Mens", "Praesidium",
                 "Oraculum", "Cinis", "Tempo", "Tenebra", "Silva", "Crux", "Fluctus", "Ave", "Dux",
-                "Instantus",
+                "Instantus", "Umbrae", "Vigil", "Somnia", "Noctua", "Oscura", "Aegis", "Amonita",
+                "Cordis", "Mycena", "Fungus", "Myxa", "Folium", "Spora", "Boletus", "Psilocybe",
+                "Russula", "Inocybe", "Marasmius", "Lentinula", "Lactarius", "Mycena", "Cedrus", "Salix",
+                "Betula", "Ulmus", "Fragaria",
+                "Nekro-", "Virto-", "Ferro-", "Corpo-", "Auro-", "Myco-", "Umbro-", "Pyro-", "Cryo-", "Xeno-", "Draco-", "Cosmo-", "Chao-", "Astra-",
             ],
             part2: [
                 "Invictus", "Caelestis", "Internus", "Perpetuus", "Obscurus", "Honesta", "Solitaria",
@@ -1379,11 +1458,17 @@
                 "Profanata", "Nemorosa", "Fulgida", "Vasta", "Invisibilis", "Fortunata", "Nocturna",
                 "Gelida", "Cauta", "Cinerosa", "Ignita", "Spiritualis", "Tranquilla", "Periculosa",
                 "Defensiva", "Demonia", "Satanae", "Irae", "Levitas", "Elixiria", "Obscura", "Bellis",
-                "Ferro", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII",
-                "Occulta", "Vulnera", "Gloria", 
+                "Ferro", "Occulta", "Vulnera", "Gloria", "Umbrarum", "Scripta", "Lunaris", "Ardentis", "Defensio",
+                "Clypei", "Nova", "Muscaria", "Lucida", "Toxica", "Sylvarum", "Nigra", "Letalis",
+                "Oreades", "Comatus", "Cubensis", "Robur", "Sativa", "Excelsior", "Communis", "Domestica",
+                "Tremula", "Baccata", "Nervosa", "Mas", "Rubrum", "Vulgaris", "Myrtillus", "Sinensis",
+                "Sorbi", "Nigrum", "Purpurea", "Satanas", "Formosa", "Conica", "Caninus", "Ruber",
+                "Edulis", "Ovinus", "Aurantia", "Nivalis", "Proxima", "Fissilis", "Adusta", "Regius",
+                "Corium", "Gigantea", "Chlora", "Archeri", "Borealis", "Maxima", "Minima", "Tenera",
+                // numbers are special
+                "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII",
             ]
         };
-
 
         const enemyTypes = [
             // Звичайні монстри
@@ -1464,8 +1549,10 @@
             bookSlot: document.getElementById('book-slot'),
             relicSlot: document.getElementById('relic-slot'),
             store: document.getElementById('store'),
+            storeName: document.getElementById('store-name'),
             storeItems: document.getElementById('store-items'),
             updateStoreBtn: document.getElementById('updateStoreBtn'),
+            buttonStoreWrapper: document.getElementById('button-store-wrapper'),
             updateStorePrice: document.getElementById('updateStorePrice'),
             map: document.getElementById('map')
         };
@@ -1526,6 +1613,35 @@
             }
             const index = Math.floor(Math.random() * list.length);
             return list[index];
+        }
+
+        // 🎲 Вибір з урахуванням шансів
+        function weightedRandomStore(excludeTypes = []) {
+            const pool = storeTypes.filter(store => !excludeTypes.includes(store.type));
+            
+            const totalChance = pool.reduce((sum, s) => sum + s.chance, 0);
+            let rand = Math.random() * totalChance;
+
+            for (let store of pool) {
+                rand -= store.chance;
+                if (rand <= 0) return store;
+            }
+
+            // fallback, якщо щось пішло не так
+            return pool[pool.length - 1];
+        }
+
+        // 🚀 Вибір з історією
+        function chooseStore() {
+            const store = weightedRandomStore(lastChosenStores);
+
+            // оновити історію
+            lastChosenStores.push(store.type);
+            if (lastChosenStores.length > storeHistoryLimit) {
+                lastChosenStores.shift(); // прибираємо найстаріший
+            }
+
+            return store;
         }
 
         function getEnemyDefense(enemy) {
@@ -2539,8 +2655,10 @@
         }
 
         // спавнимо на мапі крамницю
-        function spawnStore() {
-            generateStore();
+        function spawnStore(storeType = 'general') {
+            // зберігаєм тип крамниці на випадок оновлення асортименту
+            currentStoreType = storeType;
+            generateStore(storeType);
 
             let x, y;
             let attempts = 0;
@@ -2788,6 +2906,13 @@
                 elements.updateStoreBtn.classList.add('tickets');
             }
 
+            // якщо крамниця не може бути оновленою
+            if (!storeTypes.find(e => e.type == currentStoreType).isRefreshing) {
+                elements.buttonStoreWrapper.classList.add('disabled');
+            } else {
+                elements.buttonStoreWrapper.classList.remove('disabled');
+            }
+
             elements.storeItems.innerHTML = '';
 
             store.forEach((item, index) => {
@@ -2795,7 +2920,14 @@
                 let magicLevel = Math.abs(item.magicLevel || 0);
                     magicLevel = item.magicLevel != 0 ? ` ${(item.status || '')} ${(item.status || '')}-${(magicLevel)}` : '';
 
-                itemElement.className = `item-slot ${magicLevel} item-${item.type}${(item.value * 2) > player.gold ? ' not-enough-gold': ''}`;
+                    let buyPricePromo = 0;
+                    const buyPrice = Math.max(buyCoefficient, Math.floor(item.value * buyCoefficient));
+                    if (item.promoValue != undefined) {
+                        buyPricePromo = Math.max(buyCoefficient, Math.floor(item.promoValue * buyCoefficient));
+                    }
+                    const buyPriceTotal = (item.promoValue != undefined) ? buyPricePromo : buyPrice;
+
+                itemElement.className = `item-slot ${magicLevel} item-${item.type}${buyPriceTotal > player.gold ? ' not-enough-gold': ''}`;
                 itemElement.innerHTML = getItemView(item, index, 'store');
 
                 elements.storeItems.appendChild(itemElement);
@@ -2847,6 +2979,17 @@
             const inventoryIndex = (index != -1 && viewType == 'inventory') ? `` : '';
             const inventorySubInfo = (index != -1 && index < 9 && viewType == 'inventory') ? `<div class="item-subinfo-up">[ ${index+1} ]</div><div class="item-subinfo">SHIFT+${index+1}</div>` : '';
 
+            let buyPrice = 0;
+            let buyPricePromo = 0;
+            let buyPriceTotal = 0;
+            if (index != -1 && viewType == 'store') {
+                buyPrice = Math.max(buyCoefficient, Math.floor(item.value * buyCoefficient));
+                if (item.promoValue != undefined) {
+                    buyPricePromo = Math.max(buyCoefficient, Math.floor(item.promoValue * buyCoefficient));
+                }
+                buyPriceTotal = (item.promoValue != undefined) ? buyPricePromo : buyPrice;
+            }
+
             const inventoryActions = (index != -1 && viewType == 'inventory')
                 ? `<div class="item-actions">
                         <div class="item-action" onclick="useItem(${index})">${item.type.startsWith('potion') ? 'Випити' : 'Екіпірувати'}</div>
@@ -2858,17 +3001,18 @@
                     </div>` : '';
             const storeActions = (index != -1 && viewType == 'store')
                 ? `<div class="item-actions">
-                        <div class="item-action" onclick="buyItem(${index})">${Math.floor(item.value * buyCoefficient)}💰 Купити</div>
-                        <div class="item-action" onclick="buyItem(${index}, true)">${Math.floor(item.value * buyCoefficient)}💰 ... і ${item.type.startsWith('potion') ? 'випити' : 'екіпірувати'}</div>
+                        <div class="item-action" onclick="buyItem(${index})">${buyPriceTotal}💰 Купити</div>
+                        <div class="item-action" onclick="buyItem(${index}, true)">${buyPriceTotal}💰 ... і ${item.type.startsWith('potion') ? 'випити' : 'екіпірувати'}</div>
                     </div>` : '';
             const storePriceBlock = (index != -1 && viewType == 'store')
                 ? `<div class="item-desc item-price">
-                        <span class="artifact-bonus store-price">${Math.floor(item.value * buyCoefficient)}💰</span>
+                        <span class="artifact-bonus store-price${(buyPricePromo != 0 ? ' store-price-old' : '')}">${buyPrice}💰</span>${(buyPricePromo != 0 ? ' <span class="store-price-promo">' + buyPricePromo + '💰</span>' : '')}
                     </div>` : '';
 
             return `
                 <div class="inventory-item ${magicClass}">
                     <div class="item-name">${inventoryIndex}${item.name}</div>
+                    ${buyPricePromo != 0 ? '<div class="promo-tag">-75%</div>' : ''}
                     <div class="item-image">${itemEmoji}</div>
                     ${equipmentShadowImage}
                     <div class="item-desc">
@@ -2886,19 +3030,33 @@
         }
 
         // створюєм предмети для купівлі
-        function generateStore() {
+        /* storeType:
+            general - все по троху
+            armory - виключно зброя і броня
+            jewelry - ювелірка: кільця і амулети
+            library - бібліотека/книгарня
+            antiques - антикваріат - виключно артефакти
+            medic - лєчілка + еліксири (1-2 штукі)
+            mystic - містичний магаз з оним типом артефакту у різних варіаціях
+        */
+        function generateStore(storeType = 'general') {
             // скидуєм крамницю
             store = [];
             // множник для товстих магазинів
             const storeFullness = Math.random() < 0.05 ? 2 : 1;
 
+            // ймовірність появи товару зі знижкою в 75%
+            const promoProbability = 0.01;
+
             const itemsToBuy = rand(4, 8) * storeFullness;
             const additionalArtifacts = rand(2, 4) * storeFullness;
 
-            const randometer = Math.random();
+            const storeData = storeTypes.find(e => e.type == storeType);
+
+            elements.storeBtn.innerHTML = `${storeData.emoji} ${storeData.name} [S]`;
 
             // звичайна крамниця
-            if (randometer < 0.95) {
+            if (storeType == 'general') {
                 for (i = 0; i < itemsToBuy; i++) {
                     let tmpItem = generateItem(true, undefined, true);
                     if (tmpItem != null) store.push(tmpItem);
@@ -2907,31 +3065,65 @@
                     let tmpItem = generateItem(true, undefined, true, artifacts);
                     if (tmpItem != null) store.push(tmpItem);
                 }
-            // бібліотека
-            } else if (randometer < 0.99) {
-                const library = artifacts.filter(a => a.type == 'book');
+            } else if (storeType == 'armory') {
                 for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
-                    store.push(makeItemMagic(chooseOne(library)));
+                    let tmpItem = generateItem(true, undefined, true, [...weapons, ...armors]);
+                    if (tmpItem != null) store.push(tmpItem);
                 }
-            // крамниця однакових магічних артефактів
-            } else {
-                const magicItem = chooseOne(artifacts);
+            } else if (storeType == 'jewelry') {
                 for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
-                    store.push(makeItemMagic(magicItem));
+                    let tmpItem = generateItem(true, undefined, true, artifacts.filter(a => ['amulet', 'ring'].includes(a.type)));
+                    if (tmpItem != null) store.push(tmpItem);
+                }
+            } else if (storeType == 'library') {
+                for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
+                    let tmpItem = generateItem(true, undefined, true, artifacts.filter(a => ['book'].includes(a.type)));
+                    if (tmpItem != null) store.push(tmpItem);
+                }
+            } else if (storeType == 'antiques') {
+                for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
+                    let tmpItem = generateItem(true, undefined, true, artifacts.filter(a => ['relic'].includes(a.type)));
+                    if (tmpItem != null) store.push(tmpItem);
+                }
+            } else if (storeType == 'mystic') {
+                // 3 рандомні речі подвійної магічності в різних варіаціях
+                let magicItem;
+                for (j = 0; j < 3 ; j++) {
+                    magicItem = chooseOne(artifacts);
+                    for (i = 0; i < rand(1, 4); i++) {
+                        store.push(makeItemMagic(makeItemMagic(magicItem)));
+                    }
                 }
             }
 
+            // додаєм товар зі знижкою
+            store.forEach((storeItem) => {
+                if (Math.random() < promoProbability) {
+                    storeItem.promoValue = Math.max(1, Math.floor(storeItem.value * 0.25));
+                }
+            });
+
             store.sort((a, b) => {
+                // 1️⃣ Товари з promoValue завжди перші
+                const aPromo = 'promoValue' in a;
+                const bPromo = 'promoValue' in b;
+
+                if (aPromo !== bPromo) {
+                    return bPromo - aPromo; // true > false, тобто: якщо b має promo, то йде вище
+                }
+
+                // 2️⃣ Сортування по type
                 const orderA = equipableTypes.indexOf(a.type);
                 const orderB = equipableTypes.indexOf(b.type);
 
                 if (orderA !== orderB) {
-                    return orderA - orderB; // спочатку по type
+                    return orderA - orderB;
                 }
 
-                //return a.value - b.value; // якщо type однакові — по value
-                return b.value - a.value; // якщо type однакові — по value
+                // 3️⃣ Сортування по value (від більшого до меншого)
+                return b.value - a.value;
             });
+
         }
 
         // видаляєм крамниці
@@ -3020,7 +3212,7 @@
             if (store[index] == undefined) { return; }
 
             const item = store[index];
-            const buyPrice = Math.floor(item.value * buyCoefficient);
+            const buyPrice = (item.promoValue != undefined) ? Math.max(1, Math.floor(item.promoValue * buyCoefficient)) : Math.max(1, Math.floor(item.value * buyCoefficient));
             if (player.gold < buyPrice) {
                 addLog(`🏬💰 У вас недостатньо коштів для купівлі ${item.emoji} ${item.name}`, 'system');
                 return;
@@ -3028,6 +3220,11 @@
 
             pickUpItem(item, forceEquip);
             player.gold -= buyPrice;
+
+            showEventPopup(`-${buyPrice}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
+                color: '#ff0',
+                fontSize: '20px'
+            });
 
             // Видаляємо предмет з інвентаря
             store.splice(index, 1);
@@ -3314,14 +3511,26 @@
 
         function generateBookTitle() {
             const maxBookNameLength = 15;
+            const part2Numbers = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+            const specNames = ["Saga de", "Saga"];
 
             let part1, part2;
             if (Math.random() < 0.5) {
                 part1 = chooseOne(bookNameParts.part1);
-                part2 = chooseOne(bookNameParts.part2.filter(b2 => b2.length <= (maxBookNameLength - part1.length)));
+                if (part1.length < 4 || specNames.includes(part1) || part1.endsWith("-")) {
+                    part2 = chooseOne(bookNameParts.part2.filter(b2 => b2.length <= (15 - part1.length) && !part2Numbers.includes(b2)));
+                } else {
+                    part2 = chooseOne(bookNameParts.part2.filter(b2 => b2.length <= (maxBookNameLength - part1.length)));
+                }
             } else {
-                part2 = chooseOne(bookNameParts.part2);
+                part2 = chooseOne(bookNameParts.part2.filter(b2 => !part2Numbers.includes(b2)));
                 part1 = chooseOne(bookNameParts.part1.filter(b1 => b1.length <= (maxBookNameLength - part2.length)));
+            }
+
+            if (part1.endsWith("-")) {
+                part1 = part1.slice(0, -1);
+                part2 = part2.charAt(0).toLowerCase() + part2.slice(1);
+                return `${part1}${part2}`;
             }
             return `${part1} ${part2}`;
         }
@@ -3708,13 +3917,15 @@
                         // прибираєм крамницю з карти
                         deleteStore();
 
-                        // Після зачистки кожної другої кімнати спавним - крамничку
+                        // Спавним - крамничку
                         let infoShop = '';
-                        if (player.clearedRooms % 2 === 0) {
-                            spawnStore();
-                            infoShop = ` <br>На локації з'явилась 🏬 крамниця магічних предметів`;
+                        if (player.clearedRooms % 2 == 0) {
+                            const newStore = chooseStore();
+                                  infoShop = ` <br>На локації з'явилась ${newStore.emoji} ${newStore.name}`;
+                            
+                            spawnStore(newStore.type);
                         }
-                        showGameMessage(`Локацію зачищено`, `🎉 Ви зачистили ${player.clearedRooms} локацію і отримуєте бонуси на новій локації!${infoShop}`);
+                        showGameMessage(`Локацію зачищено`, `🎉 Ви зачистили ${player.clearedRooms} локацію від ворогів і отримуєте бонуси!${infoShop}`);
 
                         spawnArtifacts(2);
                         spawnChest();
@@ -4120,8 +4331,14 @@
         function updateStorePrices() {
             const updatePrice = player.level * 25;
 
+            // якщо не вистачає золота або квитків не можна оновлювати магазин
             if (player.gold < updatePrice && player.tickets < 1) {
                 addLog(`💰 Ви не можете оновити асортимент крамниці адже не вистачає ${updatePrice} золота!`, 'system', 'red');
+                return;
+            }
+            // якщо крамниця не isRefreshing false - тоне можна оновити, бо це весь асортимент
+            if (!storeTypes.find(e => e.type == currentStoreType).isRefreshing) {
+                addLog(`💰 Ви не можете оновити асортимент крамниці - це весь наявний асортимент!`, 'system', 'red');
                 return;
             }
 
@@ -4131,7 +4348,8 @@
                 player.gold -= updatePrice;
             }
 
-            generateStore();
+            // враховуєм тип крамниці
+            generateStore(currentStoreType);
             updateStore();
             updateStats();
         }
@@ -4148,11 +4366,18 @@
             elements.map.style.display = player.inInventory ? 'none' : 'grid';
 
             // ховаєм кнопку інвентаря
-            elements.inventoryBtn.style.display = player.inInventory ? 'none' : 'inline-block';
+            //elements.inventoryBtn.style.display = player.inInventory ? 'none' : 'inline-block';
             // показуєм кнопку мапи
-            elements.mapBtn.style.display = player.inInventory ? 'inline-block' : 'none';
+            //elements.mapBtn.style.display = player.inInventory ? 'inline-block' : 'none';
 
-            elements.log.style.display = player.inInventory ? 'none' : 'block';
+            //elements.log.style.display = player.inInventory ? 'none' : 'block';
+            if (player.inInventory) {
+                elements.log.classList.add('log-shorted');
+                elements.log.scrollTop = elements.log.scrollHeight;
+            } else {
+                elements.log.classList.remove('log-shorted');
+                elements.log.scrollTop = elements.log.scrollHeight;
+            }
         }
 
         function toogleStore() {
@@ -4161,13 +4386,24 @@
             player.inStore = !player.inStore;
             player.inInventory = false;
 
+            // назва
+            const currentStore = storeTypes.find(e => e.type == currentStoreType);
+            if (currentStore != null) elements.storeName.innerHTML = `${currentStore.emoji} ${currentStore.name}`;
+
             // відображаєм крамницю
             elements.store.style.display = player.inStore ? 'block' : 'none';
             elements.inventory.style.display = 'none';
             // ховаєм мапу
             elements.map.style.display = player.inStore ? 'none' : 'grid';
 
-            elements.log.style.display = player.inStore ? 'none' : 'block';
+            //elements.log.style.display = player.inStore ? 'none' : 'block';
+            if (player.inStore) {
+                elements.log.classList.add('log-shorted');
+                elements.log.scrollTop = elements.log.scrollHeight;
+            } else {
+                elements.log.classList.remove('log-shorted');
+                elements.log.scrollTop = elements.log.scrollHeight;
+            }
         }
 
         function beginAll() {
