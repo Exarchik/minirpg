@@ -280,6 +280,8 @@
             position: absolute;
             right: -5px;
             top: 27px;
+            z-index: 20;
+            pointer-events: none;
         }
         #inventory-items .item-slot .item-desc,
         #store-items .item-slot .item-desc {
@@ -736,11 +738,11 @@
         
         /* Анімація атаки */
         @keyframes shake {
-            0% { transform: translate(1px, 0); }
-            25% { transform: translate(-2px, 0); }
-            50% { transform: translate(2px, 0); }
-            75% { transform: translate(-1px, 0); }
-            100% { transform: translate(0, 0); }
+            0% { transform: translate(1px, 0); filter: sepia(0);/* filter: brightness(1) drop-shadow(1px 1px red) drop-shadow(-1px -1px blue); */}
+            25% { transform: translate(-2px, 0); filter: sepia(0.5);/* filter: brightness(1.2) drop-shadow(2px 2px red) drop-shadow(-2px -2px blue); */}
+            50% { transform: translate(2px, 0); filter: sepia(1);/* filter: invert(0,5) brightness(1.4) drop-shadow(3px -3px red) drop-shadow(3px -3px blue); */}
+            75% { transform: translate(-1px, 0); filter: sepia(0.5);/* filter: brightness(1.2) drop-shadow(2px 2px red) drop-shadow(-2px -2px blue); */}
+            100% { transform: translate(0, 0); filter: sepia(0); filter: brightness(1) drop-shadow(-1px -1px red) drop-shadow(1px 1px blue); }
         }
         .shake {
             animation: shake 0.2s infinite;
@@ -1352,7 +1354,7 @@
             // черепок єдиний виключно негативний релікт -2хп
             { name: "Мітка", emoji: "🏆☠️",      subtype: 9, maxHealth: -2, rarity: 1, value: 1, type: "relic" },
             // сувій це порожній релікт
-            { name: "Сувій", emoji: "📜",          subtype: 12, rarity: 1, value: 2, type: "relic" },
+            { name: "Сувій", emoji: "📜",          subtype: 12,             rarity: 1, value: 2, type: "relic" },
             { name: "Мушля", emoji: "🐚",           subtype: 11, maxHealth: 10, defense: -1, attack: 1, rarity: 2, value: 100, type: "relic" },
             { name: "Святий тютюн", emoji: "🏆",    subtype: 1, maxHealth: 10, defense: 1, attack: -1, rarity: 2, value: 30, type: "relic" },
             { name: "Есенція", emoji: "🔮",        subtype: 10, maxHealth: -5, defense: 2, attack: 2, rarity: 3, value: 100, type: "relic" },
@@ -3223,7 +3225,9 @@
 
             showEventPopup(`-${buyPrice}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
                 color: '#ff0',
-                fontSize: '20px'
+                fontSize: '20px',
+                delay: 500,
+                horizontalOffset: 15,
             });
 
             // Видаляємо предмет з інвентаря
