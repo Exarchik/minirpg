@@ -1560,6 +1560,11 @@
 
         // Рівні гри які гравець вже пройшов
         let levelsCompleted = [];
+        /**
+         * Тепер головний параметр від якого залежить спав всього у грі
+         * Встановлюється виключно через initMap
+         */
+        let currentMapLevel = 1;
 
         const sellCoefficient = 0.5;
         const buyCoefficient = 2.0;
@@ -1926,7 +1931,7 @@
                     element.addEventListener('click', () => {
                         // мерців не пускаєм
                         if (player.health < 1) {
-                            addLog('💀 Спочатку Вам треба ожити!', 'system');
+                            addLog('💀 Спочатку Вам треба ожити!', 'enemy', 'black');
                             return
                         }
                         // встановлюєм зачищену кімнату до вибраного рівня
@@ -1946,6 +1951,9 @@
             gameMap = [];
             enemies = [];
             elements.map.innerHTML = '';
+
+            // MAIN LEVEL PARAMETER SET
+            currentMapLevel = mapLevel;
 
             //player.position = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
             player.position = {x: rand(1, mapSize - 2), y: rand(1, mapSize - 2)};
@@ -2458,7 +2466,7 @@
             const targetOnMap = document.querySelector(`.map-cell[data-x="${x}"][data-y="${y}"]`);
             
             if (cell.type === 'treasure') {
-                const goldFound = Math.floor(Math.random() * 10 * player.level) + 5;
+                const goldFound = Math.floor(Math.random() * 10 * currentMapLevel) + 5;
                 player.gold += goldFound;
                 addLog(`💰 Ви знайшли скарб і отримали ${goldFound} золота!`, 'loot');
 
@@ -2475,7 +2483,7 @@
                 const isGoldenChest = cell.emoji == '📦👑';
                 const chestName = isGoldenChest ? `<span style='color:gold; font-weight:bold'>Золотий Сундук</span>` : `сундук`;
 
-                let goldFound = Math.floor(Math.random() * 5 * player.level) + 5;
+                let goldFound = Math.floor(Math.random() * 5 * currentMapLevel) + 5;
                     goldFound = isGoldenChest ? goldFound * 3 : goldFound;
 
                 // з одного сундука можна отримати від 3 до 5% досвіду необхідного для отримання рівня але не менше 10 од.
@@ -2586,7 +2594,7 @@
 
         // дані по клітинці
         function getCell(x,y) {
-            if (gameMap[y][x] == undefined) return { type: 'null', emoji: emptyEmoji };
+            if (gameMap[y] == undefined || gameMap[y][x] == undefined) return { type: 'null', emoji: emptyEmoji };
             return gameMap[y][x];
         }
 
@@ -2616,7 +2624,7 @@
         // Додаємо ворогів на карту
         function spawnEnemies() {
             // дані з к-стю ворогів і типами
-            enemyCounts = getEnemyTypeCounts(player.level);
+            enemyCounts = getEnemyTypeCounts(currentMapLevel);
             
             enemyCounts.forEach((ec) => {
                 for (let i = 0; i < ec.count; i++) {
@@ -2682,7 +2690,7 @@
 
         // Додаємо артефакти на карту
         function spawnArtifacts(amount = -1) {
-            const artifactCount = amount == -1 ? (2 + Math.floor(player.level / 3)) : amount;
+            const artifactCount = amount == -1 ? (2 + Math.floor(currentMapLevel / 3)) : amount;
             
             for (let i = 0; i < artifactCount; i++) {
                 let x, y;
@@ -2746,9 +2754,9 @@
             // фруктів не може бути більше 12 штук одночасно
             const maxFuitsAtMap = 12;
             // Кількість фруктів залежить від рівня (або встановленого значення)
-            let fruitCount = amount == -1 ? (2 + Math.floor(player.level / 3)) : amount;
+            let fruitCount = amount == -1 ? (2 + Math.floor(currentMapLevel / 3)) : amount;
             // Рахуєм к-сть харчів
-            let currentFoods = []; for (i=0;i<gameMap.length;i++) { currentFoods.push(...gameMap[i].filter(food => food.type == 'fruit')); }
+            let currentFoods = []; for (i = 0;i < gameMap.length;i++) { currentFoods.push(...gameMap[i].filter(food => food.type == 'fruit')); }
             // Якщо харчів забагато зменшуєм значення спавну
             fruitCount = (currentFoods.length + fruitCount) <= maxFuitsAtMap ? fruitCount : Math.min(0, maxFuitsAtMap - fruitCount);
             
@@ -2773,7 +2781,7 @@
                     const rarityRoll = Math.random();
                     let fruitType;
                     
-                    if (rarityRoll > 0.9 && player.level > 3) {       // 10% шанс на виноград / стейк (рівень > 3)
+                    if (rarityRoll > 0.9 && currentMapLevel > 3) {       // 10% шанс на виноград / стейк (рівень > 3)
                         fruitType = fruits.find(f => f.healPercent === 1.0);
                     } else if (rarityRoll > 0.6) {                   // 30% шанс на банан / піццу
                         fruitType = fruits.find(f => f.healPercent === 0.5);
@@ -3507,8 +3515,8 @@
                 itemPool = itemHandyPool;
             }
             
-            // Визначаємо рідкість на основі рівня гравця
-            let rarity = getBiasedRarity(player.level, rarityBias);
+            // Визначаємо рідкість на основі рівня левела
+            let rarity = getBiasedRarity(currentMapLevel, rarityBias);
             // Фільтруємо предмети за рідкістю
             //const availableItems = itemPool.filter(item => item.rarity <= rarity);
             const availableItems = itemPool.filter(item => item.rarity == rarity);
@@ -3551,7 +3559,7 @@
                 //console.log([`name: ${itemTemplate.name}`]);
 
                 // збільшуєм діапазон можливих значень з кожним рівнем гравця
-                const bonusModif = 0.25 + (player.level * 0.05);
+                const bonusModif = 0.25 + (currentMapLevel * 0.05);
                 if (Math.random() < 0.5) {
                     //const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * 0.25)));
                     const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * bonusModif)));
@@ -3614,7 +3622,7 @@
 
             let magicLevel = 0;
             if (equipableTypes.includes(itemTemplate.type)) {
-                const bonusModif = 0.25 + (player.level * 0.05);
+                const bonusModif = 0.25 + (currentMapLevel * 0.05);
                 if (Math.random() < 0.5) {
                     //const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * 0.25)));
                     const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * bonusModif)));
@@ -3738,7 +3746,7 @@
         function generateArtifact() {
             // Визначаємо рідкість на основі рівня гравця
             //let rarity = 1;
-            let rarity = getBiasedRarity(player.level);
+            let rarity = getBiasedRarity(currentMapLevel);
 
             // Фільтруємо артефакти і зілля за рідкістю
             let items;
@@ -3782,7 +3790,7 @@
             const enemy = {...enemyTemplate};
             
             // Базова сила ворога залежить від рівня гравця
-            const basePower = 2 + player.level;
+            const basePower = 2 + currentMapLevel;
             let powerMultiplier = 1.5;
             if (enemy.elite) powerMultiplier = 2.1;
             if (enemy.boss) powerMultiplier = 3;
