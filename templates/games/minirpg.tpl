@@ -2374,8 +2374,12 @@
 
                 let goldFound = Math.floor(Math.random() * 5 * player.level) + 5;
                     goldFound = isGoldenChest ? goldFound * 3 : goldFound;
-                let xpFound = Math.floor(Math.random() * 6 * player.level) + 5;
-                    xpFound = isGoldenChest ? xpFound * 3 : xpFound;
+
+                // з одного сундука можна отримати від 3 до 5% досвіду необхідного для отримання рівня але не менше 10 од.
+                // золотий сундук дає 2 рази більше
+                let xpFound = Math.max(10, Math.floor(player.xpToNext * ((3 + Math.random() * 2) / 100)));
+                    xpFound = isGoldenChest ? xpFound * 2 : xpFound;
+
                 player.gold += goldFound;
                 player.xp += xpFound;
 
@@ -2397,7 +2401,7 @@
                     color: '#ff0',
                     fontSize: '20px'
                 });
-                addPopupMessage(`+${goldFound}${addEmojiPlayer('📈')}`, targetOnMap, {
+                addPopupMessage(`+${xpFound}${addEmojiPlayer('📈')}`, targetOnMap, {
                     color: '#ff0',
                     fontSize: '20px',
                     horizontalOffset: -20,
