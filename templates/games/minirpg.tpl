@@ -54,6 +54,30 @@
             background-color: #45a049;
         }
 
+        #levels {
+            height: 354px;
+        }
+
+        #levels .levels-selector {
+            width: 77px;
+            height: 40px;
+            white-space: nowrap;
+            background-color: #222;
+            border-radius: 5px;
+            position: relative;
+            padding: 0px 0px;
+            text-align: center;
+            cursor: pointer;
+            display: inline-block;
+            margin: 4px;
+        }
+        #levels .levels-selector:hover {
+            background-color: #ff9600;
+        }
+        #levels .levels-selector.completed {
+            background-color: green;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -923,7 +947,10 @@
 
             <div class="game-column">
                 <div id="map-container">
-                    <div id="map"></div>
+                    <div id="levels" style="">
+                        <button class="levels-selector" data-level="1">Рівень 1</button>
+                    </div>
+                    <div id="map" style="display:none;"></div>
                     <div id="inventory" style="display:none;">
                         <div>🎒 Інвентар</div>
                         <button id="closeInventoryBtn">❌</button>
@@ -1526,6 +1553,9 @@
         let visitedCells = new Set();
         let terraCognita = new Set();
 
+        // Рівні гри які гравець вже пройшов
+        let levelsCompleted = [];
+
         const sellCoefficient = 0.5;
         const buyCoefficient = 2.0;
         // шанс знайти квиток замість артефакту
@@ -1577,7 +1607,8 @@
             updateStoreBtn: document.getElementById('updateStoreBtn'),
             buttonStoreWrapper: document.getElementById('button-store-wrapper'),
             updateStorePrice: document.getElementById('updateStorePrice'),
-            map: document.getElementById('map')
+            map: document.getElementById('map'),
+            levels: document.getElementById('levels'),
         };
 
         // класичний рандом
@@ -1860,8 +1891,32 @@
             }
         }
 
+        function spawnLevelList() {
+            elements.levels.innerHTML = '';
+            const levelsCounter = levelsCompleted.length + 1;
+
+            for (let i = 0; i < levelsCounter; i++) {
+                const levelNum = i + 1;
+                const isCompleted = levelsCompleted[i] != undefined ? ' completed' : '';
+
+                let temp = document.createElement('div');
+                    temp.innerHTML = `<button class="levels-selector${isCompleted}" data-level="${levelNum}">Рівень ${levelNum}</button>`;
+                let element = temp.firstElementChild;
+                    element.addEventListener('click', () => {
+                        // встановлюєм зачищену кімнату до вибраного рівня
+                        player.clearedRooms = levelNum;
+                        console.log(`clicked ${levelNum}`);
+                        elements.levels.style.display = 'none';
+                        elements.map.style.display = 'grid';
+                        initMap(levelNum);
+                    });
+
+                elements.levels.appendChild(element);
+            }
+        }
+
         // Ініціалізація карти
-        function initMap() {
+        function initMap(mapLevel = 1) {
             gameMap = [];
             enemies = [];
             elements.map.innerHTML = '';
@@ -2480,7 +2535,6 @@
                 { type: 'boss', count: bossCount }
             ];
         }
-
 
         // Додаємо ворогів на карту
         function spawnEnemies() {
@@ -3940,6 +3994,11 @@
                     if (enemies.length < 1) {
                         player.clearedRooms++;
 
+                        // після зачищення кімнати даємо гравцю доступ до кімнати рівня +1
+                        if (!levelsCompleted.includes(player.clearedRooms)) {
+                            levelsCompleted.push(player.clearedRooms);
+                        }
+
                         // кидаєм гравця в рандомне місце, від якого вже і будем малювать мапу
                         player.position = {x: rand(1, mapSize - 2), y: rand(1, mapSize - 2)};
                         const savedData = gatherAllMapData();
@@ -4517,8 +4576,9 @@
             addLog('🧪 Тепер у світі можна знайти 3 види еліксирів:', 'system');
             addLog('🗺️ Клацайте на клітинки карти, щоб рухатись.', 'system');
             
-            // Ініціалізація гри
-            initMap();
+            // Ініціалізація гри з першого рівня
+            spawnLevelList();
+            // initMap(1);
             
             updateStats();
             updateInventory();
