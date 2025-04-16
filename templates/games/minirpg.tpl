@@ -2484,12 +2484,7 @@
 
         // Додаємо ворогів на карту
         function spawnEnemies() {
-            /*const enemyCount = 5 + player.level;
-            // шанс боса залежить від рівня гравця > 3, і варіюється від 0 до 22% ймовірності
-            let bossChance = Math.min(0.22, Math.max(0, (player.level - 3) * 0.03));
-            // шанс елітного залежить від рівня гравця і варіюється від 0 до 40% ймовірності
-            let eliteChance = Math.min(0.4, Math.max(0, player.level * 0.06));*/
-
+            // дані з к-стю ворогів і типами
             enemyCounts = getEnemyTypeCounts(player.level);
             
             enemyCounts.forEach((ec) => {
