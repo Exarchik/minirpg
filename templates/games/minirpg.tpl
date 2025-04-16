@@ -1236,7 +1236,7 @@
 
         let synonyms = [
             // зброя
-            { name: "Дерев'яний меч",   aliases: ["Дубовий меч", "Тренувальник", "Грабовий меч", "Бокуто"] },
+            { name: "Дерев'яний меч",   aliases: ["Дубовий меч", "Тренер", "Грабовий меч", "Бокуто"] },
             { name: "Кинджал",          aliases: ["Ніж", "Стилет", "Лезо", "Малий меч", "Тихий клинок", "Дирк"] },
             { name: "Дубина",           aliases: ["Булава", "Палиця", "Дубець", "Дрючок"] },
             { name: "Сокира",           aliases: ["Топір", "Сокирка", "Рубало", "Колун", "Головоруб", "Сікач"] },
@@ -3963,7 +3963,7 @@
                         }
                         showGameMessage(`Локацію зачищено`, `🎉 Ви зачистили ${player.clearedRooms} локацію від ворогів і отримуєте бонуси!${infoShop}`);
 
-                        spawnArtifacts(2);
+                        //spawnArtifacts(2); занадто жирно
                         spawnChest();
                         spawnFruits(1);
                     }
@@ -4257,8 +4257,26 @@
             }
             const localRandom = Math.random();
 
-            // 31% - art / 23% - chest / 23% - fruits / 15% - xp / 8% - jackpot 
-            if (localRandom < 0.31) {
+            // 0.5% - jackpot / 30.5% - art / 23% - chest / 23% - fruits / 15% - xp / 8% - gold
+            if (localRandom < 0.06) {
+                // 0.5% на лютєйший джекпот потужності 🌟
+                const jackPot = Math.floor(gamblingPrice() * 5);
+                addPopupMessage(`${addEmoji('💰', '64px')}${addEmoji('💰', '64px')}${addEmoji('💰', '64px')}`, elements.gambleBtn, {
+                    horizontalOffset: -76
+                });
+
+                player.gold += jackPot;
+
+                addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
+                    color: '#ff0',
+                    fontSize: '20px',
+                });
+
+                // + 5 мішків золота
+                spawnGold(5);
+                addLog(`🎰🎰🎰💰 Ви зірвали джекпот! ${jackPot} 💰!`, 'loot', 'rgb(127 69 0)');
+
+            } else if (localRandom < 0.31) {
                 // 31% артефакти
                 addPopupMessage(`${addEmoji('🔮', '40px')}`, elements.gambleBtn);
                 spawnArtifacts(1);
