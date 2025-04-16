@@ -673,6 +673,9 @@
             background-color: #1d874c;
             animation: pulse 1.5s infinite;
         }
+        .exit-cell {
+            background-color: #111;
+        }
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
@@ -1110,6 +1113,8 @@
             { type: '🤢', image: 'sick.png' },
             { type: '💪', image: 'muscle.png' },
             { type: '💫', image: 'trap.png' },
+            { type: '🚪', image: 'exit.png' },
+            
                 // перешкоди
             { type: '🗻', image: 'obs-mountain-2.png' },
             { type: '🌳', image: 'obs-tree-3.png' },
@@ -1616,6 +1621,31 @@
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
+        // вибрати єдине випадкове значення з масиву
+        function chooseOne(list) {
+            if (!Array.isArray(list) || list.length === 0) {
+                throw new Error("Input must be a non-empty array");
+            }
+            const index = Math.floor(Math.random() * list.length);
+            return list[index];
+        }
+
+        // Найпростіший та правильний варіант: Fisher–Yates Shuffle
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1)); // випадковий індекс
+                [arr[i], arr[j]] = [arr[j], arr[i]];           // свопаємо
+            }
+            return arr;
+        }
+        // в прототипах їм якось лучшєє буде
+        Array.prototype.shuffle = function () {
+            return shuffleArray(this);
+        };
+        Array.prototype.randOne = function () {
+            return chooseOne(this);
+        };
+
         // дивна рекалькуляція всіх параметрів
         function paramToValue(valuesSum) {
             const raw = 0.6 * Math.pow(valuesSum, 3) + 0.5 * Math.pow(valuesSum, 2) + 4 * valuesSum;
@@ -1658,15 +1688,6 @@
             weapons = newPrices(weapons);
             armors = newPrices(armors);
             artifacts = newPrices(artifacts);
-        }
-
-        // вибрати єдине випадкове значення з масиву
-        function chooseOne(list) {
-            if (!Array.isArray(list) || list.length === 0) {
-                throw new Error("Input must be a non-empty array");
-            }
-            const index = Math.floor(Math.random() * list.length);
-            return list[index];
         }
 
         // 🎲 Вибір з урахуванням шансів
@@ -1903,9 +1924,14 @@
                     temp.innerHTML = `<button class="levels-selector${isCompleted}" data-level="${levelNum}">Рівень ${levelNum}</button>`;
                 let element = temp.firstElementChild;
                     element.addEventListener('click', () => {
+                        // мерців не пускаєм
+                        if (player.health < 1) {
+                            addLog('💀 Спочатку Вам треба ожити!', 'system');
+                            return
+                        }
                         // встановлюєм зачищену кімнату до вибраного рівня
-                        player.clearedRooms = levelNum;
-                        console.log(`clicked ${levelNum}`);
+                        player.clearedRooms = i;
+                        //console.log(`clicked ${levelNum}`);
                         elements.levels.style.display = 'none';
                         elements.map.style.display = 'grid';
                         initMap(levelNum);
@@ -1921,18 +1947,28 @@
             enemies = [];
             elements.map.innerHTML = '';
 
-            player.position = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
+            //player.position = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
+            player.position = {x: rand(1, mapSize - 2), y: rand(1, mapSize - 2)};
             
+            // спалюєм сліди перебування гравця на карті
+            resetTerra();
             // створюєм карту
-            regenerateMap(player.position, 0.55);
-
-            // Додаємо фруктові клітинки при отриманні рівня
+            const savedData = gatherAllMapData();
+            const tmpDensity = 0.45 + Math.random() * 0.15;
+            regenerateMap(player.position, tmpDensity, savedData);
+            // Додаємо харчування
             spawnFruits();
-            
-            // Додаємо ворогів та артефакти на карту
-            spawnEnemies();
-            spawnArtifacts();
+            // сундук ліпший друг
             spawnChest();
+            // Додаємо ворогів
+            spawnEnemies();
+            // прибираєм крамницю з карти
+            deleteStore();
+
+            // та артефакти на карту але тільки для непройденого першого рівня
+            if (mapLevel == 1 && levelsCompleted.length == 0) {
+                spawnArtifacts();
+            }
             updateMap();
         }
 
@@ -2033,6 +2069,11 @@
                         cell.classList.add('obstacle-cell');
                         cell.classList.add('tree-cell');
                         cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
+                    }
+
+                    if (gameMap[y][x].type == 'exit') {
+                        cell.classList.add('exit-cell');
+                        cell.innerHTML = addEmoji(`🚪`, '30px');
                     }
 
                     const enemy = enemies.find(e => e.position.x === x && e.position.y === y);
@@ -2245,6 +2286,13 @@
                 elements.gambleBtn.style.display = 'none';
                 elements.storeBtn.style.display = 'inline-block';
                 //return;
+            }
+
+            // гравець покидає рівень
+            if (gameMap[y][x].type === 'exit') {
+                spawnLevelList();
+                elements.levels.style.display = 'block';
+                elements.map.style.display = 'none';
             }
             
             // Переміщуємо гравця
@@ -2534,6 +2582,35 @@
                 { type: 'elite', count: eliteCount },
                 { type: 'boss', count: bossCount }
             ];
+        }
+
+        // дані по клітинці
+        function getCell(x,y) {
+            if (gameMap[y][x] == undefined) return { type: 'null', emoji: emptyEmoji };
+            return gameMap[y][x];
+        }
+
+        // Спавнимо вихід із локації
+        function spawnExit() {
+            let exitFound = false;
+            let attempts = 0;
+            const obstacles = findCellByTypes('obstacle');
+
+            do {
+                const o = obstacles.randOne().position;
+                if (
+                    getCell(o.x, o.y - 1).type == 'empty' ||
+                    getCell(o.x, o.y + 1).type == 'empty' ||
+                    getCell(o.x - 1, o.y).type == 'empty' ||
+                    getCell(o.x + 1, o.y).type == 'empty'
+                ) {
+                    gameMap[o.y][o.x] = { type: 'exit', emoji: emptyEmoji};
+                    exitFound = true;
+                }
+
+                attempts++;
+                if (attempts > 50) break;
+            } while (!exitFound);
         }
 
         // Додаємо ворогів на карту
@@ -3999,6 +4076,20 @@
                             levelsCompleted.push(player.clearedRooms);
                         }
 
+                        // Спавним - крамничку
+                        let infoShop = '';
+                        if (player.clearedRooms % 2 == 0) {
+                            const newStore = chooseStore();
+                                  infoShop = ` <br>На локації з'явилась ${newStore.emoji} ${newStore.name}`;
+                            
+                            spawnStore(newStore.type);
+                        }
+                        showGameMessage(`Рівень ${player.clearedRooms} зачищено!`, `🎉 Ви зачистили рівень від ворогів!${infoShop}`);
+
+                        // робімо вихід
+                        spawnExit();
+                        updateMap();
+/*
                         // кидаєм гравця в рандомне місце, від якого вже і будем малювать мапу
                         player.position = {x: rand(1, mapSize - 2), y: rand(1, mapSize - 2)};
                         const savedData = gatherAllMapData();
@@ -4011,19 +4102,10 @@
                         // прибираєм крамницю з карти
                         deleteStore();
 
-                        // Спавним - крамничку
-                        let infoShop = '';
-                        if (player.clearedRooms % 2 == 0) {
-                            const newStore = chooseStore();
-                                  infoShop = ` <br>На локації з'явилась ${newStore.emoji} ${newStore.name}`;
-                            
-                            spawnStore(newStore.type);
-                        }
-                        showGameMessage(`Локацію зачищено`, `🎉 Ви зачистили ${player.clearedRooms} локацію від ворогів і отримуєте бонуси!${infoShop}`);
-
                         //spawnArtifacts(2); занадто жирно
                         spawnChest();
                         spawnFruits(1);
+*/
                     }
                     
                     // Перевірка на новий рівень
@@ -4148,6 +4230,11 @@
                 addPopupMessage(`${addEmoji('💀', '40px')}`, document.getElementById('player-on-map'), {
                     fontSize: '40px',
                 });
+
+                // ховаєм карту і викидаєм гравця з карти на вибір рівнів
+                elements.map.style.display = 'none';
+                spawnLevelList();
+                elements.levels.style.display = 'block';
                 return;
             }
         }
