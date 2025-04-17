@@ -54,6 +54,31 @@
             background-color: #45a049;
         }
 
+        #levels {
+            height: 354px;
+        }
+
+        #levels .levels-selector {
+            width: 105px;
+            height: 40px;
+            white-space: nowrap;
+            background-color: #222;
+            border-radius: 5px;
+            position: relative;
+            padding: 0px 0px;
+            text-align: center;
+            cursor: pointer;
+            display: inline-block;
+            margin: 4px;
+        }
+        #levels .levels-selector.completed {
+            background-color: green;
+        }
+        #levels .levels-selector:hover,
+        #levels .levels-selector.completed:hover {
+            background-color: #ff9600;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -598,6 +623,7 @@
         }
         .map-cell.incognita-cell {
             background-color: #333;
+            background-image: none;
         }
         .map-cell {
             width: 33px;
@@ -610,6 +636,7 @@
             cursor: pointer;
             border-radius: 3px;
             transition: all 0.2s;
+            background-image: url(/templates/img/minirpg/clay/grass-2.png)
         }
         .map-cell:not(.sight-cell) {
             opacity: 0.5;
@@ -621,6 +648,7 @@
         }
         .visited-cell {
             background-color: #3a3a3a;
+            filter: brightness(1.15);
         }
         .player-cell {
             background-color: #55f;
@@ -629,25 +657,36 @@
         .player-cell:hover{
             background-color: #55f;
         }
-        .enemy-cell {
-            background-color: rgb(255, 181, 85);
+        .enemy-cell, .elite-cell, .boss-cell {
             animation: pulse 1.5s infinite;
+            z-index: 8;
         }
-        .elite-cell {
-            background-color: rgb(240, 78, 78);
-            animation: pulse 1.5s infinite;
+        .enemy-cell .emoji-sprite {
+            filter: brightness(1.2) drop-shadow(0px 0px 6px rgb(255, 181, 85));
         }
-        .boss-cell {
-            background-color: rgb(255, 0, 0);
-            animation: pulse 1.5s infinite;
+        .elite-cell .emoji-sprite {
+            filter: brightness(1.2) drop-shadow(0px 0px 6px rgb(240, 78, 78));
         }
+        .boss-cell .emoji-sprite {
+            filter: brightness(1.2) drop-shadow(0px 0px 6px rgb(255, 0, 0));
+        }
+
         .artifact-cell {
-            background-color: #f8f;
-            animation: glow 2s infinite;
+            animation: pulse 1.5s infinite;
+            z-index: 10;
+        }
+        .artifact-cell .emoji-sprite {
+            filter: drop-shadow(0 0 7px #f8f);
         }
         .store-cell {
-            background-color: #1d874c;
             animation: pulse 1.5s infinite;
+            z-index: 2;
+        }
+        .store-cell .emoji-sprite {
+            filter: saturate(1.1) drop-shadow(0px 0px 6px green);
+        }
+        .exit-cell {
+            background-color: #111;
         }
         @keyframes pulse {
             0% { transform: scale(1); }
@@ -655,9 +694,9 @@
             100% { transform: scale(1); }
         }
         @keyframes glow {
-            0% { box-shadow: 0 0 5px #f8f; }
-            50% { box-shadow: 0 0 20px #f8f; }
-            100% { box-shadow: 0 0 5px #f8f; }
+            0% { filter: drop-shadow(0 0 2px #f8f); }
+            50% { filter: drop-shadow(0 0 7px #f8f); }
+            100% { filter: drop-shadow(0 0 2px #f8f); }
         }
         #controls {
             margin-top: 10px;
@@ -728,8 +767,12 @@
         .potion-attack { color: #0f0; }
         .potion-defense { color: #00ceff; }
         .potion-cell {
-            background-color: #79c4f7;
-            animation: potion-glow 1s infinite alternate;
+            /*background-color: #79c4f7;
+            animation: potion-glow 1s infinite alternate;*/
+            animation: pulse 1.5s infinite alternate;
+        }
+        .potion-cell .emoji-sprite {
+            filter: drop-shadow(0px 0px 3px #79c4f7);
         }
         @keyframes potion-glow {
             from { box-shadow: 0 0 5px #79c4f7; }
@@ -797,25 +840,39 @@
         .fruit-cell {
             animation: fruit-pulse 2s infinite;
             border-radius: 50%;
+            z-index: 10;
         }
 
-        .chest-cell, .chest-cell:hover{
+        .chest-cell, .chest-cell:hover, .money-cell, .money-cell:hover {
             animation: fruit-pulse 2s infinite;
             border-radius: 50%;
+            z-index: 9;
             color: #fdac0096;
             background-color: #fdac0096;
         }
-
-        @keyframes fruit-pulse {
-            0% { transform: scale(1); box-shadow: 0 0 5px currentColor; }
-            50% { transform: scale(1.1); box-shadow: 0 0 15px currentColor; }
-            100% { transform: scale(1); box-shadow: 0 0 5px currentColor; }
+        .chest-cell .emoji-sprite {
+            filter: brightness(1.1) drop-shadow(0px 0px 6px #ffaa00);
+        }
+        .money-cell .emoji-sprite {
+            filter: brightness(1.1) drop-shadow(0px 0px 6px #b3ff63)
         }
 
+        @keyframes fruit-pulse {
+            0% { transform: scale(1); /*box-shadow: 0 0 5px currentColor;*/ }
+            50% { transform: scale(1.1); /*box-shadow: 0 0 15px currentColor;*/ }
+            100% { transform: scale(1); /*box-shadow: 0 0 5px currentColor;*/ }
+        }
+
+        .map-cell.fruit-cell[data-fruit="25"] .emoji-sprite { filter: brightness(1.2) drop-shadow(0px 0px 6px #ff5555); }
+        .map-cell.fruit-cell[data-fruit="50"] .emoji-sprite { filter: brightness(1.2) drop-shadow(0px 0px 6px #ffaa00); }
+        .map-cell.fruit-cell[data-fruit="100"] .emoji-sprite { filter: brightness(1.2) drop-shadow(0px 0px 6px #673ab7); }
+
         /* Додаткові стилі для різних типів фруктів */
+        /*
         .fruit-cell[data-fruit="25"] { color: #ff555554; background-color: #ff555554; }
         .fruit-cell[data-fruit="50"] { color: #ffaa0054; background-color: #ffaa0054; }
         .fruit-cell[data-fruit="100"] { color: #673ab7c9; background-color: #673ab7c9; }
+        */
 
         /* Перешкоди */
         .obstacle-cell {
@@ -906,7 +963,7 @@
                     <button id="inventoryBtn" style="display: inline-block; min-width: 216px;">🎒 Інвентар <span id='inventoryFullness'>(Пусто)</span> [I]</button>
                     <button id="mapBtn" style="display: none; min-width: 216px;">🗺️ Карта [I]</button>
                     <button id="healBtn" style="display: none;">💊 Лікуватися (10 золота)</button>
-                    <button id="gambleBtn" style="display: inline-block;">🎰 Гемблінг (<span id="gamblePrice">50💰</span>) [G]</button>
+                    <button id="gambleBtn" style="display: none;">🎰 Гемблінг (<span id="gamblePrice">50💰</span>) [G]</button>
                     <button id="storeBtn" style="display: none; min-width: 216px;">🏬 Крамниця [S]</button>
                     <button id="resurrectBtn" style="display: none;">💀 Відродитись [R]</button>
                 </div>
@@ -923,7 +980,10 @@
 
             <div class="game-column">
                 <div id="map-container">
-                    <div id="map"></div>
+                    <div id="levels" style="">
+                        <button class="levels-selector" data-level="1">Рівень 1</button>
+                    </div>
+                    <div id="map" style="display:none;"></div>
                     <div id="inventory" style="display:none;">
                         <div>🎒 Інвентар</div>
                         <button id="closeInventoryBtn">❌</button>
@@ -1083,6 +1143,8 @@
             { type: '🤢', image: 'sick.png' },
             { type: '💪', image: 'muscle.png' },
             { type: '💫', image: 'trap.png' },
+            { type: '🚪', image: 'exit.png' },
+            
                 // перешкоди
             { type: '🗻', image: 'obs-mountain-2.png' },
             { type: '🌳', image: 'obs-tree-3.png' },
@@ -1526,6 +1588,14 @@
         let visitedCells = new Set();
         let terraCognita = new Set();
 
+        // Рівні гри які гравець вже пройшов
+        let levelsCompleted = [];
+        /**
+         * Тепер головний параметр від якого залежить спав всього у грі
+         * Встановлюється виключно через initMap
+         */
+        let currentMapLevel = 1;
+
         const sellCoefficient = 0.5;
         const buyCoefficient = 2.0;
         // шанс знайти квиток замість артефакту
@@ -1577,13 +1647,39 @@
             updateStoreBtn: document.getElementById('updateStoreBtn'),
             buttonStoreWrapper: document.getElementById('button-store-wrapper'),
             updateStorePrice: document.getElementById('updateStorePrice'),
-            map: document.getElementById('map')
+            map: document.getElementById('map'),
+            levels: document.getElementById('levels'),
         };
 
         // класичний рандом
         function rand(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
+
+        // вибрати єдине випадкове значення з масиву
+        function chooseOne(list) {
+            if (!Array.isArray(list) || list.length === 0) {
+                throw new Error("Input must be a non-empty array");
+            }
+            const index = Math.floor(Math.random() * list.length);
+            return list[index];
+        }
+
+        // Найпростіший та правильний варіант: Fisher–Yates Shuffle
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1)); // випадковий індекс
+                [arr[i], arr[j]] = [arr[j], arr[i]];           // свопаємо
+            }
+            return arr;
+        }
+        // в прототипах їм якось лучшєє буде
+        Array.prototype.shuffle = function () {
+            return shuffleArray(this);
+        };
+        Array.prototype.randOne = function () {
+            return chooseOne(this);
+        };
 
         // дивна рекалькуляція всіх параметрів
         function paramToValue(valuesSum) {
@@ -1627,15 +1723,6 @@
             weapons = newPrices(weapons);
             armors = newPrices(armors);
             artifacts = newPrices(artifacts);
-        }
-
-        // вибрати єдине випадкове значення з масиву
-        function chooseOne(list) {
-            if (!Array.isArray(list) || list.length === 0) {
-                throw new Error("Input must be a non-empty array");
-            }
-            const index = Math.floor(Math.random() * list.length);
-            return list[index];
         }
 
         // 🎲 Вибір з урахуванням шансів
@@ -1860,24 +1947,73 @@
             }
         }
 
+        function spawnLevelList() {
+            elements.levels.innerHTML = '';
+            const levelsCounter = levelsCompleted.length + 1;
+
+            for (let i = 0; i < levelsCounter; i++) {
+                const floorNum = i + 1;
+                // б'єм локації по парам на кожен рівень гравця - 2 флори, перший звичайний, другий із крамницею
+                const levelNum = Math.ceil(floorNum / 2);
+                // перевіряєм чи цей рівень вже пройдений
+                const isCompleted = levelsCompleted[i] != undefined ? ' completed' : '';
+                const storeEmoji = (floorNum % 2 == 0) ? addEmoji('🏬') : '';
+
+                let temp = document.createElement('div');
+                    temp.innerHTML = `<button class="levels-selector${isCompleted}" data-level="${levelNum}" data-floor="${floorNum}">
+                                        Рівень ${floorNum} ${storeEmoji}
+                                      </button>`;
+                let element = temp.firstElementChild;
+                    element.addEventListener('click', () => {
+                        // мерців не пускаєм
+                        if (player.health < 1) {
+                            addLog('💀 Спочатку Вам треба ожити!', 'enemy', 'black');
+                            return
+                        }
+                        // встановлюєм зачищену кімнату до вибраного рівня
+                        player.clearedRooms = i;
+                        //console.log(`clicked ${levelNum}`);
+                        elements.levels.style.display = 'none';
+                        elements.map.style.display = 'grid';
+                        elements.gambleBtn.style.display = 'inline-block';
+                        initMap(levelNum);
+                    });
+
+                elements.levels.appendChild(element);
+            }
+        }
+
         // Ініціалізація карти
-        function initMap() {
+        function initMap(mapLevel = 1) {
             gameMap = [];
             enemies = [];
             elements.map.innerHTML = '';
 
-            player.position = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
-            
-            // створюєм карту
-            regenerateMap(player.position, 0.55);
+            // MAIN LEVEL PARAMETER SET
+            currentMapLevel = mapLevel;
 
-            // Додаємо фруктові клітинки при отриманні рівня
-            spawnFruits();
+            //player.position = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
+            player.position = {x: rand(1, mapSize - 2), y: rand(1, mapSize - 2)};
             
-            // Додаємо ворогів та артефакти на карту
-            spawnEnemies();
-            spawnArtifacts();
+            // спалюєм сліди перебування гравця на карті
+            resetTerra();
+            // створюєм карту
+            const savedData = gatherAllMapData();
+            const tmpDensity = 0.45 + Math.random() * 0.15;
+            regenerateMap(player.position, tmpDensity, savedData);
+            // Додаємо харчування
+            spawnFruits();
+            // сундук ліпший друг
             spawnChest();
+            // Додаємо ворогів
+            spawnEnemies();
+            // прибираєм крамницю з карти
+            deleteStore();
+
+            // та артефакти на карту але тільки для непройденого першого рівня
+            if (mapLevel == 1 && levelsCompleted.length == 0) {
+                spawnArtifacts();
+            }
             updateMap();
         }
 
@@ -1980,6 +2116,11 @@
                         cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
                     }
 
+                    if (gameMap[y][x].type == 'exit') {
+                        cell.classList.add('exit-cell');
+                        cell.innerHTML = addEmoji(`🚪`, '30px');
+                    }
+
                     const enemy = enemies.find(e => e.position.x === x && e.position.y === y);
                     if (enemy && isNeighbour(enemy.position, player.position, 3)) {
                         cell.innerHTML = addEmoji(enemy.emoji, '30px');
@@ -2021,6 +2162,8 @@
                         
                         if (gameMap[y][x].type === 'chest') {
                             cell.classList.add('chest-cell');
+                        } else {
+                            cell.classList.add('money-cell');
                         }
                     }
                 }
@@ -2191,6 +2334,14 @@
                 elements.storeBtn.style.display = 'inline-block';
                 //return;
             }
+
+            // гравець покидає рівень
+            if (gameMap[y][x].type === 'exit') {
+                spawnLevelList();
+                elements.levels.style.display = 'block';
+                elements.map.style.display = 'none';
+                elements.gambleBtn.style.display = 'none';
+            }
             
             // Переміщуємо гравця
             player.position = { x, y };
@@ -2355,7 +2506,7 @@
             const targetOnMap = document.querySelector(`.map-cell[data-x="${x}"][data-y="${y}"]`);
             
             if (cell.type === 'treasure') {
-                const goldFound = Math.floor(Math.random() * 10 * player.level) + 5;
+                const goldFound = Math.floor(Math.random() * 10 * currentMapLevel) + 5;
                 player.gold += goldFound;
                 addLog(`💰 Ви знайшли скарб і отримали ${goldFound} золота!`, 'loot');
 
@@ -2372,12 +2523,13 @@
                 const isGoldenChest = cell.emoji == '📦👑';
                 const chestName = isGoldenChest ? `<span style='color:gold; font-weight:bold'>Золотий Сундук</span>` : `сундук`;
 
-                let goldFound = Math.floor(Math.random() * 5 * player.level) + 5;
+                let goldFound = Math.floor(Math.random() * 5 * currentMapLevel) + 5;
                     goldFound = isGoldenChest ? goldFound * 3 : goldFound;
 
                 // з одного сундука можна отримати від 3 до 5% досвіду необхідного для отримання рівня але не менше 10 од.
                 // золотий сундук дає 2 рази більше
-                let xpFound = Math.max(10, Math.floor(player.xpToNext * ((3 + Math.random() * 2) / 100)));
+                const xptoNextByLevelMap = getXpByLevel(currentMapLevel);
+                let xpFound = Math.max(10, Math.floor(xptoNextByLevelMap * ((3 + Math.random() * 2) / 100)));
                     xpFound = isGoldenChest ? xpFound * 2 : xpFound;
 
                 player.gold += goldFound;
@@ -2481,11 +2633,39 @@
             ];
         }
 
+        // дані по клітинці
+        function getCell(x,y) {
+            if (gameMap[y] == undefined || gameMap[y][x] == undefined) return { type: 'null', emoji: emptyEmoji };
+            return gameMap[y][x];
+        }
+
+        // Спавнимо вихід із локації
+        function spawnExit() {
+            let exitFound = false;
+            let attempts = 0;
+            const obstacles = findCellByTypes('obstacle');
+
+            do {
+                const o = obstacles.randOne().position;
+                if (
+                    getCell(o.x, o.y - 1).type == 'empty' ||
+                    getCell(o.x, o.y + 1).type == 'empty' ||
+                    getCell(o.x - 1, o.y).type == 'empty' ||
+                    getCell(o.x + 1, o.y).type == 'empty'
+                ) {
+                    gameMap[o.y][o.x] = { type: 'exit', emoji: emptyEmoji};
+                    exitFound = true;
+                }
+
+                attempts++;
+                if (attempts > 50) break;
+            } while (!exitFound);
+        }
 
         // Додаємо ворогів на карту
         function spawnEnemies() {
             // дані з к-стю ворогів і типами
-            enemyCounts = getEnemyTypeCounts(player.level);
+            enemyCounts = getEnemyTypeCounts(currentMapLevel);
             
             enemyCounts.forEach((ec) => {
                 for (let i = 0; i < ec.count; i++) {
@@ -2551,7 +2731,7 @@
 
         // Додаємо артефакти на карту
         function spawnArtifacts(amount = -1) {
-            const artifactCount = amount == -1 ? (2 + Math.floor(player.level / 3)) : amount;
+            const artifactCount = amount == -1 ? (2 + Math.floor(currentMapLevel / 3)) : amount;
             
             for (let i = 0; i < artifactCount; i++) {
                 let x, y;
@@ -2615,9 +2795,9 @@
             // фруктів не може бути більше 12 штук одночасно
             const maxFuitsAtMap = 12;
             // Кількість фруктів залежить від рівня (або встановленого значення)
-            let fruitCount = amount == -1 ? (2 + Math.floor(player.level / 3)) : amount;
+            let fruitCount = amount == -1 ? (2 + Math.floor(currentMapLevel / 3)) : amount;
             // Рахуєм к-сть харчів
-            let currentFoods = []; for (i=0;i<gameMap.length;i++) { currentFoods.push(...gameMap[i].filter(food => food.type == 'fruit')); }
+            let currentFoods = []; for (i = 0;i < gameMap.length;i++) { currentFoods.push(...gameMap[i].filter(food => food.type == 'fruit')); }
             // Якщо харчів забагато зменшуєм значення спавну
             fruitCount = (currentFoods.length + fruitCount) <= maxFuitsAtMap ? fruitCount : Math.min(0, maxFuitsAtMap - fruitCount);
             
@@ -2642,7 +2822,7 @@
                     const rarityRoll = Math.random();
                     let fruitType;
                     
-                    if (rarityRoll > 0.9 && player.level > 3) {       // 10% шанс на виноград / стейк (рівень > 3)
+                    if (rarityRoll > 0.9 && currentMapLevel > 3) {       // 10% шанс на виноград / стейк (рівень > 3)
                         fruitType = fruits.find(f => f.healPercent === 1.0);
                     } else if (rarityRoll > 0.6) {                   // 30% шанс на банан / піццу
                         fruitType = fruits.find(f => f.healPercent === 0.5);
@@ -3070,36 +3250,58 @@
 
             elements.storeBtn.innerHTML = `${storeData.emoji} ${storeData.name} [S]`;
 
-            // звичайна крамниця
+            // звичайна крамниця з усіма товарами але по троху
             if (storeType == 'general') {
                 for (i = 0; i < itemsToBuy; i++) {
-                    let tmpItem = generateItem(true, undefined, true);
+                    let tmpItem;
+                    // невеличкий шанс на предмет рівнем більше
+                    if (Math.random() < 0.08) tmpItem = generateItemByItem(currentMapLevel + 1, true, undefined, true);
+                    else tmpItem = generateItem(true, undefined, true);
                     if (tmpItem != null) store.push(tmpItem);
                 }
                 for (i = 0; i < additionalArtifacts; i++) {
                     let tmpItem = generateItem(true, undefined, true, artifacts);
                     if (tmpItem != null) store.push(tmpItem);
                 }
+            // зброярня - тільки зброя і броня
             } else if (storeType == 'armory') {
                 for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
                     let tmpItem = generateItem(true, undefined, true, [...weapons, ...armors]);
                     if (tmpItem != null) store.push(tmpItem);
                 }
+            // ювелірка - амулети і кільця
             } else if (storeType == 'jewelry') {
                 for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
                     let tmpItem = generateItem(true, undefined, true, artifacts.filter(a => ['amulet', 'ring'].includes(a.type)));
                     if (tmpItem != null) store.push(tmpItem);
                 }
+            // книгарня - книжечки і дуже рідко якийсь релікт
             } else if (storeType == 'library') {
                 for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
                     let tmpItem = generateItem(true, undefined, true, artifacts.filter(a => ['book'].includes(a.type)));
                     if (tmpItem != null) store.push(tmpItem);
                 }
+                // шось дуже рідкісне на рівень потужніше за рівень мапи
+                if (Math.random() < 0.25) {
+                    let tmpItem = generateItemByItem(currentMapLevel + 1, true, undefined, true, artifacts.filter(a => ['relic'].includes(a.type)));
+                    if (tmpItem != null) store.push(makeItemMagic(tmpItem));
+                }
+                // + рідкісний еліксирчік
+                if (Math.random() < 0.25) {
+                    let tmpItem = {...potions[rand(0, potions.length - 1)]};
+                    if (tmpItem != null) store.push(tmpItem);
+                }
+            // антиквар - релікти і невеличка жменька з амулетів, кілець і книжок
             } else if (storeType == 'antiques') {
-                for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
+                for (i = 0; i < itemsToBuy; i++) {
                     let tmpItem = generateItem(true, undefined, true, artifacts.filter(a => ['relic'].includes(a.type)));
                     if (tmpItem != null) store.push(tmpItem);
                 }
+                for (i = 0; i < additionalArtifacts; i++) {
+                    let tmpItem = generateItem(true, undefined, true, artifacts.filter(a => ['amulet', 'ring', 'book'].includes(a.type)));
+                    if (tmpItem != null) store.push(tmpItem);
+                }
+            // містична лавка - 3 рандомні предмети у перемагічених варіантах
             } else if (storeType == 'mystic') {
                 // 3 рандомні речі подвійної магічності в різних варіаціях
                 let magicItem;
@@ -3357,8 +3559,13 @@
             }
         }
 
-        // Генеруємо випадковий предмет
+        // Звична функція генерації предмета
         function generateItem(isForced = false, rarityBias = -1, mustBeModifed = false, itemHandyPool = null) {
+            return generateItemByItem(currentMapLevel, isForced, rarityBias, mustBeModifed, itemHandyPool);
+        }
+
+        // Генеруємо випадковий предмет
+        function generateItemByItem(itemLevel = 1, isForced = false, rarityBias = -1, mustBeModifed = false, itemHandyPool = null) {
             // 60% шанс отримати предмет
             if (Math.random() > 0.6 && !isForced) return null;
             
@@ -3376,8 +3583,8 @@
                 itemPool = itemHandyPool;
             }
             
-            // Визначаємо рідкість на основі рівня гравця
-            let rarity = getBiasedRarity(player.level, rarityBias);
+            // Визначаємо рідкість на основі рівня левела
+            let rarity = getBiasedRarity(itemLevel, rarityBias);
             // Фільтруємо предмети за рідкістю
             //const availableItems = itemPool.filter(item => item.rarity <= rarity);
             const availableItems = itemPool.filter(item => item.rarity == rarity);
@@ -3385,7 +3592,7 @@
 
             //console.log(rarity);
             if (availableItems.length === 0) {
-                if (isForced && itemHandyPool == null) return generateItem(isForced, rarityBias, mustBeModifed, itemHandyPool);
+                if (isForced && itemHandyPool == null) return generateItemByItem(itemLevel, isForced, rarityBias, mustBeModifed, itemHandyPool);
                 else return null;
             }
             
@@ -3420,7 +3627,7 @@
                 //console.log([`name: ${itemTemplate.name}`]);
 
                 // збільшуєм діапазон можливих значень з кожним рівнем гравця
-                const bonusModif = 0.25 + (player.level * 0.05);
+                const bonusModif = 0.25 + (currentMapLevel * 0.05);
                 if (Math.random() < 0.5) {
                     //const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * 0.25)));
                     const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * bonusModif)));
@@ -3483,7 +3690,7 @@
 
             let magicLevel = 0;
             if (equipableTypes.includes(itemTemplate.type)) {
-                const bonusModif = 0.25 + (player.level * 0.05);
+                const bonusModif = 0.25 + (currentMapLevel * 0.05);
                 if (Math.random() < 0.5) {
                     //const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * 0.25)));
                     const attackParam = rand(1, Math.max(1, Math.floor((itemTemplate.attack || 1) * bonusModif)));
@@ -3607,7 +3814,7 @@
         function generateArtifact() {
             // Визначаємо рідкість на основі рівня гравця
             //let rarity = 1;
-            let rarity = getBiasedRarity(player.level);
+            let rarity = getBiasedRarity(currentMapLevel);
 
             // Фільтруємо артефакти і зілля за рідкістю
             let items;
@@ -3651,7 +3858,7 @@
             const enemy = {...enemyTemplate};
             
             // Базова сила ворога залежить від рівня гравця
-            const basePower = 2 + player.level;
+            const basePower = 2 + currentMapLevel;
             let powerMultiplier = 1.5;
             if (enemy.elite) powerMultiplier = 2.1;
             if (enemy.boss) powerMultiplier = 3;
@@ -3940,6 +4147,25 @@
                     if (enemies.length < 1) {
                         player.clearedRooms++;
 
+                        // після зачищення кімнати даємо гравцю доступ до кімнати рівня +1
+                        if (!levelsCompleted.includes(player.clearedRooms)) {
+                            levelsCompleted.push(player.clearedRooms);
+                        }
+
+                        // Спавним - крамничку
+                        let infoShop = '';
+                        if (player.clearedRooms % 2 == 0) {
+                            const newStore = chooseStore();
+                                  infoShop = ` <br>На локації з'явилась ${newStore.emoji} ${newStore.name}`;
+                            
+                            spawnStore(newStore.type);
+                        }
+                        showGameMessage(`Рівень ${player.clearedRooms} зачищено!`, `🎉 Ви зачистили рівень від ворогів!${infoShop}`);
+
+                        // робімо вихід
+                        spawnExit();
+                        updateMap();
+/*
                         // кидаєм гравця в рандомне місце, від якого вже і будем малювать мапу
                         player.position = {x: rand(1, mapSize - 2), y: rand(1, mapSize - 2)};
                         const savedData = gatherAllMapData();
@@ -3952,19 +4178,10 @@
                         // прибираєм крамницю з карти
                         deleteStore();
 
-                        // Спавним - крамничку
-                        let infoShop = '';
-                        if (player.clearedRooms % 2 == 0) {
-                            const newStore = chooseStore();
-                                  infoShop = ` <br>На локації з'явилась ${newStore.emoji} ${newStore.name}`;
-                            
-                            spawnStore(newStore.type);
-                        }
-                        showGameMessage(`Локацію зачищено`, `🎉 Ви зачистили ${player.clearedRooms} локацію від ворогів і отримуєте бонуси!${infoShop}`);
-
                         //spawnArtifacts(2); занадто жирно
                         spawnChest();
                         spawnFruits(1);
+*/
                     }
                     
                     // Перевірка на новий рівень
@@ -4089,6 +4306,12 @@
                 addPopupMessage(`${addEmoji('💀', '40px')}`, document.getElementById('player-on-map'), {
                     fontSize: '40px',
                 });
+
+                // ховаєм карту і викидаєм гравця з карти на вибір рівнів
+                spawnLevelList();
+                elements.levels.style.display = 'block';
+                elements.map.style.display = 'none';
+                elements.gambleBtn.style.display = 'none';
                 return;
             }
         }
@@ -4517,8 +4740,9 @@
             addLog('🧪 Тепер у світі можна знайти 3 види еліксирів:', 'system');
             addLog('🗺️ Клацайте на клітинки карти, щоб рухатись.', 'system');
             
-            // Ініціалізація гри
-            initMap();
+            // Ініціалізація гри з першого рівня
+            spawnLevelList();
+            // initMap(1);
             
             updateStats();
             updateInventory();
