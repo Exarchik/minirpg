@@ -75,7 +75,9 @@
             background-color: green;
         }
         #levels .levels-selector:hover,
-        #levels .levels-selector.completed:hover {
+        #levels .levels-selector.completed:hover,
+        #levels .levels-selector:focus,
+        #levels .levels-selector.completed:focus {
             background-color: #ff9600;
         }
 
@@ -270,7 +272,7 @@
         }
         #store-items {
             overflow-y: auto;
-            height: 100%;
+            height: 91%;
             margin-top: 6px;
         }
 
@@ -401,7 +403,7 @@
             z-index: 20;
             right: 10px;
             top: 0px;
-            padding: 3px 3px 0px 3px;
+            padding: 2px 3px 2px 3px;
             color: #000;
             background-color: #555;
         }
@@ -1034,6 +1036,7 @@
             isBattle: false,
             inInventory: false,
             inStore: false, // чи відкрито меню крамниці?
+            inLevelSelection: true, // в меню вибору рівня
             atStore: false, // чи гравець стоїть біля крамниці?
             clearedRooms: 0, // кількість зачищенних "кімнат"
             position: { x: 0, y: 0 },
@@ -1972,6 +1975,7 @@
                         }
                         // встановлюєм зачищену кімнату до вибраного рівня
                         player.clearedRooms = i;
+                        player.inLevelSelection = false;
                         //console.log(`clicked ${levelNum}`);
                         elements.levels.style.display = 'none';
                         elements.map.style.display = 'grid';
@@ -1981,6 +1985,8 @@
 
                 elements.levels.appendChild(element);
             }
+
+            document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
         }
 
         // Ініціалізація карти
@@ -2338,9 +2344,13 @@
             // гравець покидає рівень
             if (gameMap[y][x].type === 'exit') {
                 spawnLevelList();
+
+                // виходим на вибір рівнів
+                player.inLevelSelection = true;
                 elements.levels.style.display = 'block';
                 elements.map.style.display = 'none';
                 elements.gambleBtn.style.display = 'none';
+                document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
             }
             
             // Переміщуємо гравця
@@ -3486,11 +3496,11 @@
             const rarityTable = [
                 { 'rarity': 1, 'playerLevel': 1 },
                 { 'rarity': 2, 'playerLevel': 3 },
-                { 'rarity': 3, 'playerLevel': 6 },
-                { 'rarity': 4, 'playerLevel': 9 },
-                { 'rarity': 5, 'playerLevel': 12 },
-                { 'rarity': 6, 'playerLevel': 15 },
-                { 'rarity': 7, 'playerLevel': 18 },
+                { 'rarity': 3, 'playerLevel': 5 },
+                { 'rarity': 4, 'playerLevel': 7 },
+                { 'rarity': 5, 'playerLevel': 9 },
+                { 'rarity': 6, 'playerLevel': 11 },
+                { 'rarity': 7, 'playerLevel': 13 },
             ];
 
             // 1. Відфільтровуємо лише ті rarity, які <= рівню гравця
@@ -4309,9 +4319,14 @@
 
                 // ховаєм карту і викидаєм гравця з карти на вибір рівнів
                 spawnLevelList();
+
+                // виходим на вибір рівнів
+                player.inLevelSelection = true;
                 elements.levels.style.display = 'block';
                 elements.map.style.display = 'none';
                 elements.gambleBtn.style.display = 'none';
+
+                document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
                 return;
             }
         }
@@ -4652,9 +4667,15 @@
             if (player.inInventory) {
                 elements.log.classList.add('log-shorted');
                 elements.log.scrollTop = elements.log.scrollHeight;
+                if (player.inLevelSelection) {
+                    elements.levels.style.display = 'none';
+                }
             } else {
                 elements.log.classList.remove('log-shorted');
                 elements.log.scrollTop = elements.log.scrollHeight;
+                if (player.inLevelSelection) {
+                    elements.levels.style.display = 'block';
+                }
             }
         }
 
@@ -4678,9 +4699,15 @@
             if (player.inStore) {
                 elements.log.classList.add('log-shorted');
                 elements.log.scrollTop = elements.log.scrollHeight;
+                if (player.inLevelSelection) {
+                    elements.levels.style.display = 'none';
+                }
             } else {
                 elements.log.classList.remove('log-shorted');
                 elements.log.scrollTop = elements.log.scrollHeight;
+                if (player.inLevelSelection) {
+                    elements.levels.style.display = 'block';
+                }
             }
         }
 
@@ -4705,11 +4732,22 @@
             // buttons 
             document.addEventListener("keydown", (e) => {
                 // player moving
-                if (!player.inInventory) {
+                if (!player.inInventory && !player.inLevelSelection) {
                     if (e.code === "ArrowUp") movePlayer(player.position.x, player.position.y - 1);
                     if (e.code === "ArrowRight") movePlayer(player.position.x + 1, player.position.y);
                     if (e.code === "ArrowDown") movePlayer(player.position.x, player.position.y + 1);
                     if (e.code === "ArrowLeft") movePlayer(player.position.x - 1, player.position.y);
+                } else if (player.inLevelSelection) {
+                    if (e.code === "ArrowUp" || e.code === "ArrowRight") {
+                        levelSelected++;
+                        levelSelected = levelSelected > (levelsCompleted.length + 1) ? 1 : levelSelected;
+                        document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
+                    }
+                    if (e.code === "ArrowDown" || e.code === "ArrowLeft") {
+                        levelSelected--;
+                        levelSelected = levelSelected < 1 ? (levelsCompleted.length + 1) : levelSelected;
+                        document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
+                    }
                 }
                 // gambling
                 if (e.code === "KeyG") gamble();
@@ -4764,6 +4802,8 @@
 
             requestAnimationFrame(mainLoop);
         }
+
+        let levelSelected = 1;
         mainLoop();
     </script>
     {/ignore}
