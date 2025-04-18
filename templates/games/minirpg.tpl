@@ -406,6 +406,9 @@
             padding: 2px 3px 2px 3px;
             color: #000;
             background-color: #555;
+
+            /*hide*/
+            display: none;
         }
 
         #button-store-wrapper {
@@ -419,8 +422,8 @@
             left: 0;
             width: 100%;
             height: 2px;
-            background: #ff4900;
-            transform: rotate(-5deg);
+            background: red;
+            transform: rotate(5deg);
             transform-origin: center;
             pointer-events: none;
         }
@@ -430,7 +433,7 @@
             background-color: transparent;
             margin: 0 0 0 10px;
         }
-        #updateStoreBtn.tickets {
+        #updateStoreBtn.tickets, #slot-button.tickets {
             background-color: #005aff;
         }
         #button-store-wrapper.disabled button#updateStoreBtn {
@@ -638,7 +641,7 @@
             cursor: pointer;
             border-radius: 3px;
             transition: all 0.2s;
-            background-image: url(/templates/img/minirpg/clay/grass-2.png)
+            background-image: url(/templates/img/minirpg/clay/floor.png)
         }
         .map-cell:not(.sight-cell) {
             opacity: 0.5;
@@ -702,6 +705,9 @@
         }
         #controls {
             margin-top: 10px;
+
+            /* hide */
+            display: none;
         }
         .flex-container {
             display: flex;
@@ -740,7 +746,6 @@
             position: absolute;
             top: 0px;
             left: -7px;
-            background: #ff0000;
             color: white;
             font-size: 12px;
             font-weight: bold;
@@ -750,6 +755,15 @@
             clip-path: polygon(0 0, 100% 0, 100% 100%, 8% 100%);
             pointer-events: none;
             z-index: 30;
+        }
+        .item-slot .promo-tag.promo-95 {
+            background: #ff0000;
+        }
+        .item-slot .promo-tag.promo-75 {
+            background: #ff7800;
+        }
+        .item-slot .promo-tag.promo-50 {
+            background: #0aab27;
         }
         
         /* Стилі для критичної шкоди */
@@ -909,7 +923,285 @@
         .popup-info .emoji-replaced {
             padding-bottom: 6px;
         }
+
+        @media (max-width: 1024px) {
+
+            body {
+                padding: 0;
+                margin: 0;
+                max-height: 405px;
+            }
+            .main-container {
+                margin: 2px;
+                max-height: 405px;
+            }
+            .container-fluid {
+                padding: 0;
+                max-height: 405px;
+            }
+            .flex-container {
+                max-height: 405px;
+            }
+            #game {
+                padding: 2px;
+                max-height: 405px;
+            }
+            #battle-view {
+                transform: scale(0.6);
+                transform-origin: top center;
+                position: absolute;
+                top: -3%;
+                left: -7%;
+                width: 64%;
+            }
+            #controls {
+                position: absolute;
+                transform: scale(0.6);
+                transform-origin: top center;
+                top: 30%;
+                text-align: left;
+                left: -2%;
+            }
+            #equipment {
+                transform: scale(0.6);
+                transform-origin: top center;
+                position: absolute;
+                width: 66%;
+                top: 42%;
+                left: -8%;
+            }
+            #log {
+                display: none !important;
+            }
+            #map {
+                transform: scale(0.9);
+            }
+        }
+
     </style>
+
+    <style>
+        #slot-machine {
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 25px;
+        }
+        #slot-machine #slot-result {
+            margin-top: 19px;
+        }
+        
+        #slot-machine .slots {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        #slot-machine .slot {
+            font-size: 64px;
+            width: 80px;
+            height: 80px;
+            border: 4px solid #aaa;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s ease;
+        }
+
+        #tabs {
+            margin-bottom: 10px;
+        }
+        #tabs button {
+            padding: 8px 12px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        #tabs button.active {
+            background: #4285f4;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+
+    {ignore}
+    <script>
+        const slotItems = [
+            { emoji: '🌟', name: 'Джекпот', reward2: 'Золоті монети' },
+            { emoji: '🔮', name: 'Артефакт', reward2: 'Артефакт!' },
+            { emoji: '📦', name: 'Сундук', reward2: 'Сундук!' },
+            { emoji: '💰', name: 'Гроші', reward2: 'Два мішки золота!' },
+            { emoji: '🍎', name: 'Їжа', reward2: 'Випадкова їжа!' },
+            { emoji: '📈', name: 'Досвід', reward2: 'Трохи досвіду!' },
+        ];
+
+        function spinSlot() {
+            // якщо немає ні золота ні квитків
+            if (player.gold < gamblingPrice() && player.tickets < 1) {
+                addLog(`🎰❌ У вас немає ${gamblingPrice()} 💰 золота!`, 'system');
+                addPopupMessage(`${addEmoji('❌', '40px')}`, elements.slotButton);
+                return;
+            }
+
+            const slots = document.querySelectorAll('.slot');
+            const results = [];
+            let spinIntervals = [];
+
+            if (player.tickets < 1) {
+                player.gold -= gamblingPrice();
+            } else {
+                player.tickets--;
+            }
+            updateStats();
+
+            document.getElementById('slot-result').innerHTML = `&nbsp;`;
+
+            slots.forEach((slot, index) => {
+                let count = 0;
+                const maxSpins = 20 + Math.floor(Math.random() * 10) + index * 5;
+
+                const interval = setInterval(() => {
+                const random = slotItems[Math.floor(Math.random() * slotItems.length)];
+                slot.innerHTML = addEmoji(random.emoji, '64px');
+                slot.style.transform = `scale(${1 + Math.random() * 0.2})`;
+                count++;
+
+                if (count >= maxSpins) {
+                    clearInterval(interval);
+                    slot.style.transform = 'scale(1.2)';
+                    setTimeout(() => slot.style.transform = 'scale(1)', 150);
+                    results[index] = random;
+                    if (results.length === 3 && !results.includes(undefined)) {
+                        checkWin(results);
+                    }
+                }
+                }, 100);
+
+                spinIntervals.push(interval);
+            });
+        }
+
+        function checkWin(results) {
+            const emojis = results.map(r => r.emoji);
+            const names = results.map(r => r.name);
+            const allSame = emojis.every(e => e === emojis[0]);
+            
+            let slotResult = document.getElementById('slot-result');
+
+            let winResult = { emoji: '', count: 0};
+            if (allSame) {
+                slotResult.innerHTML = `🎉 Джекпот! Випало: ${addEmoji(emojis[0])} ${addEmoji(emojis[0])} ${addEmoji(emojis[0])}`;
+
+                winResult = { emoji: emojis[0], count: 3};
+            } else if (emojis[0] === emojis[1] || emojis[0] === emojis[2] || emojis[1] === emojis[2]) {
+
+                const resultEmoji = (emojis[0] === emojis[1] || emojis[0] === emojis[2]) ? emojis[0] : emojis[1];
+                const resultReward2 = slotItems.find(s => s.emoji == resultEmoji).reward2;
+
+                winResult = { emoji: resultEmoji, count: 2};
+
+                slotResult.innerHTML = `Пара: ${addEmoji(resultEmoji)} + ${addEmoji(resultEmoji)} Нагорода: ${resultReward2}`;
+            } else {
+                slotResult.innerHTML = `Співпадінь немає`;
+
+                winResult = { emoji: emojis[0], count: 1};
+            }
+
+            doVictory(winResult);
+        }
+
+        // all victories logic
+        // gamble(
+        function doVictory(winResult) {
+            if (winResult.count === 2) {
+                if (winResult.emoji == `🌟`) {
+                    const jackPot = Math.floor(gamblingPrice() * 2);
+
+                    player.gold += jackPot;
+                    addPopupMessage(`${addEmoji('🌟', '40px')}`, elements.slotButton);
+                    addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {color: '#ff0',fontSize: '20px'});
+                    addLog(`🎰🌟🌟💰 Дві зірки! +${jackPot} 💰!`, 'slot-machine', 'rgb(127 69 0)');
+                } else if (winResult.emoji == `🔮`) {
+                    spawnArtifacts(1);
+                    addPopupMessage(`${addEmoji('🔮', '40px')}`, elements.slotButton);
+                    addLog(`🎰🔮🔮 На карті з'явився артефакт!!!`, 'slot-machine', 'rgb(127 69 0)');
+                } else if (winResult.emoji == `📦`) {
+                    spawnChest();
+                    addPopupMessage(`${addEmoji('📦', '40px')}`, elements.slotButton);
+                    addLog(`🎰📦📦 На карті з'явився сундук!!!`, 'slot-machine', 'rgb(127 69 0)');
+                } else if (winResult.emoji == `💰`) {
+                    spawnGold(2);
+                    addPopupMessage(`${addEmoji('💰', '40px')}`, elements.slotButton);
+                    addLog(`🎰💰💰 На карті з'явились 2 мішки золота!!!`, 'slot-machine', 'rgb(127 69 0)');
+                } else if (winResult.emoji == `🍎`) {
+                    spawnFruits(2);
+                    addPopupMessage(`${addEmoji('🍎', '40px')}`, elements.slotButton);
+                    addLog(`🎰🍎🍎 На карті з'явились їжа!!!`, 'slot-machine', 'rgb(127 69 0)');
+                } else if (winResult.emoji == `📈`) {
+                    const randomXpParam = Math.random();
+                    const maxXpOnLevel = 24 * player.level + (5 + player.level * 4);
+                    const minXpOnLevel = Math.floor(maxXpOnLevel * 0.5);
+
+                    const addingXp = rand(minXpOnLevel, maxXpOnLevel);
+                    player.xp += addingXp;
+                    
+                    addPopupMessage(`${addEmoji('📈', '40px')}`, elements.slotButton);
+                    addPopupMessage(`+${addingXp}${addEmojiPlayer('📈')}`, elements.playerEmoji, {color: '#ff0',fontSize: '20px'});
+                    addLog(`🎰📈📈 Ви отримали ${addingXp} досвіду!!!`, 'slot-machine', 'rgb(127 69 0)');
+                }
+            } else if (winResult.count === 3) {
+                if (winResult.emoji == `🌟` || winResult.emoji == `💰`) {
+                    const jackPot = Math.floor(gamblingPrice() * 5);
+                    addPopupMessage(`${addEmoji('💰', '64px')}${addEmoji('💰', '64px')}${addEmoji('💰', '64px')}`, elements.slotButton, {
+                        horizontalOffset: -76
+                    });
+
+                    player.gold += jackPot;
+
+                    addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
+                        color: '#ff0',
+                        fontSize: '20px',
+                    });
+
+                    // + 5 мішків золота
+                    spawnGold(5);
+                    addLog(`🎰🎰🎰💰 Ви зірвали джекпот! ${jackPot} 💰!`, 'slot-machine', 'rgb(127 69 0)');
+                } else if (winResult.emoji == `🔮`) {
+                    spawnArtifacts(3);
+                    addPopupMessage(`${addEmoji('🔮', '64px')}${addEmoji('🔮', '64px')}${addEmoji('🔮', '64px')}`, elements.slotButton, {
+                        horizontalOffset: -76
+                    });
+                    addLog(`🎰🔮🔮🔮 На карті з'явились 3 артефакти!!!`, 'slot-machine', 'rgb(127 69 0)');
+                } else if (winResult.emoji == `📦`) {
+                    spawnChest(true);
+                    spawnChest(true);
+                    spawnChest(true);
+                    addPopupMessage(`${addEmoji('📦👑', '64px')}${addEmoji('📦👑', '64px')}${addEmoji('📦👑', '64px')}`, elements.slotButton, {
+                        horizontalOffset: -76
+                    });
+                    addLog(`🎰📦📦📦 На карті з'явились 3 золоті сундуки!!!`, 'slot-machine', 'rgb(127 69 0)');
+                } else if (winResult.emoji == `💰`) {
+                    spawnGold(5);
+                    addPopupMessage(`${addEmoji('💰', '64px')}${addEmoji('💰', '64px')}${addEmoji('💰', '64px')}`, elements.slotButton, {
+                        horizontalOffset: -76
+                    });
+                    addLog(`🎰💰💰💰 На карті з'явились 5 мішків золота!!!`, 'slot-machine', 'rgb(127 69 0)');
+                } else if (winResult.emoji == `🍎`) {
+                    spawnFruits(6);
+                    addPopupMessage(`${addEmoji('🍎', '64px')}${addEmoji('🍎', '64px')}${addEmoji('🍎', '64px')}`, elements.slotButton, {
+                        horizontalOffset: -76
+                    });
+                    addLog(`🎰🍎🍎🍎 На карті з'явились багато їжі !!`, 'slot-machine', 'rgb(127 69 0)');
+                }
+            } else {
+                addLog(`🎰 Пощастить наступного разу!`, 'slot-machine', 'rgb(127 69 0)');
+            }
+            updateStats();
+            updateMap();
+        }
+
+    </script>
+    {/ignore}
     <div id="game">
         <!--<h1>🏰 Емодзі RPG з артефактами 🏰</h1>-->
         
@@ -965,7 +1257,7 @@
                     <button id="inventoryBtn" style="display: inline-block; min-width: 216px;">🎒 Інвентар <span id='inventoryFullness'>(Пусто)</span> [I]</button>
                     <button id="mapBtn" style="display: none; min-width: 216px;">🗺️ Карта [I]</button>
                     <button id="healBtn" style="display: none;">💊 Лікуватися (10 золота)</button>
-                    <button id="gambleBtn" style="display: none;">🎰 Гемблінг (<span id="gamblePrice">50💰</span>) [G]</button>
+                    <button id="gambleBtn" style="display: none;">🎰 Гемблінг (<span id="gamblePrice-old">50💰</span>) [G]</button>
                     <button id="storeBtn" style="display: none; min-width: 216px;">🏬 Крамниця [S]</button>
                     <button id="resurrectBtn" style="display: none;">💀 Відродитись [R]</button>
                 </div>
@@ -981,11 +1273,21 @@
             </div>
 
             <div class="game-column">
+                <div id="tabs">
+                    <button data-tab="levels">Рівні</button>
+                    <button data-tab="map-block">Карта</button>
+                    <button data-tab="inventory">Інвентар</button>
+                    <button data-tab="store">Крамниця</button>
+                    <button data-tab="slots">Гемблінг</button>
+                </div>
+
                 <div id="map-container">
                     <div id="levels" style="">
                         <button class="levels-selector" data-level="1">Рівень 1</button>
                     </div>
-                    <div id="map" style="display:none;"></div>
+                    <div id="map-block">
+                        <div id="map" style="display:none;"></div>
+                    </div>
                     <div id="inventory" style="display:none;">
                         <div>🎒 Інвентар</div>
                         <button id="closeInventoryBtn">❌</button>
@@ -998,6 +1300,17 @@
                         </div>
                         <button id="closeStoreBtn">❌</button>
                         <div id="store-items"></div>
+                    </div>
+                    <div id="slots" style="display:none;">
+                        <div id="slot-machine">
+                            <div class="slots">
+                              <div class="slot">&nbsp;</div>
+                              <div class="slot">&nbsp;</div>
+                              <div class="slot">&nbsp;</div>
+                            </div>
+                            <button id="slot-button" onclick="spinSlot()">Крутити (<span id="gamblePrice">25💰</span>) [G]!</button>
+                            <div id="slot-result">&nbsp;</div>
+                          </div>
                     </div>
                 </div>
                 
@@ -1042,7 +1355,7 @@
             position: { x: 0, y: 0 },
             get attack() {
                 let attack = this.baseAttack;
-                if (this.equipment.weapon) attack += this.equipment.weapon.attack;
+                if (this.equipment.weapon) attack += (this.equipment.weapon.attack || 0);
                 if (this.equipment.armor) attack += (this.equipment.armor.attack || 0);
                 if (this.equipment.ring) attack += (this.equipment.ring.attack || 0);
                 if (this.equipment.amulet) attack += (this.equipment.amulet.attack || 0);
@@ -1052,7 +1365,7 @@
             },
             get defense() {
                 let defense = this.baseDefense;
-                if (this.equipment.armor) defense += this.equipment.armor.defense;
+                if (this.equipment.armor) defense += (this.equipment.armor.defense || 0);
                 if (this.equipment.weapon) defense += (this.equipment.weapon.defense || 0);
                 if (this.equipment.ring) defense += (this.equipment.ring.defense || 0);
                 if (this.equipment.amulet) defense += (this.equipment.amulet.defense || 0);
@@ -1162,12 +1475,13 @@
             { type: '🍕', image: 'pizza.png' },
             { type: '🥩', image: 'meat.png' },
                 // weapon
+            { type: '🏒', subtype: 1, image: 'weapon-staff.png' },
             { type: '🗡', subtype: 1, image: 'wooden-sword.png' },
             { type: '🔪', subtype: 1, image: 'weapon-dagger.png' },
             { type: '🏏', subtype: 3, image: 'weapon-club.png' },
             { type: '🪓', subtype: 4, image: 'weapon-axe.png' },
             { type: '🔱', subtype: 5, image: 'weapon-spear.png' },
-            { type: '🗡️', subtype: 6, image: 'weapon-sword.old.png' },
+            { type: '🗡️', subtype: 6, image: 'weapon-sword-old.png' },
             { type: '🗡️', subtype: 14, image: 'weapon-sword.png' },
             { type: '🏏', subtype: 7, image: 'weapon-flail.png' },
             { type: '🔨', subtype: 8, image: 'weapon-hammer.png' },
@@ -1301,6 +1615,7 @@
 
         let synonyms = [
             // зброя
+            { name: "Посох",            aliases: ["Тростина", "Патериця"] },
             { name: "Дерев'яний меч",   aliases: ["Дубовий меч", "Тренер", "Грабовий меч", "Бокуто"] },
             { name: "Кинджал",          aliases: ["Ніж", "Стилет", "Лезо", "Малий меч", "Тихий клинок", "Дирк"] },
             { name: "Дубина",           aliases: ["Булава", "Палиця", "Дубець", "Дрючок"] },
@@ -1352,8 +1667,9 @@
         ];
 
 
-        // Оновлена база даних зброї з параметрами критичної шкоди
+        // Оновлена база даних зброї з параметрами критичної шкоди 
         let weapons = [
+            { name: "Посох", emoji: "🏒",          subtype: 1,            critChance: 0.1, rarity: 1, value: 5, type: "weapon" },
             { name: "Дерев'яний меч", emoji: "🗡",  subtype: 1, attack: 1, critChance: 0.03, rarity: 1, value: 5, type: "weapon" },
             { name: "Кинджал", emoji: "🔪",         subtype: 2, attack: 2, critChance: 0.15, rarity: 2, value: 25, type: "weapon" },
             { name: "Дубина", emoji: "🏏",          subtype: 3, attack: 3, critChance: 0.08, rarity: 2, value: 45, type: "weapon" },
@@ -1618,6 +1934,7 @@
             log: document.getElementById('log'),
             healBtn: document.getElementById('healBtn'),
             gambleBtn: document.getElementById('gambleBtn'),
+            slotButton: document.getElementById('slot-button'),
             gamblePrice: document.getElementById('gamblePrice'),
             resurrectBtn: document.getElementById('resurrectBtn'),
             inventoryBtn: document.getElementById('inventoryBtn'),
@@ -1815,6 +2132,7 @@
                         imgData = {...imgData2};
                     }
                 }
+
                 const baseSize = icons.frames[imgData.image].sourceSize.w;//64;
                 const scaling = parseInt(size) / baseSize;
 
@@ -1980,6 +2298,8 @@
                         elements.levels.style.display = 'none';
                         elements.map.style.display = 'grid';
                         elements.gambleBtn.style.display = 'inline-block';
+
+                        tabManager.setTab(['map-block', 'inventory', 'slots']);
                         initMap(levelNum);
                     });
 
@@ -2327,8 +2647,10 @@
                 pickUpFruit(x, y);
                 return;
             }
+
             // Перевіряємо чи є крамниця
             player.atStore = false;
+            tabManager.removeTab('store');
             if (player.health > 0) {
                 elements.gambleBtn.style.display = 'inline-block';
                 elements.storeBtn.style.display = 'none';
@@ -2338,6 +2660,8 @@
                 player.atStore = true;
                 elements.gambleBtn.style.display = 'none';
                 elements.storeBtn.style.display = 'inline-block';
+
+                tabManager.addTab('store');
                 //return;
             }
 
@@ -2350,6 +2674,9 @@
                 elements.levels.style.display = 'block';
                 elements.map.style.display = 'none';
                 elements.gambleBtn.style.display = 'none';
+
+                tabManager.setTab(['levels', 'inventory']);
+
                 document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
             }
             
@@ -3029,13 +3356,7 @@
             elements.playerXpBar.style.width = `${playerXpPercent}%`;
 
             // оновлюєм кнопку гембла
-            if (player.tickets < 1) {
-                elements.gamblePrice.innerHTML = `${gamblingPrice()}${addEmoji('💰', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')}`;
-                elements.gambleBtn.classList.remove('tickets');
-            } else {
-                elements.gamblePrice.innerHTML = `${player.tickets}${addEmoji('🎟️', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')}`;
-                elements.gambleBtn.classList.add('tickets');
-            }
+            updateGamblePrice();
         }
 
         function signedValue(value) {
@@ -3217,7 +3538,7 @@
             return `
                 <div class="inventory-item ${magicClass}">
                     <div class="item-name">${inventoryIndex}${item.name}</div>
-                    ${buyPricePromo != 0 ? '<div class="promo-tag">-75%</div>' : ''}
+                    ${buyPricePromo != 0 ? `<div class="promo-tag promo-${item.promoPercent}">-${item.promoPercent}%</div>` : ''}
                     <div class="item-image">${itemEmoji}</div>
                     ${equipmentShadowImage}
                     <div class="item-desc">
@@ -3258,7 +3579,7 @@
 
             const storeData = storeTypes.find(e => e.type == storeType);
 
-            elements.storeBtn.innerHTML = `${storeData.emoji} ${storeData.name} [S]`;
+            elements.storeBtn.innerHTML = `${storeData.emoji} ${storeData.name} L:${currentMapLevel} [S]`;
 
             // звичайна крамниця з усіма товарами але по троху
             if (storeType == 'general') {
@@ -3318,7 +3639,7 @@
                 for (j = 0; j < 3 ; j++) {
                     magicItem = chooseOne(artifacts);
                     for (i = 0; i < rand(1, 4); i++) {
-                        store.push(makeItemMagic(makeItemMagic(magicItem)));
+                        store.push(makeItemMagicNew(magicItem, 0.45));
                     }
                 }
             }
@@ -3326,7 +3647,8 @@
             // додаєм товар зі знижкою
             store.forEach((storeItem) => {
                 if (Math.random() < promoChance) {
-                    storeItem.promoValue = Math.max(1, Math.floor(storeItem.value * 0.25));
+                    storeItem.promoPercent = [50, 75, 95].randOne();
+                    storeItem.promoValue = Math.max(1, Math.floor(storeItem.value * (1 - storeItem.promoPercent / 100)));
                 }
             });
 
@@ -3497,10 +3819,10 @@
                 { 'rarity': 1, 'playerLevel': 1 },
                 { 'rarity': 2, 'playerLevel': 3 },
                 { 'rarity': 3, 'playerLevel': 5 },
-                { 'rarity': 4, 'playerLevel': 7 },
-                { 'rarity': 5, 'playerLevel': 9 },
-                { 'rarity': 6, 'playerLevel': 11 },
-                { 'rarity': 7, 'playerLevel': 13 },
+                { 'rarity': 4, 'playerLevel': 8 },
+                { 'rarity': 5, 'playerLevel': 11 },
+                { 'rarity': 6, 'playerLevel': 14 },
+                { 'rarity': 7, 'playerLevel': 17 },
             ];
 
             // 1. Відфільтровуємо лише ті rarity, які <= рівню гравця
@@ -3622,8 +3944,84 @@
             };
         }
 
+        // нова логіка створення магічного предмету
+        // bonusRarity 0.0 - 1.0
+        function makeItemMagicNew(magicItem, bonusRarity = 0) {
+            // якщо предмет не з пулу екіпуємих - повертаєм його без змін
+            if (!equipableTypes.includes(magicItem.type)) return magicItem;
+
+            let itemTemplate = {...magicItem};
+            // Особливі параметри
+            //let itemSpecialParams = {};
+            if (itemTemplate['specialParams'] == undefined) itemTemplate['specialParams'] = {};
+
+            const mainRandomValue = Math.min(1.0, Math.random() + bonusRarity);
+            //console.log([`ITEM CHANCE: ${mainRandomValue}`]);
+
+            // встановлюєм рівні магічності предмету
+            let magicLevel = 0;
+            if (mainRandomValue < 0.6) magicLevel = 1;
+            else if (mainRandomValue < 0.9) magicLevel = 2;
+            else magicLevel = 3;
+
+            for (ml = 0; ml < magicLevel; ml++) {
+                itemTemplate = addRandomItemParam(itemTemplate);
+            }
+
+            if (magicLevel > 0) {
+                itemTemplate.status = 'magic';
+                itemTemplate.magicLevel = magicLevel;
+                // підбираєм синоніми
+                itemTemplate.name = findSynonym(itemTemplate.name);
+
+                if (itemTemplate.type == 'book') {
+                    itemTemplate.name = `"${generateBookTitle()}"`;
+                    itemTemplate.subtype = rand(1, booksCounter);
+                }
+            }
+
+            itemTemplate.value = newPriceForItem(itemTemplate);
+            return itemTemplate;
+        }
+
+        function addRandomItemParam(itemTemplate) {
+            let newItem = {...itemTemplate};
+
+            const bonusType = ['attack', 'defense', 'maxHealth'].randOne();
+            const bonusModif = 0.25 + (currentMapLevel * 0.05);
+
+            if (bonusType == 'attack') {
+                const attackParam = rand(1, Math.max(1, Math.floor((newItem.attack || 1) * bonusModif)));
+                //console.log([`${newItem.name} => spec attack: ${(newItem.attack || 0)} + ${attackParam}`]);
+
+                newItem.attack = (newItem.attack || 0) + attackParam;
+                newItem['specialParams']['hue-rotate'] = rand(0, 359);
+                if (newItem.type == 'weapon') {
+                    newItem.critChance += Math.random() * 0.15;
+                }
+            } else if (bonusType == 'defense') {
+                const defenseParam = rand(1, Math.max(1, Math.floor((newItem.defense || 1) * bonusModif)));
+                //console.log([`${newItem.name} => spec defense: ${(newItem.defense || 0)} + ${defenseParam}`]);
+
+                newItem.defense = (newItem.defense || 0) + defenseParam;
+                newItem['specialParams']['contrast'] = rand(80, 150) / 100;
+            } else if (bonusType == 'maxHealth') {
+                const maxHealthParam = rand(1, Math.max(1, Math.floor((newItem.maxHealth || 1) * bonusModif)));
+                //console.log([`${newItem.name} => spec health: ${(newItem.maxHealth || 0)} + ${maxHealthParam}`]);
+
+                newItem.maxHealth = (newItem.maxHealth || 0) + maxHealthParam;
+                newItem['specialParams']['brightness'] = rand(80, 150) / 100;
+            }
+
+            return newItem;
+        }
+
         // робим звичайний предмет магічним
         function makeItemMagic(magicItem) {
+
+            // test
+            return makeItemMagicNew(magicItem);
+
             // є мізерний шанс отримати проклятий предмет
             if (Math.random() < 0.05) return makeItemCursed(magicItem);
 
@@ -4306,8 +4704,6 @@
             if (player.health <= 0) {
                 // Показуєм кнопку відродження
                 elements.resurrectBtn.style.display = 'inline-block';
-                // Ховаєм кнопку гемблінга
-                elements.gambleBtn.style.display = 'none';
 
                 elements.playerEmoji.style.filter = `grayscale(100%)`;
                 addLog(message, 'system');
@@ -4324,9 +4720,11 @@
                 player.inLevelSelection = true;
                 elements.levels.style.display = 'block';
                 elements.map.style.display = 'none';
+                // Ховаєм кнопку гемблінга
                 elements.gambleBtn.style.display = 'none';
 
-                document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
+                tabManager.setTab(['levels', 'inventory']);
+
                 return;
             }
         }
@@ -4451,8 +4849,18 @@
             return false;
         }
 
+        function updateGamblePrice () {
+            if (player.tickets < 1) {
+                elements.gamblePrice.innerHTML = `${gamblingPrice()}${addEmoji('💰', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')}`;
+                elements.slotButton.classList.remove('tickets');
+            } else {
+                elements.gamblePrice.innerHTML = `${player.tickets}${addEmoji('🎟️', '20px', undefined, 'vertical-align: text-bottom!important; margin-left: 4px;')}`;
+                elements.slotButton.classList.add('tickets');
+            }
+        }
+
         function gamblingPrice() {
-            return player.level * 50;
+            return player.level * 25;
         }
 
         // Лікування
@@ -4582,8 +4990,10 @@
 
             // Ховаємо кнопку Відродження
             elements.resurrectBtn.style.display = 'none';
-            // Показуєм кнопку гемблінга
-            elements.gambleBtn.style.display = 'inline-block';
+            // Показуєм кнопку гемблінга nope
+            // elements.gambleBtn.style.display = 'inline-block';
+            // фокусуємось на останньому рівні
+            document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
 
             elements.playerEmoji.style.filter = `grayscale(0%)`;
             // втрачаєте 25% золота і 20% досвіду рівня
@@ -4647,6 +5057,16 @@
             updateStats();
         }
 
+        function changeLogSize(sizeType = 'normal') {
+            if (sizeType == 'small') {
+                elements.log.classList.add('log-shorted');
+                elements.log.scrollTop = elements.log.scrollHeight;
+            } else {
+                elements.log.classList.remove('log-shorted');
+                elements.log.scrollTop = elements.log.scrollHeight;
+            }
+        }
+
         function toogleInventory() {
             // змінюєм статус "Гравець в інвентарі"
             player.inInventory = !player.inInventory;
@@ -4657,6 +5077,7 @@
             elements.store.style.display = 'none';
             // ховаєм мапу
             elements.map.style.display = player.inInventory ? 'none' : 'grid';
+            if (player.inLevelSelection) elements.map.style.display = 'none';
 
             // ховаєм кнопку інвентаря
             //elements.inventoryBtn.style.display = player.inInventory ? 'none' : 'inline-block';
@@ -4687,7 +5108,7 @@
 
             // назва
             const currentStore = storeTypes.find(e => e.type == currentStoreType);
-            if (currentStore != null) elements.storeName.innerHTML = `${currentStore.emoji} ${currentStore.name}`;
+            if (currentStore != null) elements.storeName.innerHTML = `${currentStore.emoji} ${currentStore.name} Рівень:${currentMapLevel}`;
 
             // відображаєм крамницю
             elements.store.style.display = player.inStore ? 'block' : 'none';
@@ -4712,6 +5133,9 @@
         }
 
         function beginAll() {
+            // даєм діду паличку
+            player.equipment['weapon'] = weapons[0];
+
             // Обробники подій
             elements.healBtn.addEventListener('click', heal);
             elements.gambleBtn.addEventListener('click', gamble);
@@ -4732,7 +5156,7 @@
             // buttons 
             document.addEventListener("keydown", (e) => {
                 // player moving
-                if (!player.inInventory && !player.inLevelSelection) {
+                /*if (!player.inInventory && !player.inLevelSelection) {
                     if (e.code === "ArrowUp") movePlayer(player.position.x, player.position.y - 1);
                     if (e.code === "ArrowRight") movePlayer(player.position.x + 1, player.position.y);
                     if (e.code === "ArrowDown") movePlayer(player.position.x, player.position.y + 1);
@@ -4748,11 +5172,34 @@
                         levelSelected = levelSelected < 1 ? (levelsCompleted.length + 1) : levelSelected;
                         document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
                     }
+                }*/
+                if (tabManager.getActiveTab() == 'map-block') {
+                    if (e.code === "ArrowUp") movePlayer(player.position.x, player.position.y - 1);
+                    if (e.code === "ArrowRight") movePlayer(player.position.x + 1, player.position.y);
+                    if (e.code === "ArrowDown") movePlayer(player.position.x, player.position.y + 1);
+                    if (e.code === "ArrowLeft") movePlayer(player.position.x - 1, player.position.y);
+                } else if (tabManager.getActiveTab() == 'levels') {
+                    if (e.code === "ArrowUp" || e.code === "ArrowRight") {
+                        levelSelected++;
+                        levelSelected = levelSelected > (levelsCompleted.length + 1) ? 1 : levelSelected;
+                        document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
+                    }
+                    if (e.code === "ArrowDown" || e.code === "ArrowLeft") {
+                        levelSelected--;
+                        levelSelected = levelSelected < 1 ? (levelsCompleted.length + 1) : levelSelected;
+                        document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
+                    }
                 }
                 // gambling
-                if (e.code === "KeyG") gamble();
-                if (e.code === "KeyI") toogleInventory();
-                if (e.code === "KeyS" && player.atStore) toogleStore();
+                if (e.code === "KeyG") {
+                    if (tabManager.getActiveTab() == 'slots') spinSlot();//gamble();
+                    else tabManager.clickTab('slots');
+                };
+                if (e.code === "KeyI") tabManager.clickTab('inventory');/* toogleInventory();*/
+                if (e.code === "KeyS") tabManager.clickTab('store');
+                if (e.code === "KeyM") tabManager.clickTab('map-block');
+                if (e.code === "KeyL") tabManager.clickTab('levels');
+                //if (e.code === "KeyS" && player.atStore) toogleStore();
 
                 // resurrect
                 if (e.code === "KeyR" && player.health < 1) { resurrect(); }
@@ -4765,7 +5212,8 @@
                     const itemIndex = parseInt(e.code.split("Digit")[1]) - 1;
 
                     // якщо тицнем цифру із Shift - то автоматично продаєм її, але лише якщо гравець дивиться у інвентар
-                    if (e.shiftKey && player.inventory[itemIndex] != null && player.inInventory) sellItem(itemIndex);
+                    //if (e.shiftKey && player.inventory[itemIndex] != null && player.inInventory) sellItem(itemIndex);
+                    if (e.shiftKey && player.inventory[itemIndex] != null && tabManager.getActiveTab() == 'inventory') sellItem(itemIndex);
                     // якщо тицнем цифру із Alt - то знімаєм вдягнену річ (1-зброя / 2-броня / 3-кільце / 4-амулет / 5-книга / 6-реліквія)
                     else if (e.altKey) unequipItem(itemIndex);
                     // якщо просто тиснем цифру з рюкзака, то вона вдягнеться/використається
@@ -4805,5 +5253,112 @@
 
         let levelSelected = 1;
         mainLoop();
+
+
+        // таби
+        const tabsInfo = [
+            { ident: 'levels',      name: 'Рівні [L]'},
+            { ident: 'map-block',   name: 'Карта [M]'},
+            { ident: 'inventory',   name: 'Інвентар [I]', funcs: [updateInventory]},
+            { ident: 'store',       name: 'Крамниця [S]', funcs: [updateStore]},
+            { ident: 'slots',       name: 'Гемблінг [G]', funcs: [updateGamblePrice]},
+        ];
+
+        const tabManager = (() => {
+            let tabsContainer = document.getElementById('tabs');
+            let tabs = []; // список табів { name, button }
+
+            function renderTabs() {
+                tabsContainer.innerHTML = '';
+                tabs.forEach(tab => tabsContainer.appendChild(tab.button));
+            }
+
+            function setActiveTab(ident) {
+                tabs.forEach(tab => {
+                    const isActive = tab.ident === ident;
+                    tab.button.classList.toggle('active', isActive);
+                    tab.active = isActive;
+
+                    const panel = document.getElementById(tab.ident);
+                    if (panel) {
+                        panel.style.display = isActive ? 'block' : 'none';
+                    }
+
+                    if (isActive) {
+                        const tabInfo = {...tabsInfo.find(t => t.ident == ident)};
+                        if (tabInfo.funcs != undefined) {
+                            tabInfo.funcs.forEach(func => func());
+                        }
+                    }
+                });
+
+                if (['inventory', 'store'].includes(ident)) {
+                    changeLogSize('small');
+                } else {
+                    changeLogSize();
+                }
+            }
+
+            function getActiveTab() {
+                return tabs.find(t => t.active).ident;
+            }
+
+            function clickTab(ident) {
+                if (tabs.find(t => t.ident == ident)) {
+                    tabs.find(t => t.ident == ident).button.click();
+                }
+            }
+
+            function addTab(ident) {
+                if (tabs.some(t => t.ident === ident)) return;
+
+                const panel = document.getElementById(ident);
+                if (!panel) return;
+
+                const button = document.createElement('button');
+
+                button.textContent = tabsInfo.find(t => t.ident == ident).name;
+                button.dataset.tab = ident;
+                button.addEventListener('click', () => setActiveTab(ident));
+
+                tabs.push({ ident, button, active: false });
+                renderTabs();
+
+                if (tabs.length === 1) setActiveTab(ident);
+            }
+
+            function removeTab(ident) {
+                const index = tabs.findIndex(t => t.ident === ident);
+                if (index === -1) return;
+
+                tabs[index].button.remove();
+                tabs.splice(index, 1);
+                renderTabs();
+
+                if (tabs[0]) setActiveTab(tabs[0].ident);
+            }
+
+            function setTab(idents = []) {
+                tabs.forEach(t => t.button.remove());
+                tabs = [];
+                renderTabs();
+                idents.forEach(addTab);
+            }
+
+            return {
+                getActiveTab,
+                clickTab,
+                addTab,
+                removeTab,
+                setTab
+            };
+        })();
+
+        function logCaller() {
+            return new Error().stack.split('\n')[2].match(/at (\w+)/)?.[1];
+        }
+
+
+        tabManager.setTab(['levels', 'inventory']);
     </script>
     {/ignore}
