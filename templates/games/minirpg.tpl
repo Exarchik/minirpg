@@ -983,30 +983,44 @@
     <style>
         #slot-machine {
             text-align: center;
-            margin-top: 50px;
-            margin-bottom: 25px;
+            margin-top: 40px;
+            margin-bottom: 30px;
         }
-        #slot-machine #slot-result {
-            margin-top: 19px;
-        }
-        
-        #slot-machine .slots {
+        .slot-machine {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 10px;
             margin-bottom: 20px;
         }
-        
-        #slot-machine .slot {
+        #slot-result {
+            margin-top: 20px;
+        }
+        .slot-window {
+            width: 80px;
+            height: 80px;
+            overflow: hidden;
+            border: 3px solid #aaa;
+            border-radius: 10px;
+            background: #111;
+        }
+        .slot-strip {
+            display: flex;
+            flex-direction: column;
+            transform: translateY(0);
+            transition: transform 1s ease-out;
+        }
+        .slot-strip div {
             font-size: 64px;
             width: 80px;
             height: 80px;
-            border: 4px solid #aaa;
-            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.1s ease;
+            line-height: 80px;
+        }
+        #slot-button:disabled {
+            background-color: grey;
+            cursor: default;
         }
 
         #tabs {
@@ -1035,6 +1049,19 @@
             { emoji: '📈', name: 'Досвід', reward2: 'Трохи досвіду!' },
         ];
 
+        const totalSymbols = 30;
+        const symbolHeight = 80;
+
+        function generateStripHTML(finalSymbol) {
+            const strip = [];
+            for (let i = 0; i < totalSymbols; i++) {
+                const symbol = addEmoji(slotItems[Math.floor(Math.random() * slotItems.length)].emoji, '64px');
+                strip.push(`<div>${symbol}</div>`);
+            }
+            strip.push(`<div>${finalSymbol}</div>`);
+            return strip.join('');
+        }
+
         function spinSlot() {
             // якщо немає ні золота ні квитків
             if (player.gold < gamblingPrice() && player.tickets < 1) {
@@ -1043,10 +1070,6 @@
                 return;
             }
 
-            const slots = document.querySelectorAll('.slot');
-            const results = [];
-            let spinIntervals = [];
-
             if (player.tickets < 1) {
                 player.gold -= gamblingPrice();
             } else {
@@ -1054,31 +1077,49 @@
             }
             updateStats();
 
+            const results = [];
+            const btn = document.getElementById('slot-button');
             document.getElementById('slot-result').innerHTML = `&nbsp;`;
+            btn.disabled = true;
+            const scrollTimes = [
+                2 + Math.random() * 2,
+                2 + Math.random() * 2,
+                2 + Math.random() * 2
+            ];
+            const summaryTimes = [
+                scrollTimes[0] + 0.15,
+                scrollTimes[1] + 0.3,
+                scrollTimes[2] + 0.45,
+            ];
 
-            slots.forEach((slot, index) => {
-                let count = 0;
-                const maxSpins = 20 + Math.floor(Math.random() * 10) + index * 5;
+            for (let i = 1; i <= 3; i++) {
+                setTimeout(() => {
+                const strip = document.getElementById(`slot${i}`);
+                const finalSymbol = slotItems[Math.floor(Math.random() * slotItems.length)];
+                results[i - 1] = finalSymbol;
 
-                const interval = setInterval(() => {
-                const random = slotItems[Math.floor(Math.random() * slotItems.length)];
-                slot.innerHTML = addEmoji(random.emoji, '64px');
-                slot.style.transform = `scale(${1 + Math.random() * 0.2})`;
-                count++;
+                strip.innerHTML = generateStripHTML(addEmoji(finalSymbol.emoji, '64px'));
 
-                if (count >= maxSpins) {
-                    clearInterval(interval);
-                    slot.style.transform = 'scale(1.2)';
-                    setTimeout(() => slot.style.transform = 'scale(1)', 150);
-                    results[index] = random;
-                    if (results.length === 3 && !results.includes(undefined)) {
+                strip.style.transition = 'none';
+                strip.style.transform = `translateY(0px)`;
+                void strip.offsetWidth;
+
+                const targetIndex = totalSymbols;
+                const offset = targetIndex * symbolHeight + 3;
+                const scrollTime = scrollTimes[i - 1];
+
+                strip.style.transition = `transform ${scrollTime}s ease-out`;
+                strip.style.transform = `translateY(-${offset}px)`;
+
+                // Після завершення останнього барабана
+                if (i === 3) {
+                    setTimeout(() => {
+                        btn.disabled = false;
                         checkWin(results);
+                        }, Math.ceil(Math.max(...summaryTimes) * 1000));
                     }
-                }
-                }, 100);
-
-                spinIntervals.push(interval);
-            });
+                }, i * 150); // затримка між барабанами
+            }
         }
 
         function checkWin(results) {
@@ -1120,23 +1161,23 @@
                     player.gold += jackPot;
                     addPopupMessage(`${addEmoji('🌟', '40px')}`, elements.slotButton);
                     addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {color: '#ff0',fontSize: '20px'});
-                    addLog(`🎰🌟🌟💰 Дві зірки! +${jackPot} 💰!`, 'slot-machine', 'rgb(127 69 0)');
+                    addLog(`🎰🌟🌟💰 Дві зірки! +${jackPot} 💰!`, 'slots', 'rgb(127 69 0)');
                 } else if (winResult.emoji == `🔮`) {
                     spawnArtifacts(1);
                     addPopupMessage(`${addEmoji('🔮', '40px')}`, elements.slotButton);
-                    addLog(`🎰🔮🔮 На карті з'явився артефакт!!!`, 'slot-machine', 'rgb(127 69 0)');
+                    addLog(`🎰🔮🔮 На карті з'явився артефакт!!!`, 'slots', 'rgb(127 69 0)');
                 } else if (winResult.emoji == `📦`) {
                     spawnChest();
                     addPopupMessage(`${addEmoji('📦', '40px')}`, elements.slotButton);
-                    addLog(`🎰📦📦 На карті з'явився сундук!!!`, 'slot-machine', 'rgb(127 69 0)');
+                    addLog(`🎰📦📦 На карті з'явився сундук!!!`, 'slots', 'rgb(127 69 0)');
                 } else if (winResult.emoji == `💰`) {
                     spawnGold(2);
                     addPopupMessage(`${addEmoji('💰', '40px')}`, elements.slotButton);
-                    addLog(`🎰💰💰 На карті з'явились 2 мішки золота!!!`, 'slot-machine', 'rgb(127 69 0)');
+                    addLog(`🎰💰💰 На карті з'явились 2 мішки золота!!!`, 'slots', 'rgb(127 69 0)');
                 } else if (winResult.emoji == `🍎`) {
                     spawnFruits(2);
                     addPopupMessage(`${addEmoji('🍎', '40px')}`, elements.slotButton);
-                    addLog(`🎰🍎🍎 На карті з'явились їжа!!!`, 'slot-machine', 'rgb(127 69 0)');
+                    addLog(`🎰🍎🍎 На карті з'явились їжа!!!`, 'slots', 'rgb(127 69 0)');
                 } else if (winResult.emoji == `📈`) {
                     const randomXpParam = Math.random();
                     const maxXpOnLevel = 24 * player.level + (5 + player.level * 4);
@@ -1147,7 +1188,7 @@
                     
                     addPopupMessage(`${addEmoji('📈', '40px')}`, elements.slotButton);
                     addPopupMessage(`+${addingXp}${addEmojiPlayer('📈')}`, elements.playerEmoji, {color: '#ff0',fontSize: '20px'});
-                    addLog(`🎰📈📈 Ви отримали ${addingXp} досвіду!!!`, 'slot-machine', 'rgb(127 69 0)');
+                    addLog(`🎰📈📈 Ви отримали ${addingXp} досвіду!!!`, 'slots', 'rgb(127 69 0)');
                 }
             } else if (winResult.count === 3) {
                 if (winResult.emoji == `🌟` || winResult.emoji == `💰`) {
@@ -1165,13 +1206,13 @@
 
                     // + 5 мішків золота
                     spawnGold(5);
-                    addLog(`🎰🎰🎰💰 Ви зірвали джекпот! ${jackPot} 💰!`, 'slot-machine', 'rgb(127 69 0)');
+                    addLog(`🎰🎰🎰💰 Ви зірвали джекпот! ${jackPot} 💰!`, 'slots', 'rgb(127 69 0)');
                 } else if (winResult.emoji == `🔮`) {
                     spawnArtifacts(3);
                     addPopupMessage(`${addEmoji('🔮', '64px')}${addEmoji('🔮', '64px')}${addEmoji('🔮', '64px')}`, elements.slotButton, {
                         horizontalOffset: -76
                     });
-                    addLog(`🎰🔮🔮🔮 На карті з'явились 3 артефакти!!!`, 'slot-machine', 'rgb(127 69 0)');
+                    addLog(`🎰🔮🔮🔮 На карті з'явились 3 артефакти!!!`, 'slots', 'rgb(127 69 0)');
                 } else if (winResult.emoji == `📦`) {
                     spawnChest(true);
                     spawnChest(true);
@@ -1179,22 +1220,22 @@
                     addPopupMessage(`${addEmoji('📦👑', '64px')}${addEmoji('📦👑', '64px')}${addEmoji('📦👑', '64px')}`, elements.slotButton, {
                         horizontalOffset: -76
                     });
-                    addLog(`🎰📦📦📦 На карті з'явились 3 золоті сундуки!!!`, 'slot-machine', 'rgb(127 69 0)');
+                    addLog(`🎰📦📦📦 На карті з'явились 3 золоті сундуки!!!`, 'slots', 'rgb(127 69 0)');
                 } else if (winResult.emoji == `💰`) {
                     spawnGold(5);
                     addPopupMessage(`${addEmoji('💰', '64px')}${addEmoji('💰', '64px')}${addEmoji('💰', '64px')}`, elements.slotButton, {
                         horizontalOffset: -76
                     });
-                    addLog(`🎰💰💰💰 На карті з'явились 5 мішків золота!!!`, 'slot-machine', 'rgb(127 69 0)');
+                    addLog(`🎰💰💰💰 На карті з'явились 5 мішків золота!!!`, 'slots', 'rgb(127 69 0)');
                 } else if (winResult.emoji == `🍎`) {
                     spawnFruits(6);
                     addPopupMessage(`${addEmoji('🍎', '64px')}${addEmoji('🍎', '64px')}${addEmoji('🍎', '64px')}`, elements.slotButton, {
                         horizontalOffset: -76
                     });
-                    addLog(`🎰🍎🍎🍎 На карті з'явились багато їжі !!`, 'slot-machine', 'rgb(127 69 0)');
+                    addLog(`🎰🍎🍎🍎 На карті з'явились багато їжі !!`, 'slots', 'rgb(127 69 0)');
                 }
             } else {
-                addLog(`🎰 Пощастить наступного разу!`, 'slot-machine', 'rgb(127 69 0)');
+                addLog(`🎰 Пощастить наступного разу!`, 'slots', 'rgb(127 69 0)');
             }
             updateStats();
             updateMap();
@@ -1303,14 +1344,14 @@
                     </div>
                     <div id="slots" style="display:none;">
                         <div id="slot-machine">
-                            <div class="slots">
-                              <div class="slot">&nbsp;</div>
-                              <div class="slot">&nbsp;</div>
-                              <div class="slot">&nbsp;</div>
+                            <div class="slot-machine">
+                              <div class="slot-window"><div class="slot-strip" id="slot1"></div></div>
+                              <div class="slot-window"><div class="slot-strip" id="slot2"></div></div>
+                              <div class="slot-window"><div class="slot-strip" id="slot3"></div></div>
                             </div>
                             <button id="slot-button" onclick="spinSlot()">Крутити (<span id="gamblePrice">25💰</span>) [G]!</button>
                             <div id="slot-result">&nbsp;</div>
-                          </div>
+                        </div>
                     </div>
                 </div>
                 
