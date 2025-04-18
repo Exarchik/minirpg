@@ -2,7 +2,7 @@
     <script>
         let icons = {};
         // отримуємо всі іконкі з атласу. дякую: https://www.codeandweb.com/free-sprite-sheet-packer
-        fetch('/templates/img/minirpg/clay/spritesheet.json')
+        fetch('/templates/img/minirpg/clay/spritesheet.json?v=2')
             .then(response => response.json())
             .then(data => {
                 // спочатку підгружаєм всі іконки
@@ -181,7 +181,7 @@
         }
 
         #log {
-            height: 17vh;
+            height: 156px;
             overflow-y: scroll;
             border: 1px solid #444;
             padding: 5px 10px;
@@ -1027,14 +1027,21 @@
             margin-bottom: 10px;
         }
         #tabs button {
-            padding: 8px 12px;
-            margin-right: 5px;
+            padding: 5px 7px;
+            margin-right: 0px;
             cursor: pointer;
         }
         #tabs button.active {
             background: #4285f4;
             color: white;
             font-weight: bold;
+        }
+        #tabs button span.tab-desc {
+            margin-bottom: 6px;
+            display: inline-block;
+            margin-left: 7px;
+            font-size: 14px;
+            font-weight: normal;
         }
     </style>
 
@@ -1233,10 +1240,24 @@
                         horizontalOffset: -76
                     });
                     addLog(`🎰🍎🍎🍎 На карті з'явились багато їжі !!`, 'slots', 'rgb(127 69 0)');
+                } else if (winResult.emoji == `📈`) {
+                    const randomXpParam = Math.random();
+                    const maxXpOnLevel = 24 * player.level + (5 + player.level * 4);
+                    const minXpOnLevel = Math.floor(maxXpOnLevel * 0.5);
+
+                    const addingXp = Math.floor(rand(minXpOnLevel, maxXpOnLevel) * 2.5);
+                    player.xp += addingXp;
+                    
+                    addPopupMessage(`${addEmoji('📈', '64px')}${addEmoji('📈', '64px')}${addEmoji('📈', '64px')}`, elements.slotButton, {
+                        horizontalOffset: -76
+                    });
+                    addPopupMessage(`+${addingXp}${addEmojiPlayer('📈')}`, elements.playerEmoji, {color: '#ff0',fontSize: '20px'});
+                    addLog(`🎰📈📈📈 Ви отримали ${addingXp} досвіду!!!`, 'slots', 'rgb(127 69 0)');
                 }
             } else {
                 addLog(`🎰 Пощастить наступного разу!`, 'slots', 'rgb(127 69 0)');
             }
+            checkLevelUp();
             updateStats();
             updateMap();
         }
@@ -1501,7 +1522,7 @@
             { type: '💪', image: 'muscle.png' },
             { type: '💫', image: 'trap.png' },
             { type: '🚪', image: 'exit.png' },
-            
+            { type: '❌', image: 'cancel.png' },
                 // перешкоди
             { type: '🗻', image: 'obs-mountain-2.png' },
             { type: '🌳', image: 'obs-tree-3.png' },
@@ -1509,6 +1530,11 @@
                 // крамниця 🏬
             { type: '🏬', image: 'store.png' },
             { type: '🎟️', image: 'ticket.png' },
+            { type: '🗺️', image: 'map.png' },
+            { type: '🎒', image: 'inventory.png' },
+            { type: '🌐', image: 'levels.png' },
+            { type: '🎰', image: 'slot-machine.png' },
+            //
                 // фрукти
             { type: '🍎', image: 'red-apple.png' },
             { type: '🍌', image: 'banana.png' },
@@ -5279,6 +5305,8 @@
             // робимо перерахунок для всіх предметів
             recalculateAllPrices()
             elements.enemyEmoji.innerHTML = addEmoji('👺', '64px', undefined, 'filter: grayscale(1) invert(1); opacity: 0.1;');
+
+            tabManager.setTab(['levels', 'inventory']);
         }
 
         // спам повідомленнь
@@ -5298,11 +5326,11 @@
 
         // таби
         const tabsInfo = [
-            { ident: 'levels',      name: 'Рівні [L]'},
-            { ident: 'map-block',   name: 'Карта [M]'},
-            { ident: 'inventory',   name: 'Інвентар [I]', funcs: [updateInventory]},
-            { ident: 'store',       name: 'Крамниця [S]', funcs: [updateStore]},
-            { ident: 'slots',       name: 'Гемблінг [G]', funcs: [updateGamblePrice]},
+            { ident: 'levels',      name: 'Рівні', emoji: '🌐', keyCode: 'L'},
+            { ident: 'map-block',   name: 'Карта', emoji: '🗺️', keyCode: 'M'},
+            { ident: 'inventory',   name: 'Інвентар', emoji: '🎒', keyCode: 'I', funcs: [updateInventory]},
+            { ident: 'store',       name: 'Крамниця', emoji: '🏬', keyCode: 'S', funcs: [updateStore]},
+            { ident: 'slots',       name: 'Гемблінг', emoji: '🎰', keyCode: 'G', funcs: [updateGamblePrice]},
         ];
 
         const tabManager = (() => {
@@ -5357,8 +5385,10 @@
                 if (!panel) return;
 
                 const button = document.createElement('button');
+                const tabInfo = tabsInfo.find(t => t.ident == ident);
 
-                button.textContent = tabsInfo.find(t => t.ident == ident).name;
+                button.innerHTML = `${addEmoji(tabInfo.emoji, '32px')}<span class="tab-desc"> ${tabInfo.name} [${tabInfo.keyCode}]</span>`;
+                button.title = tabInfo.name;
                 button.dataset.tab = ident;
                 button.addEventListener('click', () => setActiveTab(ident));
 
@@ -5398,8 +5428,5 @@
         function logCaller() {
             return new Error().stack.split('\n')[2].match(/at (\w+)/)?.[1];
         }
-
-
-        tabManager.setTab(['levels', 'inventory']);
     </script>
     {/ignore}
