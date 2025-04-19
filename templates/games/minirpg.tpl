@@ -1,17 +1,19 @@
     {ignore}
     <script>
         let icons = {};
+        let maskIcons = {};
         // отримуємо всі іконкі з атласу. дякую: https://www.codeandweb.com/free-sprite-sheet-packer
-        fetch('/templates/img/minirpg/clay/spritesheet.json?v=2')
-            .then(response => response.json())
-            .then(data => {
-                // спочатку підгружаєм всі іконки
-                icons = data;
-                // лише потім стартуєм ВСЬО!
-                beginAll();
-            })
-            .catch(error => {
-            console.error('Помилка завантаження JSON:', error);
+        Promise.all([
+            fetch('/templates/img/minirpg/clay/spritesheet.json').then(res => res.json()),
+            fetch('/templates/img/minirpg/clay/_mask-spritesheet.json').then(res => res.json())
+        ]).then(([data, dataMask]) => {
+            // спочатку підгружаєм всі іконки
+            icons = data;
+            maskIcons = dataMask;
+            // лише потім стартуєм ВСЬО!
+            beginAll();
+        }).catch(err => {
+            console.error('Помилка при завантаженні JSON:', err);
         });
     </script>
     {/ignore}
@@ -99,6 +101,10 @@
             background-image: url('/templates/img/minirpg/clay/spritesheet.png');
             background-size: auto; /* або вказати розміри атласу */
         }
+        .emoji-sprite.emoji-mask {
+            background-image: url('/templates/img/minirpg/clay/_mask-spritesheet.png');
+            position: absolute;
+        }
 
         .modal-header {
             display: block;
@@ -109,6 +115,9 @@
             top: -78px;
             background-color: #222;
             font-size: 20px;
+        }
+        .modal.danger .modal-header {
+            border: 2px solid #ff0000;
         }
         .modal-content {
             background-color: #333;
@@ -122,8 +131,11 @@
             animation: modalWindowFadeIn 0.3s;
             text-align: center;
         }
+        .modal.danger .modal-content {
+            border: 2px solid #ff0000;
+        }
 
-        .modal-button {
+        .modal .modal-button {
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -134,6 +146,9 @@
             font-family: 'Courier New', monospace;
             font-size: 16px;
             transition: background-color 0.3s;
+        }
+        .modal.danger .modal-button {
+            background-color: red;
         }
 
         .modal-button:hover {
@@ -883,13 +898,6 @@
         .map-cell.fruit-cell[data-fruit="50"] .emoji-sprite { filter: brightness(1.2) drop-shadow(0px 0px 6px #ffaa00); }
         .map-cell.fruit-cell[data-fruit="100"] .emoji-sprite { filter: brightness(1.2) drop-shadow(0px 0px 6px #673ab7); }
 
-        /* Додаткові стилі для різних типів фруктів */
-        /*
-        .fruit-cell[data-fruit="25"] { color: #ff555554; background-color: #ff555554; }
-        .fruit-cell[data-fruit="50"] { color: #ffaa0054; background-color: #ffaa0054; }
-        .fruit-cell[data-fruit="100"] { color: #673ab7c9; background-color: #673ab7c9; }
-        */
-
         /* Перешкоди */
         .obstacle-cell {
             cursor: not-allowed;
@@ -930,6 +938,7 @@
                 padding: 0;
                 margin: 0;
                 max-height: 405px;
+                zoom: 0.88;
             }
             .main-container {
                 margin: 2px;
@@ -946,35 +955,31 @@
                 padding: 2px;
                 max-height: 405px;
             }
-            #battle-view {
-                transform: scale(0.6);
-                transform-origin: top center;
-                position: absolute;
-                top: -3%;
-                left: -7%;
-                width: 64%;
+            #tabs {
+
             }
-            #controls {
-                position: absolute;
-                transform: scale(0.6);
+            #tabs button .tab-desc {
+                display: none !important;
+            }
+            #map-container {
+                transform: scale(0.9);
                 transform-origin: top center;
-                top: 30%;
-                text-align: left;
-                left: -2%;
+            }
+            #inventory, #store {
+                zoom: 0.9;
+                max-height: 400px;
+            }
+            #map {
+                zoom: 0.9
+            }
+            #battle-view {
+                zoom: 0.8;
             }
             #equipment {
-                transform: scale(0.6);
-                transform-origin: top center;
-                position: absolute;
-                width: 66%;
-                top: 42%;
-                left: -8%;
+                zoom: 0.75;
             }
             #log {
                 display: none !important;
-            }
-            #map {
-                transform: scale(0.9);
             }
         }
 
@@ -2216,6 +2221,43 @@
             return emoji;
         }
 
+        // функція для витягування масок
+        function addEmojiMask(emoji = '❤️', size = '20px', subtype = 0, extraStyle = '') {
+            // шукаєм картинку у емоджі реплейсері
+            let imgData = emojiReplacer.find(er => er.type == emoji);
+            // якщо картінка є продовжуєм
+            if (typeof imgData != 'undefined') {
+                // якщо для однієї емоджі можуть буть кілька варіантів
+                if (subtype != 0) {
+                    // шукаєм саме цей варіант
+                    let imgData2 = emojiReplacer.filter(er => er.type == emoji).find(er2 => er2.subtype == subtype);
+                    // використовуєм його або лишаем той шо вже є
+                    if (typeof imgData2 != 'undefined') {
+                        imgData = {...imgData2};
+                    }
+                }
+
+                // маски немає
+                if (maskIcons.frames[imgData.image] == undefined) return false;
+
+                const maskData = maskIcons.frames[imgData.image];
+
+                const baseSize = maskData.sourceSize.w;//64;
+                const scaling = parseInt(size) / baseSize;
+
+                const posX = (maskData.frame.x || 1) * scaling;
+                const posY = (maskData.frame.y || 1) * scaling;
+                const atlasX = maskIcons.meta.size.w * scaling;
+                const atlasY = maskIcons.meta.size.h * scaling;
+
+                const emojiStyle = `${extraStyle != '' ? extraStyle+'; ' : ''}display: inline-block; vertical-align: bottom; width:${size}; height:${size}; background-position: -${posX}px -${posY}px; background-size: ${atlasX}px ${atlasY}px;`;
+                // замінюєм емоджі
+                return `<span class="emoji-sprite emoji-replaced emoji-mask" style="${emojiStyle}"></span>`;
+            }
+            // маски немає
+            return false;
+        }
+
         // типова для гравця іконка
         function addEmojiPlayer(emoji = '❤️', size = '20px') {
             return addEmoji(emoji, size, undefined, extraStyleMainIcons);
@@ -3277,7 +3319,7 @@
         }
 
         // Функція для показу повідомлення
-        function showGameMessage(header, message, duration = 0) {
+        function showGameMessage(header, message, duration = 0, addClass = '', callback) {
             const modal = document.getElementById('game-modal');
             const messageHeader = document.getElementById('modal-header');
             const messageElement = document.getElementById('modal-message');
@@ -3286,10 +3328,15 @@
             messageHeader.innerHTML = header;
             messageElement.innerHTML = message;
             modal.style.display = 'block';
+            if (addClass != '') modal.classList.add(addClass);
             
             // Обробник кнопки OK
             okButton.onclick = function() {
+                if (callback != undefined) {
+                    setTimeout(callback, 500);
+                };
                 modal.style.display = 'none';
+                if (addClass != '') modal.classList.remove(addClass);
             }
             
             // Автозакриття через вказаний час (якщо duration > 0)
@@ -3553,7 +3600,8 @@
             const magicLevel = Math.abs(item.magicLevel || 0);
             const magicClass = (magicLevel != 0) ? `${item.status} ${item.status}-${magicLevel}` : `${(item.status || '')}`;
 
-            const itemEmoji = addEmojiItem(item.emoji, currentSubtype, currentSpecialParams);
+            const itemEmojiMask = addEmojiMask(item.emoji, '64px', currentSubtype, itemSpecStyle);
+            const itemEmoji = addEmojiItem(item.emoji, currentSubtype, itemEmojiMask != false ? '' : currentSpecialParams);
 
             const typeEmoji = addEmoji(item.type.startsWith('potion') ? equipmentEmojies['potion'] : equipmentEmojies[item.type], '16px', -1);
             const typeEmojiSubInfo = `<div class="item-type-subinfo ${item.type.startsWith('potion') ? 'potion' : item.type}">${typeEmoji}</div>`;
@@ -3606,7 +3654,7 @@
                 <div class="inventory-item ${magicClass}">
                     <div class="item-name">${inventoryIndex}${item.name}</div>
                     ${buyPricePromo != 0 ? `<div class="promo-tag promo-${item.promoPercent}">-${item.promoPercent}%</div>` : ''}
-                    <div class="item-image">${itemEmoji}</div>
+                    <div class="item-image">${itemEmojiMask != false ? `${itemEmojiMask}` : ''}${itemEmoji}</div>
                     ${equipmentShadowImage}
                     <div class="item-desc">
                         <span class="artifact-bonus">${bonusText != '' ? bonusText : `&nbsp;`}</span>
@@ -4640,23 +4688,6 @@
                         // робімо вихід
                         spawnExit();
                         updateMap();
-/*
-                        // кидаєм гравця в рандомне місце, від якого вже і будем малювать мапу
-                        player.position = {x: rand(1, mapSize - 2), y: rand(1, mapSize - 2)};
-                        const savedData = gatherAllMapData();
-                        const tmpDensity = 0.45 + Math.random() * 0.15;
-                        regenerateMap(player.position, tmpDensity, savedData);
-
-                        spawnEnemies();
-                        resetTerra();
-
-                        // прибираєм крамницю з карти
-                        deleteStore();
-
-                        //spawnArtifacts(2); занадто жирно
-                        spawnChest();
-                        spawnFruits(1);
-*/
                     }
                     
                     // Перевірка на новий рівень
@@ -4774,7 +4805,7 @@
 
                 elements.playerEmoji.style.filter = `grayscale(100%)`;
                 addLog(message, 'system');
-                showGameMessage(`Поразка`, `${message} Натисніть "Відродитись", щоб продовжити гру.`, 0);
+                showGameMessage(`${addEmoji('💀', '25px')} Поразка`, `${message} <br>Натисніть ОК щоб продовжити гру.`, 0, 'danger', resurrect);
 
                 addPopupMessage(`${addEmoji('💀', '40px')}`, document.getElementById('player-on-map'), {
                     fontSize: '40px',
