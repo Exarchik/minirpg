@@ -106,6 +106,7 @@
         .emoji-sprite.emoji-mask {
             background-image: url('/templates/img/minirpg/clay/_mask-spritesheet.png');
             position: absolute;
+            z-index: 2;
         }
 
         .modal-header {
