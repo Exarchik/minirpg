@@ -96,6 +96,8 @@
         }
 
         .emoji-sprite {
+            position: relative;
+            z-index: 1;
             width: 64px;
             height: 64px;
             background-image: url('/templates/img/minirpg/clay/spritesheet.png');
@@ -1035,6 +1037,7 @@
             padding: 5px 7px;
             margin-right: 0px;
             cursor: pointer;
+            position: relative;
         }
         #tabs button.active {
             background: #4285f4;
@@ -1047,6 +1050,15 @@
             margin-left: 7px;
             font-size: 14px;
             font-weight: normal;
+        }
+        #tabs .tab-counter {
+            position: absolute;
+            background-color: #0098ff;
+            width: 24px;
+            border-radius: 50%;
+            top: -7px;
+            left: -4px;
+            filter: drop-shadow(1px 1px 2px black);
         }
     </style>
 
@@ -3471,6 +3483,7 @@
 
             // оновлюєм кнопку гембла
             updateGamblePrice();
+            drawTabsInfo();
         }
 
         function signedValue(value) {
@@ -3511,6 +3524,8 @@
                 elements.inventoryItems.innerHTML = '<p>Інвентар порожній</p>';
                 elements.inventoryFullness.innerHTML = '(Пусто)';
             }
+
+            drawTabsInfo();
         }
 
         // Оновлюємо слот обладнання
@@ -3566,6 +3581,8 @@
 
                 elements.storeItems.appendChild(itemElement);
             });
+
+            drawTabsInfo();
         }
 
         // порівняння параметрів предмета гравця і товару
@@ -3611,8 +3628,11 @@
             //const equipmentShadowImage = (equipmentTypeIndex != -1 && viewType == 'equipment') ? `<div class="item-image-background">${itemEmoji}</div>` : '';
             const equipmentShadowImage = `<div class="item-image-background ${viewType}">${itemEmoji}</div>`;
 
+            // тепер продаєм виключно в магазині
+            const canSellitem = (item.canSell !== false && tabManager.hasTab('store'));
+
             const inventoryIndex = (index != -1 && viewType == 'inventory') ? `` : '';
-            const inventorySubInfo = (index != -1 && index < 9 && viewType == 'inventory') ? `<div class="item-subinfo-up">[ ${index+1} ]</div><div class="item-subinfo">SHIFT+${index+1}</div>` : '';
+            const inventorySubInfo = (index != -1 && index < 9 && viewType == 'inventory') ? `<div class="item-subinfo-up">[ ${index+1} ]</div><div style="${canSellitem == false ? 'display:none;' : ''}" class="item-subinfo">SHIFT+${index+1}</div>` : '';
 
             let buyPrice = 0;
             let buyPricePromo = 0;
@@ -3628,7 +3648,7 @@
             const inventoryActions = (index != -1 && viewType == 'inventory')
                 ? `<div class="item-actions">
                         <div class="item-action" onclick="useItem(${index})">${item.type.startsWith('potion') ? 'Випити' : 'Екіпірувати'}</div>
-                        ${item.canSell !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.max(1, Math.floor(item.value * sellCoefficient))}💰)</div>` : ''}
+                        ${canSellitem !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.max(1, Math.floor(item.value * sellCoefficient))}💰)</div>` : ''}
                     </div>` : '';
             const equipmentActions = (equipmentTypeIndex != -1 && viewType == 'equipment')
                 ? `<div class="item-actions">
@@ -5253,24 +5273,6 @@
 
             // buttons 
             document.addEventListener("keydown", (e) => {
-                // player moving
-                /*if (!player.inInventory && !player.inLevelSelection) {
-                    if (e.code === "ArrowUp") movePlayer(player.position.x, player.position.y - 1);
-                    if (e.code === "ArrowRight") movePlayer(player.position.x + 1, player.position.y);
-                    if (e.code === "ArrowDown") movePlayer(player.position.x, player.position.y + 1);
-                    if (e.code === "ArrowLeft") movePlayer(player.position.x - 1, player.position.y);
-                } else if (player.inLevelSelection) {
-                    if (e.code === "ArrowUp" || e.code === "ArrowRight") {
-                        levelSelected++;
-                        levelSelected = levelSelected > (levelsCompleted.length + 1) ? 1 : levelSelected;
-                        document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
-                    }
-                    if (e.code === "ArrowDown" || e.code === "ArrowLeft") {
-                        levelSelected--;
-                        levelSelected = levelSelected < 1 ? (levelsCompleted.length + 1) : levelSelected;
-                        document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
-                    }
-                }*/
                 if (tabManager.getActiveTab() == 'map-block') {
                     if (e.code === "ArrowUp") movePlayer(player.position.x, player.position.y - 1);
                     if (e.code === "ArrowRight") movePlayer(player.position.x + 1, player.position.y);
@@ -5311,7 +5313,7 @@
 
                     // якщо тицнем цифру із Shift - то автоматично продаєм її, але лише якщо гравець дивиться у інвентар
                     //if (e.shiftKey && player.inventory[itemIndex] != null && player.inInventory) sellItem(itemIndex);
-                    if (e.shiftKey && player.inventory[itemIndex] != null && tabManager.getActiveTab() == 'inventory') sellItem(itemIndex);
+                    if (e.shiftKey && player.inventory[itemIndex] != null && tabManager.getActiveTab() == 'inventory' && tabManager.hasTab('store')) sellItem(itemIndex);
                     // якщо тицнем цифру із Alt - то знімаєм вдягнену річ (1-зброя / 2-броня / 3-кільце / 4-амулет / 5-книга / 6-реліквія)
                     else if (e.altKey) unequipItem(itemIndex);
                     // якщо просто тиснем цифру з рюкзака, то вона вдягнеться/використається
@@ -5354,14 +5356,43 @@
         let levelSelected = 1;
         mainLoop();
 
+        function getInventoryCount () {
+            return player.inventory.length;
+        }
+
+        function getPlayerTicketsCount () {
+            return player.tickets;
+        }
+
+        function getStoreItemsCount () {
+            return store.length;
+        }
+
+        function drawTabsInfo() {
+            document.querySelectorAll('.tab-counter').forEach((el) => {
+                let tabIdent = el.id.replace(/^tab-/, '').replace(/-counter$/, '');
+                const tabInfo = tabsInfo.find(t => t.ident == tabIdent);
+
+                let numberData = 0;
+                if (tabInfo.counterFunc != undefined) {
+                    numberData = tabInfo.counterFunc();
+                    el.innerHTML = numberData;
+                    el.style.display = 'block';
+                }
+
+                if (numberData == 0) {
+                    el.style.display = 'none';
+                }
+            });
+        }
 
         // таби
         const tabsInfo = [
             { ident: 'levels',      name: 'Рівні', emoji: '🌐', keyCode: 'L'},
             { ident: 'map-block',   name: 'Карта', emoji: '🗺️', keyCode: 'M'},
-            { ident: 'inventory',   name: 'Інвентар', emoji: '🎒', keyCode: 'I', funcs: [updateInventory]},
-            { ident: 'store',       name: 'Крамниця', emoji: '🏬', keyCode: 'S', funcs: [updateStore]},
-            { ident: 'slots',       name: 'Гемблінг', emoji: '🎰', keyCode: 'G', funcs: [updateGamblePrice]},
+            { ident: 'inventory',   name: 'Інвентар', emoji: '🎒', keyCode: 'I', funcs: [updateInventory], counterFunc: getInventoryCount},
+            { ident: 'store',       name: 'Крамниця', emoji: '🏬', keyCode: 'S', funcs: [updateStore], counterFunc: getStoreItemsCount},
+            { ident: 'slots',       name: 'Гемблінг', emoji: '🎰', keyCode: 'G', funcs: [updateGamblePrice], counterFunc: getPlayerTicketsCount},
         ];
 
         const tabManager = (() => {
@@ -5371,6 +5402,8 @@
             function renderTabs() {
                 tabsContainer.innerHTML = '';
                 tabs.forEach(tab => tabsContainer.appendChild(tab.button));
+
+                drawTabsInfo();
             }
 
             function setActiveTab(ident) {
@@ -5397,10 +5430,15 @@
                 } else {
                     changeLogSize();
                 }
+                drawTabsInfo();
             }
 
             function getActiveTab() {
                 return tabs.find(t => t.active).ident;
+            }
+
+            function hasTab(ident) {
+                return tabs.find(t => t.ident == ident) != undefined;
             }
 
             function clickTab(ident) {
@@ -5417,8 +5455,9 @@
 
                 const button = document.createElement('button');
                 const tabInfo = tabsInfo.find(t => t.ident == ident);
+                const counter = (tabInfo.counterFunc != undefined) ? tabInfo.counterFunc() : 0;
 
-                button.innerHTML = `${addEmoji(tabInfo.emoji, '32px')}<span class="tab-desc"> ${tabInfo.name} [${tabInfo.keyCode}]</span>`;
+                button.innerHTML = `<span style="display:none" class="tab-counter" id="tab-${ident}-counter">${counter}</span>${addEmoji(tabInfo.emoji, '32px')}<span class="tab-desc"> ${tabInfo.name} [${tabInfo.keyCode}]</span>`;
                 button.title = tabInfo.name;
                 button.dataset.tab = ident;
                 button.addEventListener('click', () => setActiveTab(ident));
@@ -5449,6 +5488,7 @@
 
             return {
                 getActiveTab,
+                hasTab,
                 clickTab,
                 addTab,
                 removeTab,
