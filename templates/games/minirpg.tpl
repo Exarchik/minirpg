@@ -61,17 +61,17 @@
         }
 
         #levels .levels-selector {
-            width: 105px;
+            width: 100px;
             height: 40px;
             white-space: nowrap;
-            background-color: #222;
+            background-color: #0080ff;
             border-radius: 5px;
             position: relative;
             padding: 0px 0px;
             text-align: center;
             cursor: pointer;
             display: inline-block;
-            margin: 4px;
+            margin: 2px;
         }
         #levels .levels-selector.completed {
             background-color: green;
@@ -949,6 +949,10 @@
             .modal {
                 zoom: 0.8;
             }
+            .modal-content {
+                top: -3%;
+            }
+            
             .main-container {
                 margin: 2px;
                 max-height: 405px;
@@ -995,6 +999,9 @@
         @media (max-width: 467px) {
             .flex-container {
                 display: block;
+            }
+            .modal-content {
+                top: 29%;
             }
         }
 
@@ -1053,7 +1060,7 @@
             position: relative;
         }
         #tabs button.active {
-            background: #4285f4;
+            background: #0080ff;
             color: white;
             font-weight: bold;
         }
@@ -1503,20 +1510,22 @@
         const equipableTypes = ['weapon', 'armor', 'ring', 'amulet', 'book', 'relic'];
 
         const storeTypes = [
+            // flea - блошиний ринок, нічого не продає, але все скупає, знаходиться на стартовій локації
+            { name: 'Барахолка', type: 'flea', emoji: '🏬🗑️', emojiTrader: '🤝🗑️', chance: 25, isRefreshing: false, isSpawnable: false },
             // general - все по троху найпоширеніший
-            { name: 'Крамниця', type: 'general', emoji: '🏬', emojiTrader: '🤝🏬', chance: 25, isRefreshing: true },
+            { name: 'Крамниця', type: 'general', emoji: '🏬', emojiTrader: '🤝🏬', chance: 25, isRefreshing: true, isSpawnable: true },
             // armory - виключно зброя і броня
-            { name: 'Зброярня', type: 'armory', emoji: '🏬⚔️', emojiTrader: '🤝⚔️', chance: 25, isRefreshing: true },
+            { name: 'Зброярня', type: 'armory', emoji: '🏬⚔️', emojiTrader: '🤝⚔️', chance: 25, isRefreshing: true, isSpawnable: true },
             // jewelry - ювелірка: кільця і амулети
-            { name: 'Ювелірка', type: 'jewelry', emoji: '🏬💍', emojiTrader: '🤝💍', chance: 15, isRefreshing: true },
+            { name: 'Ювелірна лавка', type: 'jewelry', emoji: '🏬💍', emojiTrader: '🤝💍', chance: 15, isRefreshing: true, isSpawnable: true },
             // library - бібліотека/книгарня
-            { name: 'Книгарня', type: 'library', emoji: '🏬📖', emojiTrader: '🤝📖', chance: 15, isRefreshing: false },
+            { name: 'Книгарня', type: 'library', emoji: '🏬📖', emojiTrader: '🤝📖', chance: 15, isRefreshing: false, isSpawnable: true },
             // antiques - антикваріат - виключно артефакти
-            { name: 'Антиквар', type: 'antiques', emoji: '🏬🔮', emojiTrader: '🤝🔮', chance: 15, isRefreshing: true },
+            { name: 'Антиквар', type: 'antiques', emoji: '🏬🔮', emojiTrader: '🤝🔮', chance: 15, isRefreshing: true, isSpawnable: true },
             // medic - лєчілка + еліксири (1-2 штукі) 
             //{ name: 'Шпиталь', type: 'medic', emoji: '🏬💖', chance: 0.15, isRefreshing: false },
             // містичний магаз з одним типом артефакту у різних варіаціях але неможливо оновити асортимент
-            { name: 'Містична лавка', type: 'mystic', emoji: '🏬✨', emojiTrader: '🤝✨', chance: 1, isRefreshing: false },
+            { name: 'Містична лавка', type: 'mystic', emoji: '🏬✨', emojiTrader: '🤝✨', chance: 1, isRefreshing: false, isSpawnable: true },
         ];
         let lastChosenStores = []; // зберігаємо type або name
 
@@ -1530,6 +1539,19 @@
 
         const extraStyleMainIcons = 'vertical-align: sub !important; margin-left: 4px; margin-bottom: 2px';
 
+        const preparedStartLevel = [// 🌳 // 🌲
+            ['🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻'],
+            ['🗻', '🗻', '🗻', '🗻', '🌲', '🗻', '🌲', '🗻', '🗻', '🗻', '🗻'],
+            ['🗻', '🗻', '🗻', '🗻', '🌳', '🏬🗑️', '🌳', '🗻', '🗻', '🗻', '🗻'],
+            ['🗻', '🗻', '🗻', '🌳', ' ', ' ', ' ', '🌳', '🗻', '🗻', '🗻'],
+            ['🗻', '🗻', '🌲', '🌳', ' ', ' ', ' ', '🌳', '🌲', '🗻', '🗻'],
+            ['🗻', '🧙‍♂️', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '🚪'],
+            ['🗻', '🗻', '🌲', '🌳', ' ', ' ', ' ', '🌳', '🌲', '🗻', '🗻'],
+            ['🗻', '🗻', '🗻', '🌳', ' ', ' ', ' ', '🌳', '🗻', '🗻', '🗻'],
+            ['🗻', '🗻', '🗻', '🗻', '🌳', '🌳', '🌳', '🗻', '🗻', '🗻', '🗻'],
+            ['🗻', '🗻', '🗻', '🗻', '🌲', '🗻', '🌲', '🗻', '🗻', '🗻', '🗻'],
+            ['🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻'],
+        ];
         // бібліотека емоджі
         const emojiReplacer = [
                 // базові
@@ -1571,6 +1593,7 @@
             { type: '🌐', image: 'levels.png' },
             { type: '🎰', image: 'slot-machine.png' },
                 // торговці
+            { type: '🤝🗑️', image: 'trader-flea.png' },
             //{ type: '🤝📜', image: 'trader-quest.png' }, // -
             { type: '🤝🏬', image: 'trader-general.png' },
             { type: '🤝⚔️', image: 'trader-armory.png' },
@@ -1783,6 +1806,25 @@
             { name: "Череп ліча",       aliases: ["Відьмина голова", "Мара"] },
             { name: "Палантір",         aliases: ["Магічний шар", "Орб"] },
             
+        ];
+
+        let itemDescriptions = [
+            { name: "Посох",            desc: "Ідеальний для магів і тих, хто просто забув меч вдома." },
+            { name: "Дерев'яний меч",   desc: "Початкова зброя для тих, хто ще не забув, що сила — не лише в залізі." },
+            { name: "Кинджал",          desc: "Легкий, швидкий, підступний і завжди неочікуванний." },
+            { name: "Дубина",           desc: "Важка, пряма, без сентиментів. Говорить мовою ударів." },
+            { name: "Сокира",           desc: "Дерево, м’ясо, броня — не розбирає, просто січе." },
+            { name: "Спис",             desc: "Для соціально дистанційованих воїнів. Елегантно, без зайвих обіймів." },
+            { name: "Меч",              desc: "Класика. Баланс сталі, честі й готовності до всього." },
+            { name: "Коса",             desc: "Тонка межа між життям і землею." },
+            { name: "Кистінь",          desc: "Ланцюг і гнів. Вивертає щити, вибиває зуби, залишає враження." },
+            { name: "Бойовий молот",    desc: "Ідеальний інструмент для ремонту облич." },
+            { name: "Лук",              desc: "Проблеми люблять дистанцію." },
+            { name: "Арбалет",          desc: "Той самий лук, але лінивий. Натискай — і дивись, як хтось передумав жити." },
+            { name: "Магічний меч",     desc: "Не кожен зможе розкрити його повністю — але кожен відчує, що тримає щось більше, ніж просто клинок." },
+            { name: "Катана",           desc: "Її точність не терпить шуму — тільки чіткий рух і тиша після нього." },
+            { name: "Вогняний меч",     desc: "Горить, як лють. Після нього не залишається нічого, крім попелу." },
+            { name: "Міфічний клинок",  desc: "Кажуть, що ним колись розсікли саму реальність." },
         ];
 
 
@@ -2170,7 +2212,8 @@
 
         // 🎲 Вибір з урахуванням шансів
         function weightedRandomStore(excludeTypes = []) {
-            const pool = storeTypes.filter(store => !excludeTypes.includes(store.type));
+            // вибираєм всі типи крамниць які доступні для спавну і не світяться у списку історій
+            const pool = storeTypes.filter(store => !excludeTypes.includes(store.type) && store.isSpawnable);
             
             const totalChance = pool.reduce((sum, s) => sum + s.chance, 0);
             let rand = Math.random() * totalChance;
@@ -2432,17 +2475,17 @@
             elements.levels.innerHTML = '';
             const levelsCounter = levelsCompleted.length + 1;
 
-            for (let i = 0; i < levelsCounter; i++) {
-                const floorNum = i + 1;
+            for (let i = 0; i <= levelsCounter; i++) {
+                const floorNum = i;
                 // б'єм локації по парам на кожен рівень гравця - 2 флори, перший звичайний, другий із крамницею
-                const levelNum = Math.ceil(floorNum / 2);
+                const levelNum = i == 0 ? 0 : Math.ceil((floorNum + 1) / 2);
                 // перевіряєм чи цей рівень вже пройдений
-                const isCompleted = levelsCompleted[i] != undefined ? ' completed' : '';
-                const storeEmoji = (floorNum % 2 == 0) ? addEmoji('🏬') : '';
+                const isCompleted = levelsCompleted[i - 1] != undefined ? ' completed' : '';
+                const storeEmoji = (floorNum % 2 == 0 && i != 0) ? addEmoji('🏬') : '';
 
                 let temp = document.createElement('div');
                     temp.innerHTML = `<button class="levels-selector${isCompleted}" data-level="${levelNum}" data-floor="${floorNum}">
-                                        Рівень ${floorNum} ${storeEmoji}
+                                        ${floorNum == 0 ? 'Селище' : `Рівень ${floorNum} ${storeEmoji}` }
                                       </button>`;
                 let element = temp.firstElementChild;
                     element.addEventListener('click', () => {
@@ -2452,7 +2495,8 @@
                             return
                         }
                         // встановлюєм зачищену кімнату до вибраного рівня
-                        player.clearedRooms = i;
+                        player.clearedRooms = (i - 1);
+                        //console.log(player.clearedRooms);
                         player.inLevelSelection = false;
                         //console.log(`clicked ${levelNum}`);
                         elements.levels.style.display = 'none';
@@ -2470,13 +2514,13 @@
         }
 
         // Ініціалізація карти
-        function initMap(mapLevel = 1) {
+        function initMap(mapLevel = 0) {
             gameMap = [];
             enemies = [];
             elements.map.innerHTML = '';
 
             // MAIN LEVEL PARAMETER SET
-            currentMapLevel = mapLevel;
+            currentMapLevel = Math.max(1, mapLevel);
 
             //player.position = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
             player.position = {x: rand(1, mapSize - 2), y: rand(1, mapSize - 2)};
@@ -2490,6 +2534,11 @@
             if ([3,4].includes(mapLevel)) tmpDensity = 0.35;
             if ([5,6].includes(mapLevel)) tmpDensity = 0.45;
 
+            if (mapLevel == 0) {
+                generateMapByTemplate(preparedStartLevel);
+                updateMap();
+                return;
+            }
             regenerateMap(player.position, tmpDensity, savedData);
             // Додаємо харчування
             spawnFruits();
@@ -2547,6 +2596,55 @@
                     gameMap[rPosition.y][rPosition.x] = cell;
                 });
             }
+        }
+
+        function generateMapByTemplate(templateData) {
+            elements.map.innerHTML = '';
+            gameMap = [];
+
+            player.position = {x: rand(1, mapSize - 2), y: rand(1, mapSize - 2)};
+            const y = templateData.findIndex(row => row.includes('🧙‍♂️'));
+            const x = y !== -1 ? templateData[y].indexOf('🧙‍♂️') : -1;
+            if (x !== -1) {
+                player.position = { x, y };
+            }
+
+            for (let y = 0; y < mapSize; y++) {
+                gameMap[y] = [];
+                for (let x = 0; x < mapSize; x++) {
+                    if (templateData[y] == undefined || templateData[y][x] == undefined) continue;
+                    const templateElement = templateData[y][x];
+
+                    if (obstacles.map(o => o.emoji).includes(templateElement)) {
+                        const obsObj = obstacles.find(o => o.emoji === templateElement);
+                        gameMap[y][x] = { type: 'obstacle', obstacle: obsObj, emoji: templateElement, passable: false };
+                    } else if (storeTypes.map(s => s.emoji).includes(templateElement)) {
+                        gameMap[y][x] = { type: 'store', emoji: '🏬' };
+                        const localStoreType = storeTypes.find(s => s.emoji == templateElement).type;
+                        currentStoreType = localStoreType;
+                        generateStore(localStoreType);
+                    } else if (templateElement == '🚪') {
+                        gameMap[y][x] = { type: 'exit', emoji: '🏬' };
+                    } else {
+                        gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
+                    }
+
+                    // end
+                    const cellContent = gameMap[y][x];
+                    const cell = document.createElement('div');
+
+                    cell.className = 'map-cell';
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    cell.textContent = cellContent.emoji;
+                    
+                    cell.addEventListener('click', () => movePlayer(x, y));
+                    
+                    elements.map.appendChild(cell);
+                }
+            }
+
+            //updateMap();
         }
 
         function getAllCellsDataByType(cellType = 'empty') {
@@ -2759,7 +2857,6 @@
                 if (ghostEnemies.length) {
                     let ghost = chooseOne(ghostEnemies);
                     const emptyCell = chooseOne(findCellByTypes('empty'));
-                    //console.log(emptyCell.position);
                     ghost.position = emptyCell.position;
                 }
             }
@@ -3806,8 +3903,12 @@
 
             elements.storeBtn.innerHTML = `${storeData.emoji} ${storeData.name} L:${currentMapLevel} [S]`;
 
+            // барахолка
+            if (storeType == 'flea') {
+                store.push({...weapons[0]});
+                store.push({...armors[0]});
             // звичайна крамниця з усіма товарами але по троху
-            if (storeType == 'general') {
+            } else if (storeType == 'general') {
                 for (i = 0; i < itemsToBuy; i++) {
                     let tmpItem;
                     // невеличкий шанс на предмет рівнем більше
@@ -5382,12 +5483,12 @@
                 } else if (tabManager.getActiveTab() == 'levels') {
                     if (e.code === "ArrowUp" || e.code === "ArrowRight") {
                         levelSelected++;
-                        levelSelected = levelSelected > (levelsCompleted.length + 1) ? 1 : levelSelected;
+                        levelSelected = levelSelected > (levelsCompleted.length + 1) ? 0 : levelSelected;
                         document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
                     }
                     if (e.code === "ArrowDown" || e.code === "ArrowLeft") {
                         levelSelected--;
-                        levelSelected = levelSelected < 1 ? (levelsCompleted.length + 1) : levelSelected;
+                        levelSelected = levelSelected < 0 ? (levelsCompleted.length + 1) : levelSelected;
                         document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
                     }
                 }
