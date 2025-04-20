@@ -221,6 +221,7 @@
         .artifact { color: #f8f; }
         #enemy-emoji, #player-emoji {
             position: relative;
+            height: 72px;
         }
         #battle-view {
             display: flex;
@@ -945,6 +946,9 @@
                 /*transform: scale(0.9);
                 transform-origin: top;*/
             }
+            .modal {
+                zoom: 0.8;
+            }
             .main-container {
                 margin: 2px;
                 max-height: 405px;
@@ -968,6 +972,7 @@
             }
             #map-container {
                 zoom: 0.8;
+                max-width: 99%;
             }
             #inventory, #store {
                 zoom: 0.9;
@@ -984,6 +989,12 @@
             }
             #log {
                 display: none !important;
+            }
+        }
+
+        @media (max-width: 467px) {
+            .flex-container {
+                display: block;
             }
         }
 
@@ -1259,7 +1270,7 @@
                     addPopupMessage(`${addEmoji('🍎', '64px')}${addEmoji('🍎', '64px')}${addEmoji('🍎', '64px')}`, elements.slotButton, {
                         horizontalOffset: -76
                     });
-                    addLog(`🎰🍎🍎🍎 На карті з'явились багато їжі та еліксир!!`, 'slots', 'rgb(127 69 0)');
+                    addLog(`🎰🍎🍎🍎 На карті з'явилось багато їжі та еліксир!!`, 'slots', 'rgb(127 69 0)');
                 } else if (winResult.emoji == `📈`) {
                     const randomXpParam = Math.random();
                     const maxXpOnLevel = 24 * player.level + (5 + player.level * 4);
@@ -1324,12 +1335,13 @@
                     <div id="vs"><span class="emoji-replace" data-emoji="⚔️" data-size="64px">⚔️</span></div>
                     <div id="enemy-view" style="display: block;">
                         <div id="enemy-emoji">👤</div>
+                        <div id="enemy-name" style="font-size: 16px; display: none;">Ворог</div>
                         <div class="stats" id="enemy-stats">
                             <span class="emoji-replace" data-emoji="⚔️" data-size="20px">АТК</span>: ?&nbsp;&nbsp;&nbsp;
                             <span class="emoji-replace" data-emoji="🛡️" data-size="20px">ЗАХ</span>: ?&nbsp;&nbsp;&nbsp;
                             <span class="emoji-replace" data-emoji="❤️" data-size="20px">❤️</span>: 0
                         </div>
-                        <div class="health-bar">
+                        <div class="health-bar" id="enemy-health-bar-wrapper">
                             <div class="health-fill" id="enemy-health-bar"></div>
                         </div>
                     </div>
@@ -1492,21 +1504,24 @@
 
         const storeTypes = [
             // general - все по троху найпоширеніший
-            { name: 'Крамниця', type: 'general', emoji: '🏬', chance: 25, isRefreshing: true },
+            { name: 'Крамниця', type: 'general', emoji: '🏬', emojiTrader: '🤝🏬', chance: 25, isRefreshing: true },
             // armory - виключно зброя і броня
-            { name: 'Зброярня', type: 'armory', emoji: '🏬⚔️', chance: 25, isRefreshing: true },
+            { name: 'Зброярня', type: 'armory', emoji: '🏬⚔️', emojiTrader: '🤝⚔️', chance: 25, isRefreshing: true },
             // jewelry - ювелірка: кільця і амулети
-            { name: 'Ювелірка', type: 'jewelry', emoji: '🏬💍', chance: 15, isRefreshing: true },
+            { name: 'Ювелірка', type: 'jewelry', emoji: '🏬💍', emojiTrader: '🤝💍', chance: 15, isRefreshing: true },
             // library - бібліотека/книгарня
-            { name: 'Книгарня', type: 'library', emoji: '🏬📖', chance: 15, isRefreshing: false },
+            { name: 'Книгарня', type: 'library', emoji: '🏬📖', emojiTrader: '🤝📖', chance: 15, isRefreshing: false },
             // antiques - антикваріат - виключно артефакти
-            { name: 'Антиквар', type: 'antiques', emoji: '🏬🔮', chance: 15, isRefreshing: true },
+            { name: 'Антиквар', type: 'antiques', emoji: '🏬🔮', emojiTrader: '🤝🔮', chance: 15, isRefreshing: true },
             // medic - лєчілка + еліксири (1-2 штукі) 
             //{ name: 'Шпиталь', type: 'medic', emoji: '🏬💖', chance: 0.15, isRefreshing: false },
             // містичний магаз з одним типом артефакту у різних варіаціях але неможливо оновити асортимент
-            { name: 'Містична лавка', type: 'mystic', emoji: '🏬✨', chance: 1, isRefreshing: false },
+            { name: 'Містична лавка', type: 'mystic', emoji: '🏬✨', emojiTrader: '🤝✨', chance: 1, isRefreshing: false },
         ];
         let lastChosenStores = []; // зберігаємо type або name
+
+        // предмети з крамниці
+        let store = [];
 
         // одна й та сам крамниця буде траплятись мінімум через 3 
         const storeHistoryLimit = 3;
@@ -1523,6 +1538,7 @@
             { type: '💜', image: 'purple-heart.png' },
             { type: '💰', image: 'money-sack.png' },
             { type: '⚔️', image: 'attack.png' },
+            { type: '🤝', image: 'trade.png' }, // -
             { type: '🛡️', image: 'defense.png' },
             { type: '👑', image: 'crown.png' },
             { type: '📈', image: 'xp.png' },
@@ -1554,7 +1570,15 @@
             { type: '🎒', image: 'inventory.png' },
             { type: '🌐', image: 'levels.png' },
             { type: '🎰', image: 'slot-machine.png' },
-            //
+                // торговці
+            //{ type: '🤝📜', image: 'trader-quest.png' }, // -
+            { type: '🤝🏬', image: 'trader-general.png' },
+            { type: '🤝⚔️', image: 'trader-armory.png' },
+            { type: '🤝💍', image: 'trader-jewelry.png' },
+            { type: '🤝📖', image: 'trader-library.png' },
+            { type: '🤝🔮', image: 'trader-antiques.png' },
+            { type: '🤝✨', image: 'trader-mystic.png' },
+
                 // фрукти
             { type: '🍎', image: 'red-apple.png' },
             { type: '🍌', image: 'banana.png' },
@@ -1784,8 +1808,8 @@
 
         // Розширена база даних броні
         let armors = [
-            { name: "Плащ", emoji: "🥼",            subtype: 1, defense: 1,             rarity: 1, value: 5, type: "armor" },
-            { name: "Деревна броня", emoji: "🧥🪓", subtype: 1, attack: -1, defense: 2, rarity: 1, value: 5, type: "armor" },
+            { name: "Плащ", emoji: "🥼",            subtype: 1,                        rarity: 1, value: 5, type: "armor" },
+            { name: "Деревна броня", emoji: "🧥🪓", subtype: 1, defense: 1,            rarity: 1, value: 5, type: "armor" },
             { name: "Шкіряний жилет", emoji: "🧥",   subtype: 2, defense: 2,            rarity: 2, value: 10, type: "armor" },
             { name: "Шкіряна броня", emoji: "🧥✨", subtype: 1, defense: 2, maxHealth: 5, rarity: 2, value: 25, type: "armor" },
             { name: "Кольчуга", emoji: "⛓️",        subtype: 3, defense: 3,             rarity: 3, value: 25, type: "armor" },
@@ -2018,8 +2042,6 @@
         const buyCoefficient = 2.0;
         // шанс знайти квиток замість артефакту
         const ticketSpawnChance = 0.12;
-        // предмети з крамниці
-        let store = [];
 
         // Елементи DOM
         const elements = {
@@ -2047,8 +2069,10 @@
             playerEmoji: document.getElementById('player-emoji'),
             playerHeartEmoji: document.getElementById('playerHeartEmoji'),
             enemyHealthBar: document.getElementById('enemy-health-bar'),
+            enemyHealthBarWrapper: document.getElementById('enemy-health-bar-wrapper'),
             enemyView: document.getElementById('enemy-view'),
             enemyEmoji: document.getElementById('enemy-emoji'),
+            enemyName: document.getElementById('enemy-name'),
             enemyStats: document.getElementById('enemy-stats'),
             vs: document.getElementById('vs'),
             inventory: document.getElementById('inventory'),
@@ -2764,6 +2788,11 @@
                 updateEnemyStats(newEnemy);
                 elements.enemyEmoji.textContent = newEnemy.emoji;
                 elements.enemyEmoji.style.filter = `grayscale(0%)`;
+
+                elements.vs.innerHTML = addEmoji('⚔️', '64px');
+                elements.vs.style.visibility = 'visible';
+                elements.enemyStats.style.visibility = 'visible';
+                elements.enemyHealthBarWrapper.style.visibility = 'visible';
                 
                 showEnemy(newEnemy);
                 setTimeout(function() {
@@ -2797,12 +2826,28 @@
             }
 
             if (gameMap[y][x].type === 'store') {
+                const currentStore = storeTypes.find(e => e.type == currentStoreType);
                 player.atStore = true;
                 elements.gambleBtn.style.display = 'none';
                 elements.storeBtn.style.display = 'inline-block';
 
                 tabManager.addTab('store');
+
+                elements.enemyEmoji.innerHTML = addEmoji(currentStore.emojiTrader, '64px');
+                elements.enemyEmoji.style.filter = `grayscale(0%)`;
+                elements.vs.innerHTML = addEmoji('🤝', '64px');
+                elements.vs.style.visibility = 'visible';
+
+                elements.enemyName.innerHTML = currentStore.name;
+                elements.enemyName.style.display = 'block';
+
                 //return;
+            } else {
+                elements.enemyEmoji.innerHTML = addEmoji(emptyEmoji, '64px');
+                elements.vs.style.visibility = 'hidden';
+                elements.enemyStats.style.visibility = 'hidden';
+                elements.enemyHealthBarWrapper.style.visibility = 'hidden';
+                elements.enemyName.style.display = 'none';
             }
 
             // гравець покидає рівень
@@ -3766,7 +3811,7 @@
                 for (i = 0; i < itemsToBuy; i++) {
                     let tmpItem;
                     // невеличкий шанс на предмет рівнем більше
-                    if (Math.random() < 0.08) tmpItem = generateItemByItem(currentMapLevel + 1, true, undefined, true);
+                    if (Math.random() < 0.08) tmpItem = generateItemByLevel(currentMapLevel + 1, true, undefined, true);
                     else tmpItem = generateItem(true, undefined, true);
                     if (tmpItem != null) store.push(tmpItem);
                 }
@@ -3794,7 +3839,7 @@
                 }
                 // шось дуже рідкісне на рівень потужніше за рівень мапи
                 if (Math.random() < 0.25) {
-                    let tmpItem = generateItemByItem(currentMapLevel + 1, true, undefined, true, artifacts.filter(a => ['relic'].includes(a.type)));
+                    let tmpItem = generateItemByLevel(currentMapLevel + 1, true, undefined, true, artifacts.filter(a => ['relic'].includes(a.type)));
                     if (tmpItem != null) store.push(makeItemMagic(tmpItem));
                 }
                 // + рідкісний еліксирчік
@@ -4073,11 +4118,11 @@
 
         // Звична функція генерації предмета
         function generateItem(isForced = false, rarityBias = -1, mustBeModifed = false, itemHandyPool = null) {
-            return generateItemByItem(currentMapLevel, isForced, rarityBias, mustBeModifed, itemHandyPool);
+            return generateItemByLevel(currentMapLevel, isForced, rarityBias, mustBeModifed, itemHandyPool);
         }
 
         // Генеруємо випадковий предмет
-        function generateItemByItem(itemLevel = 1, isForced = false, rarityBias = -1, mustBeModifed = false, itemHandyPool = null) {
+        function generateItemByLevel(itemLevel = 1, isForced = false, rarityBias = -1, mustBeModifed = false, itemHandyPool = null) {
             // 60% шанс отримати предмет
             if (Math.random() > 0.6 && !isForced) return null;
             
@@ -4104,7 +4149,7 @@
 
             //console.log(rarity);
             if (availableItems.length === 0) {
-                if (isForced && itemHandyPool == null) return generateItemByItem(itemLevel, isForced, rarityBias, mustBeModifed, itemHandyPool);
+                if (isForced && itemHandyPool == null) return generateItemByLevel(itemLevel, isForced, rarityBias, mustBeModifed, itemHandyPool);
                 else return null;
             }
             
@@ -4891,6 +4936,11 @@
                 // Ховаєм кнопку гемблінга
                 elements.gambleBtn.style.display = 'none';
 
+                elements.enemyEmoji.innerHTML = addEmoji(emptyEmoji, '64px');
+                elements.vs.style.visibility = 'hidden';
+                elements.enemyStats.style.visibility = 'hidden';
+                elements.enemyHealthBarWrapper.style.visibility = 'hidden';
+
                 tabManager.setTab(['levels', 'inventory']);
 
                 return;
@@ -5303,6 +5353,7 @@
         function beginAll() {
             // даєм діду паличку
             player.equipment['weapon'] = weapons[0];
+            player.equipment['armor'] = armors[0];
 
             // Обробники подій
             elements.healBtn.addEventListener('click', heal);
@@ -5387,7 +5438,11 @@
 
             // робимо перерахунок для всіх предметів
             recalculateAllPrices()
-            elements.enemyEmoji.innerHTML = addEmoji('👺', '64px', undefined, 'filter: grayscale(1) invert(1); opacity: 0.1;');
+            //elements.enemyEmoji.innerHTML = addEmoji('👺', '64px', undefined, 'filter: grayscale(1) invert(1); opacity: 0.1;');
+            elements.enemyEmoji.innerHTML = addEmoji(emptyEmoji, '64px');
+            elements.vs.style.visibility = 'hidden';
+            elements.enemyStats.style.visibility = 'hidden';
+            elements.enemyHealthBarWrapper.style.visibility = 'hidden';
 
             tabManager.setTab(['levels', 'inventory']);
         }

@@ -2420,9 +2420,169 @@
 				"h": 64
 			}
 		},
-		"trap.png": {
+		"trade.png": {
 			"frame": {
 				"x": 67,
+				"y": 661,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"trader-antiques.png": {
+			"frame": {
+				"x": 133,
+				"y": 661,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"trader-armory.png": {
+			"frame": {
+				"x": 199,
+				"y": 661,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"trader-general.png": {
+			"frame": {
+				"x": 265,
+				"y": 661,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"trader-jewelry.png": {
+			"frame": {
+				"x": 331,
+				"y": 661,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"trader-library.png": {
+			"frame": {
+				"x": 397,
+				"y": 661,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"trader-mystic.png": {
+			"frame": {
+				"x": 463,
+				"y": 661,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"trader-quest.png": {
+			"frame": {
+				"x": 529,
+				"y": 661,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"trap.png": {
+			"frame": {
+				"x": 595,
 				"y": 661,
 				"w": 64,
 				"h": 64
@@ -2442,7 +2602,7 @@
 		},
 		"troll.png": {
 			"frame": {
-				"x": 133,
+				"x": 661,
 				"y": 661,
 				"w": 64,
 				"h": 64
@@ -2462,7 +2622,7 @@
 		},
 		"vampire.png": {
 			"frame": {
-				"x": 199,
+				"x": 727,
 				"y": 661,
 				"w": 64,
 				"h": 64
@@ -2482,166 +2642,6 @@
 		},
 		"vampire2.png": {
 			"frame": {
-				"x": 265,
-				"y": 661,
-				"w": 64,
-				"h": 64
-			},
-			"rotated": false,
-			"trimmed": false,
-			"spriteSourceSize": {
-				"x": 0,
-				"y": 0,
-				"w": 64,
-				"h": 64
-			},
-			"sourceSize": {
-				"w": 64,
-				"h": 64
-			}
-		},
-		"varg.png": {
-			"frame": {
-				"x": 331,
-				"y": 661,
-				"w": 64,
-				"h": 64
-			},
-			"rotated": false,
-			"trimmed": false,
-			"spriteSourceSize": {
-				"x": 0,
-				"y": 0,
-				"w": 64,
-				"h": 64
-			},
-			"sourceSize": {
-				"w": 64,
-				"h": 64
-			}
-		},
-		"weapon-0.png": {
-			"frame": {
-				"x": 397,
-				"y": 661,
-				"w": 64,
-				"h": 64
-			},
-			"rotated": false,
-			"trimmed": false,
-			"spriteSourceSize": {
-				"x": 0,
-				"y": 0,
-				"w": 64,
-				"h": 64
-			},
-			"sourceSize": {
-				"w": 64,
-				"h": 64
-			}
-		},
-		"weapon-axe.png": {
-			"frame": {
-				"x": 463,
-				"y": 661,
-				"w": 64,
-				"h": 64
-			},
-			"rotated": false,
-			"trimmed": false,
-			"spriteSourceSize": {
-				"x": 0,
-				"y": 0,
-				"w": 64,
-				"h": 64
-			},
-			"sourceSize": {
-				"w": 64,
-				"h": 64
-			}
-		},
-		"weapon-bow.png": {
-			"frame": {
-				"x": 529,
-				"y": 661,
-				"w": 64,
-				"h": 64
-			},
-			"rotated": false,
-			"trimmed": false,
-			"spriteSourceSize": {
-				"x": 0,
-				"y": 0,
-				"w": 64,
-				"h": 64
-			},
-			"sourceSize": {
-				"w": 64,
-				"h": 64
-			}
-		},
-		"weapon-club.png": {
-			"frame": {
-				"x": 595,
-				"y": 661,
-				"w": 64,
-				"h": 64
-			},
-			"rotated": false,
-			"trimmed": false,
-			"spriteSourceSize": {
-				"x": 0,
-				"y": 0,
-				"w": 64,
-				"h": 64
-			},
-			"sourceSize": {
-				"w": 64,
-				"h": 64
-			}
-		},
-		"weapon-crossbow.png": {
-			"frame": {
-				"x": 661,
-				"y": 661,
-				"w": 64,
-				"h": 64
-			},
-			"rotated": false,
-			"trimmed": false,
-			"spriteSourceSize": {
-				"x": 0,
-				"y": 0,
-				"w": 64,
-				"h": 64
-			},
-			"sourceSize": {
-				"w": 64,
-				"h": 64
-			}
-		},
-		"weapon-dagger.png": {
-			"frame": {
-				"x": 727,
-				"y": 661,
-				"w": 64,
-				"h": 64
-			},
-			"rotated": false,
-			"trimmed": false,
-			"spriteSourceSize": {
-				"x": 0,
-				"y": 0,
-				"w": 64,
-				"h": 64
-			},
-			"sourceSize": {
-				"w": 64,
-				"h": 64
-			}
-		},
-		"weapon-firesword.png": {
-			"frame": {
 				"x": 1,
 				"y": 727,
 				"w": 64,
@@ -2660,7 +2660,7 @@
 				"h": 64
 			}
 		},
-		"weapon-flail.png": {
+		"varg.png": {
 			"frame": {
 				"x": 67,
 				"y": 727,
@@ -2680,7 +2680,7 @@
 				"h": 64
 			}
 		},
-		"weapon-hammer.png": {
+		"weapon-0.png": {
 			"frame": {
 				"x": 133,
 				"y": 727,
@@ -2700,7 +2700,7 @@
 				"h": 64
 			}
 		},
-		"weapon-katana.png": {
+		"weapon-axe.png": {
 			"frame": {
 				"x": 199,
 				"y": 727,
@@ -2720,7 +2720,7 @@
 				"h": 64
 			}
 		},
-		"weapon-myth-sword.png": {
+		"weapon-bow.png": {
 			"frame": {
 				"x": 265,
 				"y": 727,
@@ -2740,7 +2740,7 @@
 				"h": 64
 			}
 		},
-		"weapon-scythe.png": {
+		"weapon-club.png": {
 			"frame": {
 				"x": 331,
 				"y": 727,
@@ -2760,7 +2760,7 @@
 				"h": 64
 			}
 		},
-		"weapon-spear.png": {
+		"weapon-crossbow.png": {
 			"frame": {
 				"x": 397,
 				"y": 727,
@@ -2780,7 +2780,7 @@
 				"h": 64
 			}
 		},
-		"weapon-staff.png": {
+		"weapon-dagger.png": {
 			"frame": {
 				"x": 463,
 				"y": 727,
@@ -2800,7 +2800,7 @@
 				"h": 64
 			}
 		},
-		"weapon-sword.png": {
+		"weapon-firesword.png": {
 			"frame": {
 				"x": 529,
 				"y": 727,
@@ -2820,7 +2820,7 @@
 				"h": 64
 			}
 		},
-		"weapon-sword-old.png": {
+		"weapon-flail.png": {
 			"frame": {
 				"x": 595,
 				"y": 727,
@@ -2840,7 +2840,7 @@
 				"h": 64
 			}
 		},
-		"windblow.png": {
+		"weapon-hammer.png": {
 			"frame": {
 				"x": 661,
 				"y": 727,
@@ -2860,7 +2860,7 @@
 				"h": 64
 			}
 		},
-		"wizard.png": {
+		"weapon-katana.png": {
 			"frame": {
 				"x": 727,
 				"y": 727,
@@ -2880,7 +2880,7 @@
 				"h": 64
 			}
 		},
-		"wolf.png": {
+		"weapon-myth-sword.png": {
 			"frame": {
 				"x": 793,
 				"y": 1,
@@ -2900,7 +2900,7 @@
 				"h": 64
 			}
 		},
-		"wooden-amulet.png": {
+		"weapon-scythe.png": {
 			"frame": {
 				"x": 793,
 				"y": 67,
@@ -2920,7 +2920,7 @@
 				"h": 64
 			}
 		},
-		"wooden-ring.png": {
+		"weapon-spear.png": {
 			"frame": {
 				"x": 793,
 				"y": 133,
@@ -2940,7 +2940,7 @@
 				"h": 64
 			}
 		},
-		"wooden-ring-2.png": {
+		"weapon-staff.png": {
 			"frame": {
 				"x": 793,
 				"y": 199,
@@ -2960,7 +2960,7 @@
 				"h": 64
 			}
 		},
-		"wooden-sword.png": {
+		"weapon-sword.png": {
 			"frame": {
 				"x": 793,
 				"y": 265,
@@ -2980,7 +2980,7 @@
 				"h": 64
 			}
 		},
-		"xp.png": {
+		"weapon-sword-old.png": {
 			"frame": {
 				"x": 793,
 				"y": 331,
@@ -3000,10 +3000,170 @@
 				"h": 64
 			}
 		},
-		"zombie.png": {
+		"windblow.png": {
 			"frame": {
 				"x": 793,
 				"y": 397,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"wizard.png": {
+			"frame": {
+				"x": 793,
+				"y": 463,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"wolf.png": {
+			"frame": {
+				"x": 793,
+				"y": 529,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"wooden-amulet.png": {
+			"frame": {
+				"x": 793,
+				"y": 595,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"wooden-ring.png": {
+			"frame": {
+				"x": 793,
+				"y": 661,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"wooden-ring-2.png": {
+			"frame": {
+				"x": 793,
+				"y": 727,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"wooden-sword.png": {
+			"frame": {
+				"x": 1,
+				"y": 793,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"xp.png": {
+			"frame": {
+				"x": 67,
+				"y": 793,
+				"w": 64,
+				"h": 64
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"zombie.png": {
+			"frame": {
+				"x": 133,
+				"y": 793,
 				"w": 64,
 				"h": 64
 			},
@@ -3028,7 +3188,7 @@
 		"format": "RGBA8888",
 		"size": {
 			"w": 858,
-			"h": 792
+			"h": 858
 		},
 		"scale": "1"
 	}
