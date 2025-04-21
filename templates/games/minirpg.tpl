@@ -2583,7 +2583,8 @@
             for (let i = 0; i <= levelsCounter; i++) {
                 const floorNum = i;
                 // б'єм локації по парам на кожен рівень гравця - 2 флори, перший звичайний, другий із крамницею
-                const levelNum = i == 0 ? 0 : Math.ceil((floorNum + 1) / 2);
+                // const levelNum = i == 0 ? 0 : Math.ceil((floorNum + 1) / 2); // зібльшення рівня через 1
+                const levelNum = i;
                 // перевіряєм чи цей рівень вже пройдений
                 const isCompleted = levelsCompleted[i - 1] != undefined ? ' completed' : '';
                 const storeEmoji = (floorNum % 2 == 0 && i != 0) ? addEmoji('🏬') : '';
@@ -5045,7 +5046,7 @@
                     
                     // Перевірка на новий рівень
                     checkLevelUp();
-                    addLog(`---------------`, 'enemy');
+                    //addLog(`---------------`, 'enemy');
                     
                     updateStats();
                     updateMap();
