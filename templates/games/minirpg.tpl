@@ -874,7 +874,7 @@
 
         .fruit-cell {
             animation: fruit-pulse 2s infinite;
-            border-radius: 50%;
+            /*border-radius: 50%;*/
             z-index: 10;
         }
 
@@ -1487,6 +1487,11 @@
                 maxHealth += player.overpoweredHealth;
 
                 return maxHealth;
+            },
+            // інфа з локації на якій знаходиться
+            getCurrentCell() {
+                if (gameMap[this.position.y] == undefined || gameMap[this.position.y][this.position.x] == undefined) return false;
+                return gameMap[this.position.y][this.position.x];
             }
         };
 
@@ -1530,7 +1535,19 @@
         let lastChosenStores = []; // зберігаємо type або name
 
         // предмети з крамниці
-        let store = [];
+        // структура наступна:
+        /*
+            { ...storeType[0], id: uniqId, listOfGoods:[] }
+        */
+        let allStoresHub = [];
+
+        function getStoreHubById(hubId) {
+            hubIndex = allStoresHub.findIndex(h => h.id == hubId);
+            if (hubIndex == -1) return false;
+            else {
+                return { index: hubIndex, ...allStoresHub.find(h => h.id == hubId)};
+            }
+        }
 
         // одна й та сам крамниця буде траплятись мінімум через 3 
         const storeHistoryLimit = 3;
@@ -2136,6 +2153,11 @@
             levels: document.getElementById('levels'),
         };
 
+        // унікальний ID
+        function uniqueId() {
+            return Date.now() + Math.floor(Math.random() * 1000);
+        }
+
         // класичний рандом
         function rand(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -2213,14 +2235,14 @@
         // 🎲 Вибір з урахуванням шансів
         function weightedRandomStore(excludeTypes = []) {
             // вибираєм всі типи крамниць які доступні для спавну і не світяться у списку історій
-            const pool = storeTypes.filter(store => !excludeTypes.includes(store.type) && store.isSpawnable);
+            const pool = storeTypes.filter(s => !excludeTypes.includes(s.type) && s.isSpawnable);
             
             const totalChance = pool.reduce((sum, s) => sum + s.chance, 0);
             let rand = Math.random() * totalChance;
 
-            for (let store of pool) {
-                rand -= store.chance;
-                if (rand <= 0) return store;
+            for (let storePool of pool) {
+                rand -= storePool.chance;
+                if (rand <= 0) return storePool;
             }
 
             // fallback, якщо щось пішло не так
@@ -2229,15 +2251,15 @@
 
         // 🚀 Вибір з історією
         function chooseStore() {
-            const store = weightedRandomStore(lastChosenStores);
+            const storeData = weightedRandomStore(lastChosenStores);
 
             // оновити історію
-            lastChosenStores.push(store.type);
+            lastChosenStores.push(storeData.type);
             if (lastChosenStores.length > storeHistoryLimit) {
                 lastChosenStores.shift(); // прибираємо найстаріший
             }
 
-            return store;
+            return storeData;
         }
 
         function getEnemyDefense(enemy) {
@@ -2619,12 +2641,11 @@
                         const obsObj = obstacles.find(o => o.emoji === templateElement);
                         gameMap[y][x] = { type: 'obstacle', obstacle: obsObj, emoji: templateElement, passable: false };
                     } else if (storeTypes.map(s => s.emoji).includes(templateElement)) {
-                        gameMap[y][x] = { type: 'store', emoji: '🏬' };
                         const localStoreType = storeTypes.find(s => s.emoji == templateElement).type;
                         currentStoreType = localStoreType;
-                        generateStore(localStoreType);
+                        const storeId = spawnStore(localStoreType, x, y);
                     } else if (templateElement == '🚪') {
-                        gameMap[y][x] = { type: 'exit', emoji: '🏬' };
+                        gameMap[y][x] = { type: 'exit', emoji: '🚪' };
                     } else {
                         gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
                     }
@@ -2923,7 +2944,9 @@
             }
 
             if (gameMap[y][x].type === 'store') {
-                const currentStore = storeTypes.find(e => e.type == currentStoreType);
+                /*const currentStore = storeTypes.find(e => e.type == currentStoreType);*/
+                const currentStore = getStoreHubById(gameMap[y][x].id);
+
                 player.atStore = true;
                 elements.gambleBtn.style.display = 'none';
                 elements.storeBtn.style.display = 'inline-block';
@@ -2964,6 +2987,7 @@
             
             // Переміщуємо гравця
             player.position = { x, y };
+            drawTabsInfo();
             //addLog(`🚶 Ви перейшли на клітинку [${x}, ${y}]`, 'system');
             
             // Перевіряємо чи є тут щось цікаве
@@ -3488,32 +3512,40 @@
         }
 
         // спавнимо на мапі крамницю
-        function spawnStore(storeType = 'general') {
+        function spawnStore(storeType = 'general', needX = -1, needY = -1) {
             // зберігаєм тип крамниці на випадок оновлення асортименту
             currentStoreType = storeType;
-            generateStore(storeType);
+            const uniqId = generateStore(storeType);
 
             let x, y;
-            let attempts = 0;
+            if (needX == -1 && needY == -1) {
+                let attempts = 0;
 
-            do {
-                x = Math.floor(Math.random() * mapSize);
-                y = Math.floor(Math.random() * mapSize);
+                do {
+                    x = Math.floor(Math.random() * mapSize);
+                    y = Math.floor(Math.random() * mapSize);
 
-                attempts++;
-                if (attempts > 100) break; // Захист від нескінченного циклу
-            } while (
-                (x === player.position.x && y === player.position.y) ||
-                enemies.some(e => e.position.x === x && e.position.y === y) ||
-                gameMap[y][x].type !== 'empty'
-            );
+                    attempts++;
+                    if (attempts > 100) break; // Захист від нескінченного циклу
+                } while (
+                    (x === player.position.x && y === player.position.y) ||
+                    enemies.some(e => e.position.x === x && e.position.y === y) ||
+                    gameMap[y][x].type !== 'empty'
+                );
+            } else {
+                x = needX;
+                y = needY
+            }
 
             gameMap[y][x] = {
                 type: 'store',
                 emoji: '🏬',
+                storeType: storeType,
+                id: uniqId,
             };
 
             updateStore();
+            return uniqId;
         }
 
         // Функція для показу повідомлення
@@ -3732,8 +3764,13 @@
         }
 
         function updateStore() {
+            const playerCell = player.getCurrentCell();
+            if (playerCell.storeType == undefined) return;
+
+            let localStoreData = getStoreHubById(playerCell.id);
+
             // якщо крамниця не може бути оновленою
-            if (!storeTypes.find(e => e.type == currentStoreType).isRefreshing) {
+            if (!localStoreData.isRefreshing) {
                 elements.buttonStoreWrapper.classList.add('disabled');
             } else {
                 elements.buttonStoreWrapper.classList.remove('disabled');
@@ -3750,7 +3787,7 @@
 
             elements.storeItems.innerHTML = '';
 
-            store.forEach((item, index) => {
+            localStoreData.listOfGoods.forEach((item, index) => {
                 const itemElement = document.createElement('div');
                 let magicLevel = Math.abs(item.magicLevel || 0);
                     magicLevel = item.magicLevel != 0 ? ` ${(item.status || '')} ${(item.status || '')}-${(magicLevel)}` : '';
@@ -3885,10 +3922,10 @@
             antiques - антикваріат - виключно артефакти
             medic - лєчілка + еліксири (1-2 штукі)
             mystic - містичний магаз з оним типом артефакту у різних варіаціях
+
+            id - вказуєм коли треба перегенерувати асортимент для вже існуючої крамниці
         */
-        function generateStore(storeType = 'general') {
-            // скидуєм крамницю
-            store = [];
+        function generateStore(storeType = 'general', id = -1) {
             // множник для товстих магазинів
             const storeFullness = Math.random() < 0.05 ? 2 : 1;
 
@@ -3901,12 +3938,14 @@
 
             const storeData = storeTypes.find(e => e.type == storeType);
 
-            elements.storeBtn.innerHTML = `${storeData.emoji} ${storeData.name} L:${currentMapLevel} [S]`;
+            // нова структра крамничок
+            let storeHub = {...storeData, id: (id === -1 ? uniqueId() : id), listOfGoods: []};
 
+            elements.storeBtn.innerHTML = `${storeData.emoji} ${storeData.name} L:${currentMapLevel} [S]`;
             // барахолка
             if (storeType == 'flea') {
-                store.push({...weapons[0]});
-                store.push({...armors[0]});
+                storeHub.listOfGoods.push({...weapons[0]});
+                storeHub.listOfGoods.push({...armors[0]});
             // звичайна крамниця з усіма товарами але по троху
             } else if (storeType == 'general') {
                 for (i = 0; i < itemsToBuy; i++) {
@@ -3914,49 +3953,49 @@
                     // невеличкий шанс на предмет рівнем більше
                     if (Math.random() < 0.08) tmpItem = generateItemByLevel(currentMapLevel + 1, true, undefined, true);
                     else tmpItem = generateItem(true, undefined, true);
-                    if (tmpItem != null) store.push(tmpItem);
+                    if (tmpItem != null) storeHub.listOfGoods.push(tmpItem);
                 }
                 for (i = 0; i < additionalArtifacts; i++) {
                     let tmpItem = generateItem(true, undefined, true, artifacts);
-                    if (tmpItem != null) store.push(tmpItem);
+                    if (tmpItem != null) storeHub.listOfGoods.push(tmpItem);
                 }
             // зброярня - тільки зброя і броня
             } else if (storeType == 'armory') {
                 for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
                     let tmpItem = generateItem(true, undefined, true, [...weapons, ...armors]);
-                    if (tmpItem != null) store.push(tmpItem);
+                    if (tmpItem != null) storeHub.listOfGoods.push(tmpItem);
                 }
             // ювелірка - амулети і кільця
             } else if (storeType == 'jewelry') {
                 for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
                     let tmpItem = generateItem(true, undefined, true, artifacts.filter(a => ['amulet', 'ring'].includes(a.type)));
-                    if (tmpItem != null) store.push(tmpItem);
+                    if (tmpItem != null) storeHub.listOfGoods.push(tmpItem);
                 }
             // книгарня - книжечки і дуже рідко якийсь релікт
             } else if (storeType == 'library') {
                 for (i = 0; i < (itemsToBuy + additionalArtifacts); i++) {
                     let tmpItem = generateItem(true, undefined, true, artifacts.filter(a => ['book'].includes(a.type)));
-                    if (tmpItem != null) store.push(tmpItem);
+                    if (tmpItem != null) storeHub.listOfGoods.push(tmpItem);
                 }
                 // шось дуже рідкісне на рівень потужніше за рівень мапи
                 if (Math.random() < 0.25) {
                     let tmpItem = generateItemByLevel(currentMapLevel + 1, true, undefined, true, artifacts.filter(a => ['relic'].includes(a.type)));
-                    if (tmpItem != null) store.push(makeItemMagic(tmpItem));
+                    if (tmpItem != null) storeHub.listOfGoods.push(makeItemMagic(tmpItem));
                 }
                 // + рідкісний еліксирчік
                 if (Math.random() < 0.25) {
                     let tmpItem = {...potions[rand(0, potions.length - 1)]};
-                    if (tmpItem != null) store.push(tmpItem);
+                    if (tmpItem != null) storeHub.listOfGoods.push(tmpItem);
                 }
             // антиквар - релікти і невеличка жменька з амулетів, кілець і книжок
             } else if (storeType == 'antiques') {
                 for (i = 0; i < itemsToBuy; i++) {
                     let tmpItem = generateItem(true, undefined, true, artifacts.filter(a => ['relic'].includes(a.type)));
-                    if (tmpItem != null) store.push(tmpItem);
+                    if (tmpItem != null) storeHub.listOfGoods.push(tmpItem);
                 }
                 for (i = 0; i < additionalArtifacts; i++) {
                     let tmpItem = generateItem(true, undefined, true, artifacts.filter(a => ['amulet', 'ring', 'book'].includes(a.type)));
-                    if (tmpItem != null) store.push(tmpItem);
+                    if (tmpItem != null) storeHub.listOfGoods.push(tmpItem);
                 }
             // містична лавка - 3 рандомні предмети у перемагічених варіантах
             } else if (storeType == 'mystic') {
@@ -3965,20 +4004,20 @@
                 for (j = 0; j < 3 ; j++) {
                     magicItem = chooseOne(artifacts);
                     for (i = 0; i < rand(1, 4); i++) {
-                        store.push(makeItemMagicNew(magicItem, 0.45));
+                        storeHub.listOfGoods.push(makeItemMagicNew(magicItem, 0.45));
                     }
                 }
             }
 
             // додаєм товар зі знижкою
-            store.forEach((storeItem) => {
+            storeHub.listOfGoods.forEach((storeItem) => {
                 if (Math.random() < promoChance) {
                     storeItem.promoPercent = [50, 75, 95].randOne();
                     storeItem.promoValue = Math.max(1, Math.floor(storeItem.value * (1 - storeItem.promoPercent / 100)));
                 }
             });
 
-            store.sort((a, b) => {
+            storeHub.listOfGoods.sort((a, b) => {
                 // 1️⃣ Товари з promoValue завжди перші
                 const aPromo = 'promoValue' in a;
                 const bPromo = 'promoValue' in b;
@@ -3999,6 +4038,13 @@
                 return b.value - a.value;
             });
 
+            // при перегенерації зберігаєм id
+            const storeHubExisted = getStoreHubById(storeHub.id);
+            //const localStoreIndex = allStoresHub.findIndex(h => h.id == storeHub.id);
+            if (!storeHubExisted) allStoresHub.push(storeHub);
+            else allStoresHub[storeHubExisted.index] = storeHub;
+
+            return storeHub.id;
         }
 
         // видаляєм крамниці
@@ -4009,6 +4055,8 @@
                     gameMap[storePos.y][storePos.x] = { type: 'empty', emoji: emptyEmoji };
                 });
             }
+
+            allStoresHub = [];
         }
 
         // знімаємо предмет
@@ -4084,9 +4132,15 @@
 
         // Купляємо предмет
         function buyItem(index, forceEquip = false) {
-            if (store[index] == undefined) { return; }
+            const playerCell = player.getCurrentCell();
 
-            const item = store[index];
+            if (playerCell.storeType == undefined) return;
+            let localStoreData = getStoreHubById(playerCell.id);
+
+            if (localStoreData.listOfGoods[index] == undefined) return;
+
+            const item = localStoreData.listOfGoods[index];
+
             const buyPrice = (item.promoValue != undefined) ? Math.max(1, Math.floor(item.promoValue * buyCoefficient)) : Math.max(1, Math.floor(item.value * buyCoefficient));
             if (player.gold < buyPrice) {
                 addLog(`🏬💰 У вас недостатньо коштів для купівлі ${item.emoji} ${item.name}`, 'system');
@@ -4103,8 +4157,8 @@
                 horizontalOffset: 15,
             });
 
-            // Видаляємо предмет з інвентаря
-            store.splice(index, 1);
+            // Видаляємо предмет з інвентаря крамниці
+            localStoreData.listOfGoods.splice(index, 1);
 
             updateStats();
             updateInventory();
@@ -4266,7 +4320,7 @@
             // Створюємо копію предмета для гравця
             return {
                 ...itemTemplate,
-                id: Date.now() + Math.floor(Math.random() * 1000)
+                id: uniqueId()
             };
         }
 
@@ -4576,7 +4630,7 @@
             // Створюємо копію артефакта для гравця
             return {
                 ...artifactTemplate,
-                id: Date.now() + Math.floor(Math.random() * 1000)
+                id: uniqueId()
             };
         }
 
@@ -5353,13 +5407,18 @@
         function updateStorePrices() {
             const updatePrice = player.level * 25;
 
+            // якщо взагалі існує крамниця біля гравця
+            if (player.getCurrentCell().storeType == undefined) return;
+
+            const currentStore = getStoreHubById(player.getCurrentCell().id);
+
             // якщо не вистачає золота або квитків не можна оновлювати магазин
             if (player.gold < updatePrice && player.tickets < 1) {
                 addLog(`💰 Ви не можете оновити асортимент крамниці адже не вистачає ${updatePrice} золота!`, 'system', 'red');
                 return;
             }
             // якщо крамниця не isRefreshing false - тоне можна оновити, бо це весь асортимент
-            if (!storeTypes.find(e => e.type == currentStoreType).isRefreshing) {
+            if (!currentStore.isRefreshing) {
                 addLog(`💰 Ви не можете оновити асортимент крамниці - це вcе що є у крамаря!`, 'system', 'red');
                 return;
             }
@@ -5371,7 +5430,7 @@
             }
 
             // враховуєм тип крамниці
-            generateStore(currentStoreType);
+            generateStore(currentStoreType, currentStore.id);
             updateStore();
             updateStats();
         }
@@ -5571,7 +5630,11 @@
         }
 
         function getStoreItemsCount () {
-            return store.length;
+            const playerCell = player.getCurrentCell();
+            if (playerCell.storeType != undefined) {
+                return getStoreHubById(playerCell.id).listOfGoods.length;
+            }
+            return 0;
         }
 
         function drawTabsInfo() {
@@ -5594,10 +5657,10 @@
 
         // таби
         const tabsInfo = [
-            { ident: 'levels',      name: 'Рівні', emoji: '🌐', keyCode: 'L'},
-            { ident: 'map-block',   name: 'Карта', emoji: '🗺️', keyCode: 'M'},
-            { ident: 'inventory',   name: 'Інвентар', emoji: '🎒', keyCode: 'I', funcs: [updateInventory], counterFunc: getInventoryCount},
-            { ident: 'store',       name: 'Крамниця', emoji: '🏬', keyCode: 'S', funcs: [updateStore], counterFunc: getStoreItemsCount},
+            { ident: 'levels',      name: 'Рівні',    emoji: '🌐', keyCode: 'L'},
+            { ident: 'map-block',   name: 'Карта',    emoji: '🗺️', keyCode: 'M'},
+            { ident: 'inventory',   name: 'Інвентар', emoji: '🎒', keyCode: 'I', funcs: [updateInventory],   counterFunc: getInventoryCount},
+            { ident: 'store',       name: 'Крамниця', emoji: '🏬', keyCode: 'S', funcs: [updateStore],       counterFunc: getStoreItemsCount},
             { ident: 'slots',       name: 'Гемблінг', emoji: '🎰', keyCode: 'G', funcs: [updateGamblePrice], counterFunc: getPlayerTicketsCount},
         ];
 
