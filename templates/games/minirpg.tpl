@@ -1122,9 +1122,9 @@
             updateStats();
 
             const results = [];
-            const btn = document.getElementById('slot-button');
+            //const btn = document.getElementById('slot-button');
             document.getElementById('slot-result').innerHTML = `&nbsp;`;
-            btn.disabled = true;
+            elements.slotButton.disabled = true;
             const scrollTimes = [
                 2 + Math.random() * 2,
                 2 + Math.random() * 2,
@@ -1158,7 +1158,7 @@
                 // Після завершення останнього барабана
                 if (i === 3) {
                     setTimeout(() => {
-                        btn.disabled = false;
+                        elements.slotButton.disabled = false;
                         checkWin(results);
                         }, Math.ceil(Math.max(...summaryTimes) * 1000));
                     }
@@ -5340,104 +5340,6 @@
             }
         }
 
-        // щоб кудись вирачати гроші
-        function gamble() {
-            // в крамниці не граєм
-            if (player.atStore) return;
-
-            // якщо немає ні золота ні квитків
-            if (player.gold < gamblingPrice() && player.tickets < 1) {
-                addLog(`🎰❌ У вас немає ${gamblingPrice()} 💰 золота для гемблінгу!`, 'system');
-                addPopupMessage(`${addEmoji('❌', '40px')}`, elements.gambleBtn);
-                return;
-            }
-
-            if (player.tickets < 1) {
-                player.gold -= gamblingPrice();
-            } else {
-                player.tickets--;
-            }
-            const localRandom = Math.random();
-
-            // 0.5% - jackpot / 30.5% - art / 23% - chest / 23% - fruits / 15% - xp / 8% - gold
-            if (localRandom < 0.06) {
-                // 0.5% на лютєйший джекпот потужності 🌟
-                const jackPot = Math.floor(gamblingPrice() * 5);
-                addPopupMessage(`${addEmoji('💰', '64px')}${addEmoji('💰', '64px')}${addEmoji('💰', '64px')}`, elements.gambleBtn, {
-                    horizontalOffset: -76
-                });
-
-                player.gold += jackPot;
-
-                addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
-                    color: '#ff0',
-                    fontSize: '20px',
-                });
-
-                // + 5 мішків золота
-                spawnGold(5);
-                addLog(`🎰🎰🎰💰 Ви зірвали джекпот! ${jackPot} 💰!`, 'loot', 'rgb(127 69 0)');
-
-            } else if (localRandom < 0.31) {
-                // 31% артефакти
-                addPopupMessage(`${addEmoji('🔮', '40px')}`, elements.gambleBtn);
-                spawnArtifacts(1);
-
-                addLog(`🎰🔮 Удача! На карті з'явився артефакт!`, 'loot');
-            } else if (localRandom < 0.54) { 
-                // 23% сундук
-                addPopupMessage(`${addEmoji('📦', '40px')}`, elements.gambleBtn);
-                spawnChest();
-
-                addLog(`🎰📦 Удача! На карті з'явився сундук!`, 'loot');
-            } else if (localRandom < 0.77) {
-                // 23% фрукт
-                addPopupMessage(`${addEmoji('🍎', '40px')}`, elements.gambleBtn);
-                setTimeout(() => {
-                    spawnFruits(1);
-                }, 100);
-
-                addLog(`🎰🍎 На карті з'явився харч!`, 'loot');
-            } else if (localRandom < 0.92) {
-                // 15% - 25% of level
-                //const addingXp = Math.round(player.xpToNext * 0.25);
-                const randomXpParam = Math.random();
-                const maxXpOnLevel = 24 * player.level + (5 + player.level * 4);
-                const minXpOnLevel = Math.floor(maxXpOnLevel * 0.5);
-
-                const addingXp = rand(minXpOnLevel, maxXpOnLevel);
-                addPopupMessage(`${addEmoji('📈', '40px')}`, elements.gambleBtn);
-
-                player.xp += addingXp;
-                checkLevelUp();
-                updateStats();
-
-                addPopupMessage(`+${addingXp}${addEmojiPlayer('📈')}`, elements.playerEmoji, {
-                    color: '#88f',
-                    fontSize: '18px',
-                });
-
-                addLog(`🎰📈 Ви нічого не виграли, але отримали ${addingXp} досвіду!`, 'loot');
-            } else {
-                // решта золотішко
-                const jackPot = Math.floor(gamblingPrice() * rand(2, 3));
-                addPopupMessage(`${addEmoji('💰', '40px')}`, elements.gambleBtn);
-
-                player.gold += jackPot;
-
-                addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
-                    color: '#ff0',
-                    fontSize: '20px',
-                    delay: 50,
-                });
-
-                addLog(`🎰💰 Ви виграли ${jackPot} грошей!`, 'loot');
-            }
-
-            updateMap();
-            updateStats();
-        }
-
         // Відродження
         function resurrect() {
             if (player.health > 0) return;
@@ -5601,7 +5503,7 @@
 
             // Обробники подій
             elements.healBtn.addEventListener('click', heal);
-            elements.gambleBtn.addEventListener('click', gamble);
+            //elements.gambleBtn.addEventListener('click', gamble);
             elements.resurrectBtn.addEventListener('click', resurrect);
             elements.updateStoreBtn.addEventListener('click', updateStorePrices);
 
@@ -5637,7 +5539,7 @@
                 }
                 // gambling
                 if (e.code === "KeyG") {
-                    if (tabManager.getActiveTab() == 'slots') spinSlot();//gamble();
+                    if (tabManager.getActiveTab() == 'slots' && !elements.slotButton.disabled) spinSlot();
                     else tabManager.clickTab('slots');
                 };
                 if (e.code === "KeyI") tabManager.clickTab('inventory');/* toogleInventory();*/
