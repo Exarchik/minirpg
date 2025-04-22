@@ -56,6 +56,10 @@
             background-color: #45a049;
         }
 
+        .nowrap {
+            white-space: nowrap;
+        }
+
         #levels {
             height: 354px;
         }
@@ -608,6 +612,57 @@
         .upgraded-stat {
             color: #ff8f00;
             text-shadow: 2px 2px 1px #000;
+        }
+
+        #quests {
+            height: 354px;
+            background-color: #222;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .player-quest {
+            height: 50px;
+            font-size: 14px;
+            background-color: #333;
+            padding: 5px 5px 0 5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-around;
+            position: relative;
+        }
+        .player-quest.completed {
+            background-color: green;
+        }
+        .player-quest-caption {
+            width: 40%;
+        }
+        .player-quest-progress {
+            width: 27%;
+            text-align: center;
+        }
+        .player-quest-reward {
+            width: 40%;
+            text-align: right;
+        }
+        .quest-progress {
+            width: 100%;
+            border-radius: 7px;
+            display: inline-block;
+            background-color: #444;
+        }
+        .quest-progress-bar {
+            background-color: #019d01;
+            height: 10px;
+            border-radius: 4px;
+        }
+        button.complete-quest {
+            position: absolute;
+            top: 2px;
+            left: 39%;
+            display: none;
+        }
+        .player-quest.completed:hover button.complete-quest {
+            display: block;
         }
 
         #equipment {
@@ -1203,6 +1258,10 @@
                     const jackPot = Math.floor(gamblingPrice() * 2);
 
                     player.gold += jackPot;
+
+                    // чекаєм квест
+                    player.checkQuest('q_find_gold', jackPot);
+
                     addPopupMessage(`${addEmoji('🌟', '40px')}`, elements.slotButton);
                     addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {color: '#ff0',fontSize: '20px'});
                     addLog(`🎰🌟🌟💰 Дві зірки! +${jackPot} 💰!`, 'slots', 'rgb(127 69 0)');
@@ -1242,6 +1301,9 @@
                     });
 
                     player.gold += jackPot;
+
+                    // чекаєм квест
+                    player.checkQuest('q_find_gold', jackPot);
 
                     addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
                         color: '#ff0',
@@ -1377,6 +1439,7 @@
                 <div id="tabs">
                     <button data-tab="levels">Рівні</button>
                     <button data-tab="map-block">Карта</button>
+                    <button data-tab="quests">Квести</button>
                     <button data-tab="inventory">Інвентар</button>
                     <button data-tab="store">Крамниця</button>
                     <button data-tab="slots">Гемблінг</button>
@@ -1385,6 +1448,9 @@
                 <div id="map-container">
                     <div id="levels" style="">
                         <button class="levels-selector" data-level="1">Рівень 1</button>
+                    </div>
+                    <div id="quests" style="display:none;">
+                        <div id="player-quests-list" ></div>
                     </div>
                     <div id="map-block">
                         <div id="map" style="display:none;"></div>
@@ -1422,6 +1488,7 @@
 
     {ignore}
     <script>
+        let quests = [];
         //const emptyEmoji = '⬛';
         const emptyEmoji = ' ';
         // Ігрові змінні
@@ -1438,6 +1505,7 @@
             xpToNext: 50,  // Необхідний досвід до наступного рівня
             emoji: '🧙‍♂️',
             inventory: [],
+            /*quests: [], // список квестів*/
             tickets: 0, // квитки для гемблінгу
             equipment: {
                 weapon: null,
@@ -1492,7 +1560,61 @@
             getCurrentCell() {
                 if (gameMap[this.position.y] == undefined || gameMap[this.position.y][this.position.x] == undefined) return false;
                 return gameMap[this.position.y][this.position.x];
+            },
+            // виводим список квестів
+            getQuestList() {
+                if (quests.length == 0) return `<div style="margin: 6px;">Квестів немає</div>`;
+                let questList = [];
+                const isQuestMaker = this.getCurrentCell().storeType != undefined && this.getCurrentCell().storeType == 'questmaker';
+
+                quests.forEach((questData, index) => {
+                    const questButton = isQuestMaker ? `<button class="complete-quest" onclick="completeQuest(${index})">Здати квест</button>` : '';
+                    let questInfo = `<div class='player-quest quest-${index}${questData.progress.isCompleted ? ' completed' : ''}'>
+                                        <span class="player-quest-caption">${this.getQuestInfo(questData)}</span>
+                                        <span class="player-quest-progress">${questData.progress.counter}&nbsp;/&nbsp;${questData.targets.counter}<div class="quest-progress"><div class="quest-progress-bar" style="width: ${(questData.progress.counter/questData.targets.counter*100)}%"></div></div>${questButton}</span>
+                                        <span class="player-quest-reward">Нагорода: <span class="nowrap">${questData.rewards.gold}${addEmoji('💰')} ${questData.rewards.xp}${addEmoji('📈')}</span></span>
+                                     </div>`;
+                    questList.push(questInfo);
+                });
+                return questList.join('');
+            },
+
+            /*
+            // вбити конкретного боса
+            { caption: 'Вбити боса "%s"', type: 'q_kill_boss', targets: { counter: 1 }, progress: { counter: 0 }, rewards: { gold: 100, xp: 100 } },
+            */
+            getQuestInfo(data) {
+                let caption;
+
+                if (data.type == 'q_kill_enemy_type') {
+                    caption = `<div>${sprintf(data.caption, data.targets.counter, data.targets.enemyType)}</div>`;
+                } else if (data.type == 'q_kill_boss') {
+                    caption = `<div>${sprintf(data.caption, data.targets.enemyType)}</div>`;
+                } else {
+                    caption = `<div>${sprintf(data.caption, data.targets.counter)}</div>`;
+                }
+
+                return caption;
+            },
+            checkQuest(type, value = 0, subvalue = '') {
+                let checkedQuests = [];
+                if (['q_kill_enemy_type', 'q_kill_boss'].includes(type)) {
+                    checkedQuests = quests.filter(q => q.type == type && q.targets.enemyType == subvalue && !q.progress.isCompleted);
+                } else if (type == 'q_clear_level') {
+                    checkedQuests = quests.filter(q => q.type == type && q.targets.counter == value && !q.progress.isCompleted);
+                } else {
+                    checkedQuests = quests.filter(q => q.type == type && !q.progress.isCompleted);
+                }
+
+                if (checkedQuests.length == 0) return;
+                checkedQuests.forEach((q) => {
+                    q.progress.counter = Math.min(q.targets.counter, q.progress.counter + value);
+                    if (type == 'q_clear_level') q.progress.counter = q.targets.counter;
+
+                    if (q.progress.counter == q.targets.counter) q.progress.isCompleted = true;
+                });
             }
+
         };
 
         const emptySlotsEquipmentsEmojies = {
@@ -1515,8 +1637,10 @@
         const equipableTypes = ['weapon', 'armor', 'ring', 'amulet', 'book', 'relic'];
 
         const storeTypes = [
+            // questmaker - писар видає і приймає виконані квести
+            { name: 'Писар', type: 'questmaker', emoji: '🏬📜', emojiTrader: '🤝📜', chance: 0, isRefreshing: false, isSpawnable: false },
             // flea - блошиний ринок, нічого не продає, але все скупає, знаходиться на стартовій локації
-            { name: 'Барахолка', type: 'flea', emoji: '🏬🗑️', emojiTrader: '🤝🗑️', chance: 25, isRefreshing: false, isSpawnable: false },
+            { name: 'Барахолка', type: 'flea', emoji: '🏬🗑️', emojiTrader: '🤝🗑️', chance: 0, isRefreshing: false, isSpawnable: false },
             // general - все по троху найпоширеніший
             { name: 'Крамниця', type: 'general', emoji: '🏬', emojiTrader: '🤝🏬', chance: 25, isRefreshing: true, isSpawnable: true },
             // armory - виключно зброя і броня
@@ -1565,10 +1689,119 @@
             ['🗻', '🧙‍♂️', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '🚪'],
             ['🗻', '🗻', '🌲', '🌳', ' ', ' ', ' ', '🌳', '🌲', '🗻', '🗻'],
             ['🗻', '🗻', '🗻', '🌳', ' ', ' ', ' ', '🌳', '🗻', '🗻', '🗻'],
-            ['🗻', '🗻', '🗻', '🗻', '🌳', '🌳', '🌳', '🗻', '🗻', '🗻', '🗻'],
+            ['🗻', '🗻', '🗻', '🗻', '🏬📜', '🌳', '🌳', '🗻', '🗻', '🗻', '🗻'],
             ['🗻', '🗻', '🗻', '🗻', '🌲', '🗻', '🌲', '🗻', '🗻', '🗻', '🗻'],
             ['🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻'],
         ];
+
+        const questTypes = [
+            // вбити № певного типу ворога
+            { caption: 'Вбити %s %s', type: 'q_kill_enemy_type', level: 2, targets: { enemyType: '', counter: 10 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // вбити № будь-яких ворогів
+            { caption: 'Вбити %s будь-яких ворогів', type: 'q_kill_enemies', level: 1, targets: { counter: 4 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // вбити конкретного боса
+            { caption: 'Вбити боса "%s"', type: 'q_kill_boss', level: 5, targets: { enemyType: '', counter: 1 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // зачистити певний рівень
+            { caption: 'Зачистити рівень %s', type: 'q_clear_level', level: 1, targets: { counter: 1 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // відкрити № сундуків
+            { caption: 'Відкрити %s сундуки', type: 'q_open_chest', level: 1, targets: { counter: 5 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // зібрати № золота
+            { caption: 'Зібрати %s золота', type: 'q_find_gold', level: 1, targets: { counter: 2000 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // знайти № книжок
+            //{ caption: 'Знайти %s книжок для бібліотеки', type: 'q_find_book', targets: { counter: 3 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // знайти рідкісну річ
+            // знайти прокляту річ
+            // з'їсти певну к-сть їжі
+            // нанести ворогам № шкоди
+            // нанести ворогам № критичних ударів
+        ];
+
+        function generateRandomQuest() {
+            const filteredQuest = questTypes.filter(q => q.level <= player.level).randOne();
+
+            randomQuest = {
+                caption: filteredQuest.caption,
+                type: filteredQuest.type,
+                level: filteredQuest.level,
+                targets: {...filteredQuest.targets},
+                progress: {...filteredQuest.progress},
+                rewards: {...filteredQuest.rewards}
+            };
+            //let randomQuest = {...filteredQuests.randOne(), questId: uniqueId()};
+            if (randomQuest.type == 'q_kill_enemy_type') {
+                const enemy = enemyTypes.filter(e => !e.boss).randOne();
+                // targets
+                randomQuest.targets.enemyType = enemy.type;
+                randomQuest.targets.counter = enemy.elite ? rand(2, 4) : rand(4, 6);
+                // rewards
+                randomQuest.rewards.gold = player.level * (enemy.elite ? rand(50, 70) : rand(30, 40));
+                randomQuest.rewards.xp = player.level * (enemy.elite ? rand(35, 50) : rand(20, 30));
+            } else if (randomQuest.type == 'q_kill_enemies') {
+                // targets
+                randomQuest.targets.counter = rand(15, 25);
+                // rewards
+                randomQuest.rewards.gold = player.level * rand(35, 50);
+                randomQuest.rewards.xp = player.level * rand(30, 35);
+            } else if (randomQuest.type == 'q_kill_boss') {
+                const enemy = enemyTypes.filter(e => e.boss).randOne();
+                // targets
+                randomQuest.targets.enemyType = enemy.type;
+                randomQuest.targets.counter = 1;
+                // rewards
+                randomQuest.rewards.gold = player.level * rand(50, 75);
+                randomQuest.rewards.xp = player.level * rand(40, 50);
+            } else if (randomQuest.type == 'q_clear_level') {
+                // targets
+                randomQuest.targets.counter = !levelsCompleted.length ? 1 : (levelsCompleted.slice(-1)[0] + 1);
+                // rewards
+                randomQuest.rewards.gold = player.level * rand(35, 50);
+                randomQuest.rewards.xp = player.level * rand(30, 35);
+            } else if (randomQuest.type == 'q_open_chest') {
+                // targets
+                randomQuest.targets.counter = rand(5, 10);
+                // rewards
+                randomQuest.rewards.gold = player.level * rand(35, 50);
+                randomQuest.rewards.xp = player.level * rand(30, 35);
+            } else if (randomQuest.type == 'q_find_gold') {
+                // targets
+                randomQuest.targets.counter = rand(120, 200) * player.level;
+                // rewards
+                randomQuest.rewards.gold = player.level * rand(35, 50);
+                randomQuest.rewards.xp = player.level * rand(30, 35);
+            }
+
+            return randomQuest;
+        }
+
+        function completeQuest(index) {
+            if (quests[index] == undefined) return;
+            if (!quests[index].progress.isCompleted) return;
+            const questReward = quests[index].rewards;
+
+            player.gold += questReward.gold;
+            player.xp += questReward.xp;
+
+            addLog(`💰📈 Ви виконали квест і отримали ${questReward.gold} золота і ${questReward.xp} досвіду !`, 'loot');
+
+            addPopupMessage(`+${questReward.gold}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
+                color: '#ff0',
+                fontSize: '20px'
+            });
+            addPopupMessage(`+${questReward.xp}${addEmojiPlayer('📈')}`, elements.playerEmoji, {
+                color: '#ff0',
+                fontSize: '20px',
+                horizontalOffset: -20,
+            });
+
+            // чекаєм квест
+            player.checkQuest('q_find_gold', questReward.gold);
+
+            quests.splice(index, 1);
+
+            updateQuestsData();
+            updateStats();
+        }
+
         // бібліотека емоджі
         const emojiReplacer = [
                 // базові
@@ -1611,7 +1844,7 @@
             { type: '🎰', image: 'slot-machine.png' },
                 // торговці
             { type: '🤝🗑️', image: 'trader-flea.png' },
-            //{ type: '🤝📜', image: 'trader-quest.png' }, // -
+            { type: '🤝📜', image: 'trader-quest.png' },
             { type: '🤝🏬', image: 'trader-general.png' },
             { type: '🤝⚔️', image: 'trader-armory.png' },
             { type: '🤝💍', image: 'trader-jewelry.png' },
@@ -2246,6 +2479,13 @@
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
+        // php sprintf analog
+        function sprintf(format, ...args) {
+            let i = 0;
+            return format.replace(/%s/g, () => args[i++]);
+        }
+
+
         // вибрати єдине випадкове значення з масиву
         function chooseOne(list) {
             if (!Array.isArray(list) || list.length === 0) {
@@ -2609,7 +2849,7 @@
                         elements.map.style.display = 'grid';
                         elements.gambleBtn.style.display = 'inline-block';
 
-                        tabManager.setTab(['map-block', 'inventory', 'slots']);
+                        tabManager.setTab(['map-block', 'quests', 'inventory', 'slots']);
                         initMap(levelNum);
                     });
 
@@ -3064,7 +3304,7 @@
                 elements.map.style.display = 'none';
                 elements.gambleBtn.style.display = 'none';
 
-                tabManager.setTab(['levels', 'inventory']);
+                tabManager.setTab(['levels', 'quests', 'inventory']);
 
                 document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
             }
@@ -3235,6 +3475,10 @@
             if (cell.type === 'treasure') {
                 const goldFound = Math.floor(Math.random() * 10 * currentMapLevel) + 5;
                 player.gold += goldFound;
+
+                // чекаєм квест
+                player.checkQuest('q_find_gold', goldFound);
+
                 addLog(`💰 Ви знайшли скарб і отримали ${goldFound} золота!`, 'loot');
 
                 addPopupMessage(`+${goldFound}${addEmojiPlayer('💰')}`, targetOnMap, {
@@ -3261,6 +3505,9 @@
 
                 player.gold += goldFound;
                 player.xp += xpFound;
+
+                // чекаєм квест
+                player.checkQuest('q_find_gold', goldFound);
 
                 const isTicketFound = (Math.random() < ticketSpawnChance) || isGoldenChest;
                 checkLevelUp();
@@ -3298,6 +3545,9 @@
                         fontSize: '40px',
                     });
                 }
+
+                // чекаєм квести
+                player.checkQuest('q_open_chest', 1);
 
                 // Видаляємо сундук
                 gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
@@ -3889,6 +4139,12 @@
                 elements.storeItems.appendChild(itemElement);
             });
 
+            if (playerCell.storeType == 'questmaker') {
+                const itemElement = document.createElement('div');
+                itemElement.innerHTML = `<button onclick='quests.push({...generateRandomQuest()})'>Отримати випадковий квест</button>`;
+                elements.storeItems.appendChild(itemElement);
+            }
+
             drawTabsInfo();
         }
 
@@ -3935,8 +4191,9 @@
             //const equipmentShadowImage = (equipmentTypeIndex != -1 && viewType == 'equipment') ? `<div class="item-image-background">${itemEmoji}</div>` : '';
             const equipmentShadowImage = `<div class="item-image-background ${viewType}">${itemEmoji}</div>`;
 
-            // тепер продаєм виключно в магазині
-            const canSellitem = (item.canSell !== false && tabManager.hasTab('store'));
+            // тепер продаєм виключно в магазині але не в писаря
+            const isNotQuestMaker = player.getCurrentCell().storeType != undefined && player.getCurrentCell().storeType != 'questmaker';
+            const canSellitem = (item.canSell !== false && tabManager.hasTab('store') && isNotQuestMaker);
 
             const inventoryIndex = (index != -1 && viewType == 'inventory') ? `` : '';
             const inventorySubInfo = (index != -1 && index < 9 && viewType == 'inventory') ? `<div class="item-subinfo-up">[ ${index+1} ]</div><div style="${canSellitem == false ? 'display:none;' : ''}" class="item-subinfo">SHIFT+${index+1}</div>` : '';
@@ -4026,8 +4283,12 @@
             let storeHub = {...storeData, id: (id === -1 ? uniqueId() : id), listOfGoods: []};
 
             elements.storeBtn.innerHTML = `${storeData.emoji} ${storeData.name} L:${currentMapLevel} [S]`;
+
+            // писар - видає і приймає квести
+            if (storeType == 'questmaker') {
+                //....
             // барахолка
-            if (storeType == 'flea') {
+            } else if (storeType == 'flea') {
                 storeHub.listOfGoods.push({...weapons[0]});
                 storeHub.listOfGoods.push({...armors[0]});
             // звичайна крамниця з усіма товарами але по троху
@@ -4263,6 +4524,9 @@
             
             player.gold += sellPrice;
             player.inventory.splice(index, 1);
+
+            // чекаєм квест
+            player.checkQuest('q_find_gold', sellPrice);
             
             addLog(`💰 Ви продали ${item.emoji} ${item.name} за ${sellPrice} золота`, 'sell');
             // сповіщення продажу
@@ -4969,6 +5233,10 @@
                     // Нагорода
                     player.gold += enemy.gold;
                     player.xp += enemy.xp;
+
+                    // чекаєм квест
+                    player.checkQuest('q_find_gold', enemy.gold);
+
                     addLog(`💰 Ви отримали ${enemy.gold} золота і ${enemy.xp} досвіду.`, 'loot');
                     
                     addPopupMessage(`+${enemy.gold}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
@@ -5039,6 +5307,9 @@
                         }
                         showGameMessage(`Рівень ${player.clearedRooms} зачищено!`, `🎉 Ви зачистили рівень від ворогів!${infoShop}`);
 
+                        // перевіряєм квест
+                        player.checkQuest('q_clear_level', currentMapLevel);
+
                         // робімо вихід
                         spawnExit();
                         updateMap();
@@ -5046,7 +5317,13 @@
                     
                     // Перевірка на новий рівень
                     checkLevelUp();
-                    //addLog(`---------------`, 'enemy');
+                    
+                    // Перевірка квестів
+                    player.checkQuest('q_kill_enemies', 1);
+                    player.checkQuest('q_kill_enemy_type', 1, enemy.type);
+                    if (enemy.boss) {
+                        player.checkQuest('q_kill_boss', 1, enemy.type);
+                    }
                     
                     updateStats();
                     updateMap();
@@ -5180,7 +5457,7 @@
                 elements.enemyStats.style.visibility = 'hidden';
                 elements.enemyHealthBarWrapper.style.visibility = 'hidden';
 
-                tabManager.setTab(['levels', 'inventory']);
+                tabManager.setTab(['levels', 'quests', 'inventory']);
 
                 return;
             }
@@ -5560,7 +5837,8 @@
 
                     // якщо тицнем цифру із Shift - то автоматично продаєм її, але лише якщо гравець дивиться у інвентар
                     //if (e.shiftKey && player.inventory[itemIndex] != null && player.inInventory) sellItem(itemIndex);
-                    if (e.shiftKey && player.inventory[itemIndex] != null && tabManager.getActiveTab() == 'inventory' && tabManager.hasTab('store')) sellItem(itemIndex);
+                    const isNotQuestMaker = player.getCurrentCell().storeType != undefined && player.getCurrentCell().storeType != 'questmaker';
+                    if (e.shiftKey && player.inventory[itemIndex] != null && tabManager.getActiveTab() == 'inventory' && tabManager.hasTab('store') && isNotQuestMaker) sellItem(itemIndex);
                     // якщо тицнем цифру із Alt - то знімаєм вдягнену річ (1-зброя / 2-броня / 3-кільце / 4-амулет / 5-книга / 6-реліквія)
                     else if (e.altKey) unequipItem(itemIndex);
                     // якщо просто тиснем цифру з рюкзака, то вона вдягнеться/використається
@@ -5590,7 +5868,7 @@
             elements.enemyStats.style.visibility = 'hidden';
             elements.enemyHealthBarWrapper.style.visibility = 'hidden';
 
-            tabManager.setTab(['levels', 'inventory']);
+            tabManager.setTab(['levels', 'quests', 'inventory']);
         }
 
         // спам повідомленнь
@@ -5607,20 +5885,36 @@
         let levelSelected = 1;
         mainLoop();
 
-        function getInventoryCount () {
+        function updateQuestsData() {
+            document.getElementById('player-quests-list').innerHTML = player.getQuestList();
+        }
+
+        function getInventoryCount() {
             return player.inventory.length;
         }
 
-        function getPlayerTicketsCount () {
+        function getPlayerTicketsCount() {
             return player.tickets;
         }
 
-        function getStoreItemsCount () {
+        function getStoreItemsCount() {
             const playerCell = player.getCurrentCell();
             if (playerCell.storeType != undefined) {
                 return getStoreHubById(playerCell.id).listOfGoods.length;
             }
             return 0;
+        }
+
+        function getPlayerQuestCompleted() {
+            return quests.filter(q => q.progress.isCompleted).length;
+        }
+
+        function getStoreName() {
+            const playerCell = player.getCurrentCell();
+            if (playerCell.storeType != undefined) {
+                return getStoreHubById(playerCell.id).name;
+            }
+            return "Крамниця";
         }
 
         function drawTabsInfo() {
@@ -5639,15 +5933,27 @@
                     el.style.display = 'none';
                 }
             });
+
+            document.querySelectorAll('.tab-name').forEach((el) => {
+                let tabIdent = el.id.replace(/^tab-/, '').replace(/-name$/, '');
+                const tabInfo = tabsInfo.find(t => t.ident == tabIdent);
+
+                let tabName = tabInfo.name;
+                if (tabInfo.captionFunc != undefined) {
+                    tabName = tabInfo.captionFunc();
+                    el.innerHTML = tabName;
+                }
+            });
         }
 
         // таби
         const tabsInfo = [
-            { ident: 'levels',      name: 'Рівні',    emoji: '🌐', keyCode: 'L'},
-            { ident: 'map-block',   name: 'Карта',    emoji: '🗺️', keyCode: 'M'},
-            { ident: 'inventory',   name: 'Інвентар', emoji: '🎒', keyCode: 'I', funcs: [updateInventory],   counterFunc: getInventoryCount},
-            { ident: 'store',       name: 'Крамниця', emoji: '🏬', keyCode: 'S', funcs: [updateStore],       counterFunc: getStoreItemsCount},
-            { ident: 'slots',       name: 'Гемблінг', emoji: '🎰', keyCode: 'G', funcs: [updateGamblePrice], counterFunc: getPlayerTicketsCount},
+            { ident: 'levels',      name: 'Рівні',    emoji: '🌐', keyCode: 'L' },
+            { ident: 'map-block',   name: 'Карта',    emoji: '🗺️', keyCode: 'M' },
+            { ident: 'inventory',   name: 'Інвентар', emoji: '🎒', keyCode: 'I', funcs: [updateInventory],   counterFunc: getInventoryCount },
+            { ident: 'store',       name: 'Крамниця', emoji: '🏬', keyCode: 'S', funcs: [updateStore],       counterFunc: getStoreItemsCount,   captionFunc: getStoreName },
+            { ident: 'slots',       name: 'Гемблінг', emoji: '🎰', keyCode: 'G', funcs: [updateGamblePrice], counterFunc: getPlayerTicketsCount },
+            { ident: 'quests',      name: 'Квести',   emoji: '📜', keyCode: 'Q', funcs: [updateQuestsData],  counterFunc: getPlayerQuestCompleted },
         ];
 
         const tabManager = (() => {
@@ -5711,9 +6017,10 @@
                 const button = document.createElement('button');
                 const tabInfo = tabsInfo.find(t => t.ident == ident);
                 const counter = (tabInfo.counterFunc != undefined) ? tabInfo.counterFunc() : 0;
+                const tabName = (tabInfo.captionFunc != undefined) ? tabInfo.captionFunc() : tabInfo.name;
 
-                button.innerHTML = `<span style="display:none" class="tab-counter" id="tab-${ident}-counter">${counter}</span>${addEmoji(tabInfo.emoji, '32px')}<span class="tab-desc"> ${tabInfo.name} [${tabInfo.keyCode}]</span>`;
-                button.title = tabInfo.name;
+                button.innerHTML = `<span style="display:none" class="tab-counter" id="tab-${ident}-counter">${counter}</span>${addEmoji(tabInfo.emoji, '32px')}<span class="tab-desc"><span class="tab-name" id="tab-${ident}-name">${tabName}</span> [${tabInfo.keyCode}]</span>`;
+                button.title = tabName;
                 button.dataset.tab = ident;
                 button.addEventListener('click', () => setActiveTab(ident));
 
