@@ -235,11 +235,20 @@
             text-align: center;
         }
         .health-bar {
-            height: 10px;
+            height: 14px;
             background-color: #444;
             margin-top: 5px;
-            border-radius: 5px;
+            border-radius: 7px;
             overflow: hidden;
+            position: relative;
+        }
+        #max-health-display, #enemy-health-display {
+            display: block;
+            position: absolute;
+            font-size: 12px;
+            text-align: center;
+            width: 100%;
+            top: -3px;
         }
         .health-fill {
             height: 100%;
@@ -253,12 +262,20 @@
         .player-health .overpowered {
             background-color: #8c1ce5;
         }
+        #player-xp-info {
+            display: block;
+            position: absolute;
+            font-size: 12px;
+            text-align: center;
+            width: 100%;
+            top:-3px;
+        }
         .xp-bar {
-            height: 10px;
+            height: 14px;
             background-color: #444;
-            margin-top: 5px;
-            border-radius: 5px;
+            border-radius: 7px;
             overflow: hidden;
+            position: relative;
         }
         .xp-fill {
             height: 100%;
@@ -267,7 +284,7 @@
             transition: width 0.5s;
         }
         .player-xp .xp-fill {
-            background-color: #fff400;
+            background-color: #d98b03;
         }
         .megahealth {
             filter: drop-shadow(0px 0px 11px #ff00ff);
@@ -1040,7 +1057,7 @@
                 display: none !important;
             }
             #map-container {
-                zoom: 0.8;
+                zoom: 0.75;
                 max-width: 99%;
             }
             #inventory, #store {
@@ -1414,36 +1431,40 @@
             <div class="game-column">
                 <div id="battle-view">
                     <div id="player-view">
-                        <div id="player-emoji">
+                        <div id="player-emoji" style="width:170px">
                             <span class="emoji-replace" data-emoji="🧙‍♂️" data-size="64px">🧙‍♂️</span>
                         </div>
                         <div class="stats">
+                            <span class="emoji-replace" data-emoji="👑" data-size="20px">👑</span>: <span id="level">1</span>&nbsp;&nbsp;&nbsp;
                             <span class="emoji-replace" data-emoji="⚔️" data-size="20px">АТК</span>: <span id="attack-display" >10</span>&nbsp;&nbsp;&nbsp;
-                            <span class="emoji-replace" data-emoji="🛡️" data-size="20px">ЗАХ</span>: <span id="defense-display">5</span>&nbsp;&nbsp;&nbsp;
-                            <span id="playerHeartEmoji" class="emoji-replace" data-emoji="❤️" data-size="20px">❤️</span>: <span id="max-health-display">100</span> <!--💜-->
+                            <span class="emoji-replace" data-emoji="🛡️" data-size="20px">ЗАХ</span>: <span id="defense-display">5</span>
                         </div>
                         <div class="health-bar player-health">
+                            <span id="playerHeartEmoji" class="emoji-replace" data-emoji="❤️" data-size="10px" style="font-size: 8px; position: absolute; left: 4px; filter: drop-shadow(1px 1px 2px black);">❤️</span>
+                            <span id="max-health-display">100</span>
                             <div class="health-fill" id="player-health-bar"></div>
                         </div>
-                        <div class="xp-bar player-xp">
+                        <div class="xp-bar player-xp" style="margin-top: 2px">
+                            <span class="emoji-replace" data-emoji="📈" data-size="10px" style="font-size: 8px; position: absolute; left: 4px; filter: drop-shadow(1px 1px 2px black);">📈</span>
+                            <span id="player-xp-info"><span id="xp">0</span>/<span id="xpToNext">50</span></span>
                             <div class="xp-fill" id="player-xp-bar"></div>
                         </div>
                         <div id="stats" class="stats">
-                            <span class="emoji-replace" data-emoji="👑" data-size="20px">👑</span>: <span id="level">1</span>&nbsp;&nbsp;&nbsp;
                             <span class="emoji-replace" data-emoji="💰" data-size="20px">💰</span>: <span id="gold">0</span>&nbsp;&nbsp;&nbsp;
-                            <span class="emoji-replace" data-emoji="📈" data-size="20px">📈</span>: <span id="xp">0</span>/<span id="xpToNext">50</span>
+                            <span class="emoji-replace" data-emoji="🎟️" data-size="20px">🎟️</span>: <span id="tickets">0</span>
                         </div>
                     </div>
                     <div id="vs"><span class="emoji-replace" data-emoji="⚔️" data-size="64px">⚔️</span></div>
-                    <div id="enemy-view" style="display: block;">
+                    <div id="enemy-view" style="display: block; width:170px">
                         <div id="enemy-emoji">👤</div>
                         <div id="enemy-name" style="font-size: 16px; display: none;">Ворог</div>
                         <div class="stats" id="enemy-stats">
                             <span class="emoji-replace" data-emoji="⚔️" data-size="20px">АТК</span>: ?&nbsp;&nbsp;&nbsp;
                             <span class="emoji-replace" data-emoji="🛡️" data-size="20px">ЗАХ</span>: ?&nbsp;&nbsp;&nbsp;
-                            <span class="emoji-replace" data-emoji="❤️" data-size="20px">❤️</span>: 0
                         </div>
                         <div class="health-bar" id="enemy-health-bar-wrapper">
+                            <span class="emoji-replace" data-emoji="❤️" data-size="10px" style="font-size: 8px; position: absolute; left: 4px; filter: drop-shadow(1px 1px 2px black);">❤️</span>
+                            <span id="enemy-health-display">100</span>
                             <div class="health-fill" id="enemy-health-bar"></div>
                         </div>
                     </div>
@@ -2510,6 +2531,7 @@
         const elements = {
             level: document.getElementById('level'),
             gold: document.getElementById('gold'),
+            tickets: document.getElementById('tickets'),
             xp: document.getElementById('xp'),
             xpToNext: document.getElementById('xpToNext'),
             attack: document.getElementById('attack-display'),
@@ -2537,6 +2559,7 @@
             enemyEmoji: document.getElementById('enemy-emoji'),
             enemyName: document.getElementById('enemy-name'),
             enemyStats: document.getElementById('enemy-stats'),
+            enemyHealthDisplay: document.getElementById('enemy-health-display'),
             vs: document.getElementById('vs'),
             inventory: document.getElementById('inventory'),
             inventoryItems: document.getElementById('inventory-items'),
@@ -4083,6 +4106,7 @@
         function updateStats() {
             elements.level.textContent = player.level;
             elements.gold.textContent = player.gold;
+            elements.tickets.textContent = player.tickets;
             elements.xp.textContent = player.xp;
             elements.xpToNext.textContent = player.xpToNext;
             elements.attack.textContent = player.attack;
@@ -5605,7 +5629,8 @@
             const enemyDefense = enemy.defense < getEnemyDefense(enemy) ? `<strong class="upgraded-stat">${getEnemyDefense(enemy)}</strong>` : getEnemyDefense(enemy);
             const enemyMaxHealth = enemy.baseMaxHealth < getEnemyMaxHealth(enemy) ? `<strong class="upgraded-stat">${getEnemyMaxHealth(enemy)}</strong>` : getEnemyMaxHealth(enemy);
 
-            elements.enemyStats.innerHTML = `${attackEmoji}: ${enemyAttack}&nbsp;&nbsp;&nbsp;${defenseEmoji}: ${enemyDefense}&nbsp;&nbsp;&nbsp;${healthEmoji}: ${(enemy.health >= 0 ? enemy.health : 0)}/${enemyMaxHealth}`;
+            elements.enemyStats.innerHTML = `${attackEmoji}: ${enemyAttack}&nbsp;&nbsp;&nbsp;${defenseEmoji}: ${enemyDefense}`;
+            elements.enemyHealthDisplay.innerHTML = `${(enemy.health >= 0 ? enemy.health : 0)}/${enemyMaxHealth}`;
             
             // Оновлюємо health bar ворога
             const enemyHealthPercent = ((enemy.health >= 0 ? enemy.health : 0) / getEnemyMaxHealth(enemy)) * 100;
@@ -5939,6 +5964,10 @@
                     if (e.code === "ArrowDown") inventoryItemSelected += 3;
                     if (e.code === "ArrowLeft") inventoryItemSelected--;
                     inventoryItemSelected = inventoryItemSelected < 0 ? (inventoryCount - 1) : (inventoryItemSelected > (inventoryCount - 1) ? 0 : inventoryItemSelected);
+
+                    if (e.code === "Enter") {
+                        useItem(inventoryItemSelected);
+                    }
 
                     updateInventory();
                 } else if (tabManager.getActiveTab() == 'slots') {
