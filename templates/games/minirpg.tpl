@@ -313,6 +313,11 @@
             width: 30%;
             min-height: 90px;
         }
+        #inventory-items .item-slot.selected,
+        #store-items .item-slot.selected {
+            border: 1px solid #fff;
+            border-radius: 3px;
+        }
         #inventory-items .item-slot .item-name,
         #store-items .item-slot .item-name {
             font-size: 15px;
@@ -1054,6 +1059,16 @@
             #log {
                 display: none !important;
             }
+
+            #inventory-items .item-slot.selected,
+            #store-items .item-slot.selected {
+                border: initial;
+                border-radius: initial;
+            }
+            .player-quest.selected {
+                border: initial;
+                border-radius: initial;
+            }
         }
 
         @media (max-width: 467px) {
@@ -1506,7 +1521,9 @@
 
     {ignore}
     <script>
+        // всі квести гравця
         let quests = [];
+
         //const emptyEmoji = '⬛';
         const emptyEmoji = ' ';
         // Ігрові змінні
@@ -4130,7 +4147,7 @@
                 let magicLevel = Math.abs(item.magicLevel || 0);
                     magicLevel = item.magicLevel != 0 ? ` ${(item.status || '')} ${(item.status || '')}-${(magicLevel)}` : '';
 
-                itemElement.className = `item-slot ${magicLevel} item-${item.type}`;
+                itemElement.className = `item-slot ${magicLevel} item-${item.type}${inventoryItemSelected == index ? ' selected' : ''}`;
                 itemElement.innerHTML = getItemView(item, index, 'inventory');
                 
                 elements.inventoryItems.appendChild(itemElement);
@@ -4198,7 +4215,7 @@
                     }
                     const buyPriceTotal = (item.promoValue != undefined) ? buyPricePromo : buyPrice;
 
-                itemElement.className = `item-slot ${magicLevel} item-${item.type}${buyPriceTotal > player.gold ? ' not-enough-gold': ''}`;
+                itemElement.className = `item-slot ${magicLevel} item-${item.type}${buyPriceTotal > player.gold ? ' not-enough-gold': ''}${storeItemSelected == index ? ' selected' : ''}`;
                 itemElement.innerHTML = getItemView(item, index, 'store');
 
                 elements.storeItems.appendChild(itemElement);
@@ -5838,6 +5855,8 @@
         }
 
         questSelected = 0;
+        storeItemSelected = 0;
+        inventoryItemSelected = 0;
 
         function beginAll() {
             // даєм діду паличку
@@ -5864,6 +5883,8 @@
             // buttons 
             document.addEventListener("keydown", (e) => {
                 const isQuestMaker = player.getCurrentCell().storeType != undefined && player.getCurrentCell().storeType == 'questmaker';
+                const currentStoreCount = getStoreItemsCount();
+                const inventoryCount = getInventoryCount();
 
                 if (tabManager.getActiveTab() == 'map-block') {
                     if (e.code === "ArrowUp") movePlayer(player.position.x, player.position.y - 1);
@@ -5897,9 +5918,29 @@
                         questSelected = 0;
                     }
                 } else if (tabManager.getActiveTab() == 'store') {
-                    if (e.code === "Enter" && isQuestMaker) {
-                        getRandomQuest();
+                    if (!isQuestMaker) {
+                        if (e.code === "ArrowUp") storeItemSelected -= 3;
+                        if (e.code === "ArrowRight") storeItemSelected++;
+                        if (e.code === "ArrowDown") storeItemSelected += 3;
+                        if (e.code === "ArrowLeft") storeItemSelected--;
+                        storeItemSelected = storeItemSelected < 0 ? (currentStoreCount - 1) : (storeItemSelected > (currentStoreCount - 1) ? 0 : storeItemSelected);
+
+                        if (e.code === "Enter") {
+                            buyItem(storeItemSelected);
+                        }
+                    } else if (isQuestMaker && quests.filter(q => !q.progress.isCompleted).length < 3) {
+                        if (e.code === "Enter") getRandomQuest();
                     }
+
+                    updateStore();
+                } else if (tabManager.getActiveTab() == 'inventory') {
+                    if (e.code === "ArrowUp") inventoryItemSelected -= 3;
+                    if (e.code === "ArrowRight") inventoryItemSelected++;
+                    if (e.code === "ArrowDown") inventoryItemSelected += 3;
+                    if (e.code === "ArrowLeft") inventoryItemSelected--;
+                    inventoryItemSelected = inventoryItemSelected < 0 ? (inventoryCount - 1) : (inventoryItemSelected > (inventoryCount - 1) ? 0 : inventoryItemSelected);
+
+                    updateInventory();
                 } else if (tabManager.getActiveTab() == 'slots') {
                     if (e.code === "Enter" && !elements.slotButton.disabled) {
                         spinSlot();
@@ -5912,7 +5953,7 @@
                 };*/
                 if (e.code === "KeyG") tabManager.clickTab('slots');
                 if (e.code === "KeyI") tabManager.clickTab('inventory');/* toogleInventory();*/
-                if (e.code === "KeyS") tabManager.clickTab('store');
+                if (e.code === "KeyS") {tabManager.clickTab('store'); storeItemSelected = 0; updateStore();}
                 if (e.code === "KeyQ") tabManager.clickTab('quests');
                 if (e.code === "KeyM") tabManager.clickTab('map-block');
                 if (e.code === "KeyL") tabManager.clickTab('levels');
