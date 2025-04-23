@@ -630,6 +630,10 @@
             justify-content: space-around;
             position: relative;
         }
+        .player-quest.selected {
+            border: 1px solid #fff;
+            border-radius: 3px;
+        }
         .player-quest.completed {
             background-color: green;
         }
@@ -661,7 +665,8 @@
             left: 39%;
             display: none;
         }
-        .player-quest.completed:hover button.complete-quest {
+        .player-quest.completed:hover button.complete-quest,
+        .player-quest.completed.selected button.complete-quest {
             display: block;
         }
 
@@ -1114,6 +1119,10 @@
             cursor: pointer;
             position: relative;
         }
+        #tabs button:disabled {
+            background-color: grey;
+            cursor: default;
+        }
         #tabs button.active {
             background: #0080ff;
             color: white;
@@ -1125,6 +1134,12 @@
             margin-left: 7px;
             font-size: 14px;
             font-weight: normal;
+        }
+        #tabs button span.tab-desc .tab-name {
+            display: none;
+        }
+        #tabs button.active span.tab-desc .tab-name {
+            display: inline-block;
         }
         #tabs .tab-counter {
             position: absolute;
@@ -1170,16 +1185,23 @@
             }
 
             if (player.tickets < 1) {
-                player.gold -= gamblingPrice();
+                player.spendGold(gamblingPrice());
             } else {
                 player.tickets--;
             }
+
+            // чекаєм квести слотів
+            player.checkQuest('q_play_slots', 1);
+
             updateStats();
 
             const results = [];
             //const btn = document.getElementById('slot-button');
             document.getElementById('slot-result').innerHTML = `&nbsp;`;
             elements.slotButton.disabled = true;
+            // вимикаєм всі кніпки меню
+            document.querySelectorAll('#tabs button').forEach((el) => {el.disabled = true;});
+
             const scrollTimes = [
                 2 + Math.random() * 2,
                 2 + Math.random() * 2,
@@ -1214,6 +1236,8 @@
                 if (i === 3) {
                     setTimeout(() => {
                         elements.slotButton.disabled = false;
+                        // вмикаєм всі кніпки меню
+                        document.querySelectorAll('#tabs button').forEach((el) => {el.disabled = false;});
                         checkWin(results);
                         }, Math.ceil(Math.max(...summaryTimes) * 1000));
                     }
@@ -1257,10 +1281,7 @@
                 if (winResult.emoji == `🌟`) {
                     const jackPot = Math.floor(gamblingPrice() * 2);
 
-                    player.gold += jackPot;
-
-                    // чекаєм квест
-                    player.checkQuest('q_find_gold', jackPot);
+                    player.addGold(jackPot);
 
                     addPopupMessage(`${addEmoji('🌟', '40px')}`, elements.slotButton);
                     addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {color: '#ff0',fontSize: '20px'});
@@ -1287,7 +1308,7 @@
                     const minXpOnLevel = Math.floor(maxXpOnLevel * 0.5);
 
                     const addingXp = rand(minXpOnLevel, maxXpOnLevel);
-                    player.xp += addingXp;
+                    player.addXp(addingXp);
                     
                     addPopupMessage(`${addEmoji('📈', '40px')}`, elements.slotButton);
                     addPopupMessage(`+${addingXp}${addEmojiPlayer('📈')}`, elements.playerEmoji, {color: '#ff0',fontSize: '20px'});
@@ -1300,10 +1321,7 @@
                         horizontalOffset: -76
                     });
 
-                    player.gold += jackPot;
-
-                    // чекаєм квест
-                    player.checkQuest('q_find_gold', jackPot);
+                    player.addGold(jackPot);
 
                     addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
                         color: '#ff0',
@@ -1346,7 +1364,7 @@
                     const minXpOnLevel = Math.floor(maxXpOnLevel * 0.5);
 
                     const addingXp = Math.floor(rand(minXpOnLevel, maxXpOnLevel) * 2.5);
-                    player.xp += addingXp;
+                    player.addXp(addingXp);
                     
                     addPopupMessage(`${addEmoji('📈', '64px')}${addEmoji('📈', '64px')}${addEmoji('📈', '64px')}`, elements.slotButton, {
                         horizontalOffset: -76
@@ -1461,7 +1479,7 @@
                         <div id="inventory-items"></div>
                     </div>
                     <div id="store" style="display:none;">
-                        <div id="store-name" style="display:inline-block;">🏬 Крамниця</div>
+                        <div id="store-name" style="display:none;">🏬 Крамниця</div>
                         <div id="button-store-wrapper">
                             <button id="updateStoreBtn">🔁 Оновити асортимент (<span id="updateStorePrice">25💰</span>)</button>
                         </div>
@@ -1475,7 +1493,7 @@
                               <div class="slot-window"><div class="slot-strip" id="slot2"></div></div>
                               <div class="slot-window"><div class="slot-strip" id="slot3"></div></div>
                             </div>
-                            <button id="slot-button" onclick="spinSlot()">Крутити (<span id="gamblePrice">25💰</span>) [G]!</button>
+                            <button id="slot-button" onclick="spinSlot()">Крутити (<span id="gamblePrice">25💰</span>)</button>
                             <div id="slot-result">&nbsp;</div>
                         </div>
                     </div>
@@ -1556,6 +1574,24 @@
 
                 return maxHealth;
             },
+            // маніпуляції з золотом
+            addGold(amount) {
+                this.gold += amount;
+                // чекаєм квест
+                player.checkQuest('q_find_gold', amount);
+            },
+            spendGold(amount) {
+                this.gold -= amount;
+            },
+            // маніпуляції з досвідом
+            addXp(amount) {
+                this.xp += amount;
+
+                checkLevelUp();
+            },
+            spendXp(amount) {
+                this.xp -= amount;
+            },
             // інфа з локації на якій знаходиться
             getCurrentCell() {
                 if (gameMap[this.position.y] == undefined || gameMap[this.position.y][this.position.x] == undefined) return false;
@@ -1569,7 +1605,7 @@
 
                 quests.forEach((questData, index) => {
                     const questButton = isQuestMaker ? `<button class="complete-quest" onclick="completeQuest(${index})">Здати квест</button>` : '';
-                    let questInfo = `<div class='player-quest quest-${index}${questData.progress.isCompleted ? ' completed' : ''}'>
+                    let questInfo = `<div class='player-quest quest-${index}${questData.progress.isCompleted ? ' completed' : ''}${questSelected == index ? ' selected' : ''}'>
                                         <span class="player-quest-caption">${this.getQuestInfo(questData)}</span>
                                         <span class="player-quest-progress">${questData.progress.counter}&nbsp;/&nbsp;${questData.targets.counter}<div class="quest-progress"><div class="quest-progress-bar" style="width: ${(questData.progress.counter/questData.targets.counter*100)}%"></div></div>${questButton}</span>
                                         <span class="player-quest-reward">Нагорода: <span class="nowrap">${questData.rewards.gold}${addEmoji('💰')} ${questData.rewards.xp}${addEmoji('📈')}</span></span>
@@ -1611,7 +1647,14 @@
                     q.progress.counter = Math.min(q.targets.counter, q.progress.counter + value);
                     if (type == 'q_clear_level') q.progress.counter = q.targets.counter;
 
-                    if (q.progress.counter == q.targets.counter) q.progress.isCompleted = true;
+                    if (q.progress.counter == q.targets.counter) {
+                        q.progress.isCompleted = true;
+                        addPopupMessage(`${addEmoji('📜')}✔️`, document.getElementById('player-on-map'), {
+                            color: '#ff0',
+                            fontSize: '20px',
+                            horizontalOffset: 10,
+                        });
+                    }
                 });
             }
 
@@ -1713,11 +1756,30 @@
             // знайти прокляту річ
             // з'їсти певну к-сть їжі
             // нанести ворогам № шкоди
+            { caption: 'Нанести ворогам %s шкоди', type: 'q_kick_enemies', level: 1, targets: { counter: 50 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // нанести ворогам № критичних ударів
+            // зіграти в казино
+            { caption: 'Зіграти %s разів в слоти', type: 'q_play_slots', level: 1, targets: { counter: 7 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
         ];
 
-        function generateRandomQuest() {
-            const filteredQuest = questTypes.filter(q => q.level <= player.level).randOne();
+        function getRandomQuest() {
+            quests.push({...generateRandomQuest(currentMapLevel)});
+            updateStore();
+
+            addPopupMessage(`+${addEmoji('📜')}`, elements.playerEmoji, {
+                color: '#ff0',
+                fontSize: '20px',
+            });
+        }
+
+        function generateRandomQuest(currentLevel = 0) {
+            const levelForQuest = currentLevel == 0 ? player.level : currentLevel;
+            const filteredQuests = questTypes.filter(q => q.level <= levelForQuest && !quests.map(qm => qm.type).includes(q.type));
+            //console.log(filteredQuests);
+
+            if (filteredQuests.length == 0) return;
+            const filteredQuest = filteredQuests.randOne();
+            //console.log('get', filteredQuest);
 
             randomQuest = {
                 caption: filteredQuest.caption,
@@ -1734,40 +1796,52 @@
                 randomQuest.targets.enemyType = enemy.type;
                 randomQuest.targets.counter = enemy.elite ? rand(2, 4) : rand(4, 6);
                 // rewards
-                randomQuest.rewards.gold = player.level * (enemy.elite ? rand(50, 70) : rand(30, 40));
-                randomQuest.rewards.xp = player.level * (enemy.elite ? rand(35, 50) : rand(20, 30));
+                randomQuest.rewards.gold = levelForQuest * (enemy.elite ? rand(50, 70) : rand(30, 40));
+                randomQuest.rewards.xp = levelForQuest * (enemy.elite ? rand(35, 50) : rand(20, 30));
             } else if (randomQuest.type == 'q_kill_enemies') {
                 // targets
                 randomQuest.targets.counter = rand(15, 25);
                 // rewards
-                randomQuest.rewards.gold = player.level * rand(35, 50);
-                randomQuest.rewards.xp = player.level * rand(30, 35);
+                randomQuest.rewards.gold = levelForQuest * rand(35, 50);
+                randomQuest.rewards.xp = levelForQuest * rand(30, 35);
             } else if (randomQuest.type == 'q_kill_boss') {
                 const enemy = enemyTypes.filter(e => e.boss).randOne();
                 // targets
                 randomQuest.targets.enemyType = enemy.type;
                 randomQuest.targets.counter = 1;
                 // rewards
-                randomQuest.rewards.gold = player.level * rand(50, 75);
-                randomQuest.rewards.xp = player.level * rand(40, 50);
+                randomQuest.rewards.gold = levelForQuest * rand(50, 75);
+                randomQuest.rewards.xp = levelForQuest * rand(40, 50);
             } else if (randomQuest.type == 'q_clear_level') {
                 // targets
                 randomQuest.targets.counter = !levelsCompleted.length ? 1 : (levelsCompleted.slice(-1)[0] + 1);
                 // rewards
-                randomQuest.rewards.gold = player.level * rand(35, 50);
-                randomQuest.rewards.xp = player.level * rand(30, 35);
+                randomQuest.rewards.gold = levelForQuest * rand(35, 50);
+                randomQuest.rewards.xp = levelForQuest * rand(30, 35);
             } else if (randomQuest.type == 'q_open_chest') {
                 // targets
                 randomQuest.targets.counter = rand(5, 10);
                 // rewards
-                randomQuest.rewards.gold = player.level * rand(35, 50);
-                randomQuest.rewards.xp = player.level * rand(30, 35);
+                randomQuest.rewards.gold = levelForQuest * rand(35, 50);
+                randomQuest.rewards.xp = levelForQuest * rand(30, 35);
+            } else if (randomQuest.type == 'q_kick_enemies') {
+                // targets
+                randomQuest.targets.counter = rand(40, 55) * levelForQuest;
+                // rewards
+                randomQuest.rewards.gold = levelForQuest * rand(35, 50);
+                randomQuest.rewards.xp = levelForQuest * rand(30, 35);
             } else if (randomQuest.type == 'q_find_gold') {
                 // targets
-                randomQuest.targets.counter = rand(120, 200) * player.level;
+                randomQuest.targets.counter = rand(120, 200) * levelForQuest;
                 // rewards
-                randomQuest.rewards.gold = player.level * rand(35, 50);
-                randomQuest.rewards.xp = player.level * rand(30, 35);
+                randomQuest.rewards.gold = levelForQuest * rand(35, 50);
+                randomQuest.rewards.xp = levelForQuest * rand(30, 35);
+            } else if (randomQuest.type == 'q_play_slots') {
+                // targets
+                randomQuest.targets.counter = rand(6, 10);
+                // rewards
+                randomQuest.rewards.gold = levelForQuest * rand(35, 50);
+                randomQuest.rewards.xp = levelForQuest * rand(30, 35);
             }
 
             return randomQuest;
@@ -1778,8 +1852,8 @@
             if (!quests[index].progress.isCompleted) return;
             const questReward = quests[index].rewards;
 
-            player.gold += questReward.gold;
-            player.xp += questReward.xp;
+            player.addGold(questReward.gold);
+            player.addXp(questReward.xp);
 
             addLog(`💰📈 Ви виконали квест і отримали ${questReward.gold} золота і ${questReward.xp} досвіду !`, 'loot');
 
@@ -1792,9 +1866,6 @@
                 fontSize: '20px',
                 horizontalOffset: -20,
             });
-
-            // чекаєм квест
-            player.checkQuest('q_find_gold', questReward.gold);
 
             quests.splice(index, 1);
 
@@ -2866,7 +2937,7 @@
             elements.map.innerHTML = '';
 
             // MAIN LEVEL PARAMETER SET
-            currentMapLevel = Math.max(1, mapLevel);
+            currentMapLevel = mapLevel == 0 ? (levelsCompleted.length == 0 ? 1 : Math.max(...levelsCompleted)) : mapLevel;
 
             //player.position = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
             player.position = {x: rand(1, mapSize - 2), y: rand(1, mapSize - 2)};
@@ -3474,10 +3545,8 @@
             
             if (cell.type === 'treasure') {
                 const goldFound = Math.floor(Math.random() * 10 * currentMapLevel) + 5;
-                player.gold += goldFound;
-
-                // чекаєм квест
-                player.checkQuest('q_find_gold', goldFound);
+                
+                player.addGold(goldFound);
 
                 addLog(`💰 Ви знайшли скарб і отримали ${goldFound} золота!`, 'loot');
 
@@ -3503,14 +3572,10 @@
                 let xpFound = Math.max(10, Math.floor(xptoNextByLevelMap * ((3 + Math.random() * 2) / 100)));
                     xpFound = isGoldenChest ? xpFound * 2 : xpFound;
 
-                player.gold += goldFound;
-                player.xp += xpFound;
-
-                // чекаєм квест
-                player.checkQuest('q_find_gold', goldFound);
+                player.addGold(goldFound);
+                player.addXp(xpFound);
 
                 const isTicketFound = (Math.random() < ticketSpawnChance) || isGoldenChest;
-                checkLevelUp();
 
                 let messageChest = `🎁 Ви відкрили ${chestName} і отримали ${goldFound} золота та ${xpFound} досвіду!`;
                 if (gameMap[y][x].artifact != null) {
@@ -4141,7 +4206,11 @@
 
             if (playerCell.storeType == 'questmaker') {
                 const itemElement = document.createElement('div');
-                itemElement.innerHTML = `<button onclick='quests.push({...generateRandomQuest()})'>Отримати випадковий квест</button>`;
+                if (quests.filter(q => !q.progress.isCompleted).length < 3) {
+                    itemElement.innerHTML = `<button onclick='getRandomQuest();'>Отримати випадковий квест</button>`;
+                } else {
+                    itemElement.innerHTML = `Наразі в писаря доступних квестів немає.`;
+                }
                 elements.storeItems.appendChild(itemElement);
             }
 
@@ -4493,7 +4562,7 @@
             }
 
             pickUpItem(item, forceEquip);
-            player.gold -= buyPrice;
+            player.spendGold(buyPrice);
 
             addPopupMessage(`-${buyPrice}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
                 color: '#ff0',
@@ -4522,11 +4591,9 @@
 
             const sellPrice = Math.max(1, Math.floor(item.value * sellCoefficient)); // Продаємо за 50% вартості мінімальна ціна 1 копійка
             
-            player.gold += sellPrice;
-            player.inventory.splice(index, 1);
+            player.addGold(sellPrice);
 
-            // чекаєм квест
-            player.checkQuest('q_find_gold', sellPrice);
+            player.inventory.splice(index, 1);
             
             addLog(`💰 Ви продали ${item.emoji} ${item.name} за ${sellPrice} золота`, 'sell');
             // сповіщення продажу
@@ -5200,6 +5267,9 @@
                 // якщо монстр швидкий, то атакує перший
                 if (!fastEnemyStatus) {
                     enemy.health -= playerDamage;
+
+                    // перевіряєм квест
+                    player.checkQuest('q_kick_enemies', playerDamage);
                     
                     animateAttack(elements.enemyEmoji, elements.enemyView);
                     updateEnemyStats(enemy);
@@ -5231,11 +5301,8 @@
                     updateEnemyStats(enemy);
                     
                     // Нагорода
-                    player.gold += enemy.gold;
-                    player.xp += enemy.xp;
-
-                    // чекаєм квест
-                    player.checkQuest('q_find_gold', enemy.gold);
+                    player.addGold(enemy.gold);
+                    player.addXp(enemy.xp);
 
                     addLog(`💰 Ви отримали ${enemy.gold} золота і ${enemy.xp} досвіду.`, 'loot');
                     
@@ -5314,9 +5381,6 @@
                         spawnExit();
                         updateMap();
                     }
-                    
-                    // Перевірка на новий рівень
-                    checkLevelUp();
                     
                     // Перевірка квестів
                     player.checkQuest('q_kill_enemies', 1);
@@ -5600,7 +5664,7 @@
         // Лікування
         function heal() {
             if (player.gold >= 10) {
-                player.gold -= 10;
+                player.spendGold(10);
                 const deltaHealth = player.maxHealth - player.health;
                 player.health = player.maxHealth;
                 addLog('💊 Ви повністю вилікувались!', 'system');
@@ -5642,8 +5706,8 @@
 
             showGameMessage(`Відродження`, `Ви відродились та частково відновили власні сили, але довелось витратили 📈 ${lostXp} досвіду і 💰 ${lostGold} золота, щоб повернути Вас до життя!`, 0);
 
-            player.gold -= lostGold;
-            player.xp -= lostXp;
+            player.spendGold(lostGold);
+            player.spendXp(lostXp);
 
             // скидуєм оверхелс
             player.overpoweredHealth = 0;
@@ -5689,7 +5753,7 @@
             if (player.tickets > 0) {
                 player.tickets--;
             } else {
-                player.gold -= updatePrice;
+                player.spendGold(updatePrice);
             }
 
             // враховуєм тип крамниці
@@ -5748,8 +5812,8 @@
             player.inInventory = false;
 
             // назва
-            const currentStore = storeTypes.find(e => e.type == currentStoreType);
-            if (currentStore != null) elements.storeName.innerHTML = `${currentStore.emoji} ${currentStore.name} Рівень:${currentMapLevel}`;
+            //const currentStore = storeTypes.find(e => e.type == currentStoreType);
+            //if (currentStore != null) elements.storeName.innerHTML = `${currentStore.emoji} ${currentStore.name} Рівень:${currentMapLevel}`;
 
             // відображаєм крамницю
             elements.store.style.display = player.inStore ? 'block' : 'none';
@@ -5772,6 +5836,8 @@
                 }
             }
         }
+
+        questSelected = 0;
 
         function beginAll() {
             // даєм діду паличку
@@ -5797,6 +5863,8 @@
 
             // buttons 
             document.addEventListener("keydown", (e) => {
+                const isQuestMaker = player.getCurrentCell().storeType != undefined && player.getCurrentCell().storeType == 'questmaker';
+
                 if (tabManager.getActiveTab() == 'map-block') {
                     if (e.code === "ArrowUp") movePlayer(player.position.x, player.position.y - 1);
                     if (e.code === "ArrowRight") movePlayer(player.position.x + 1, player.position.y);
@@ -5813,14 +5881,39 @@
                         levelSelected = levelSelected < 0 ? (levelsCompleted.length + 1) : levelSelected;
                         document.querySelector(`.levels-selector[data-floor="${levelSelected}"]`).focus();
                     }
+                } else if (tabManager.getActiveTab() == 'quests') {
+                    if (e.code === "ArrowUp") {
+                        questSelected--;
+                        if (questSelected < 0) questSelected = 0;
+                    } else if (e.code === "ArrowDown") {
+                        questSelected++;
+                        if (questSelected > (quests.length - 1)) questSelected = (quests.length - 1);
+                    }
+                    if (e.code === "ArrowUp" || e.code === "ArrowDown") {
+                        updateQuestsData();
+                    }
+                    if (e.code === "Enter" && quests[questSelected] != undefined && quests[questSelected].progress.isCompleted && isQuestMaker) {
+                        completeQuest(questSelected);
+                        questSelected = 0;
+                    }
+                } else if (tabManager.getActiveTab() == 'store') {
+                    if (e.code === "Enter" && isQuestMaker) {
+                        getRandomQuest();
+                    }
+                } else if (tabManager.getActiveTab() == 'slots') {
+                    if (e.code === "Enter" && !elements.slotButton.disabled) {
+                        spinSlot();
+                    }
                 }
                 // gambling
-                if (e.code === "KeyG") {
+                /*if (e.code === "KeyG") {
                     if (tabManager.getActiveTab() == 'slots' && !elements.slotButton.disabled) spinSlot();
                     else tabManager.clickTab('slots');
-                };
+                };*/
+                if (e.code === "KeyG") tabManager.clickTab('slots');
                 if (e.code === "KeyI") tabManager.clickTab('inventory');/* toogleInventory();*/
                 if (e.code === "KeyS") tabManager.clickTab('store');
+                if (e.code === "KeyQ") tabManager.clickTab('quests');
                 if (e.code === "KeyM") tabManager.clickTab('map-block');
                 if (e.code === "KeyL") tabManager.clickTab('levels');
                 //if (e.code === "KeyS" && player.atStore) toogleStore();
@@ -5837,8 +5930,7 @@
 
                     // якщо тицнем цифру із Shift - то автоматично продаєм її, але лише якщо гравець дивиться у інвентар
                     //if (e.shiftKey && player.inventory[itemIndex] != null && player.inInventory) sellItem(itemIndex);
-                    const isNotQuestMaker = player.getCurrentCell().storeType != undefined && player.getCurrentCell().storeType != 'questmaker';
-                    if (e.shiftKey && player.inventory[itemIndex] != null && tabManager.getActiveTab() == 'inventory' && tabManager.hasTab('store') && isNotQuestMaker) sellItem(itemIndex);
+                    if (e.shiftKey && player.inventory[itemIndex] != null && tabManager.getActiveTab() == 'inventory' && tabManager.hasTab('store') && !isQuestMaker) sellItem(itemIndex);
                     // якщо тицнем цифру із Alt - то знімаєм вдягнену річ (1-зброя / 2-броня / 3-кільце / 4-амулет / 5-книга / 6-реліквія)
                     else if (e.altKey) unequipItem(itemIndex);
                     // якщо просто тиснем цифру з рюкзака, то вона вдягнеться/використається
