@@ -178,6 +178,14 @@
             color: #eee;
         }
 
+        #quest-modal-message {
+            color: gold;
+            text-shadow: 2px 2px 4px #000;
+            background-color: #222;
+            padding: 10px 0 10px 0;
+            border-radius: 10px;
+        }
+
         @keyframes modalWindowFadeIn {
             from { opacity: 0; transform: translateY(-50px); }
             to { opacity: 1; transform: translateY(0); }
@@ -1307,7 +1315,7 @@
 
                 slotResult.innerHTML = `Пара: ${addEmoji(resultEmoji)} + ${addEmoji(resultEmoji)} Нагорода: ${resultReward2}`;
             } else {
-                slotResult.innerHTML = `Співпадінь немає`;
+                slotResult.innerHTML = `Пощастить наступного разу!`;
 
                 winResult = { emoji: emojis[0], count: 1};
             }
@@ -1326,6 +1334,7 @@
 
                     addPopupMessage(`${addEmoji('🌟', '40px')}`, elements.slotButton);
                     addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {color: '#ff0',fontSize: '20px'});
+                    //addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.slotButton, {color: '#ff0',fontSize: '20px'});
                     addLog(`🎰🌟🌟💰 Дві зірки! +${jackPot} 💰!`, 'slots', 'rgb(127 69 0)');
                 } else if (winResult.emoji == `🔮`) {
                     spawnArtifacts(1);
@@ -1917,7 +1926,7 @@
             }
 
             messageOfNewQuest = `
-                ${player.getQuestInfo(randomQuest)}<br>
+                <div id="quest-modal-message">${player.getQuestInfo(randomQuest)}</div><br>
                 <div>Нагорода за виконання: <span class='nowrap'>${addEmoji('💰', undefined, undefined, 'bottom:3px')}: ${randomQuest.rewards.gold} ${addEmoji('📈', undefined, undefined, 'bottom:3px')}: ${randomQuest.rewards.xp}</span></div>
                 `;
             showGameMessage('Ви отримали нове завдання', messageOfNewQuest, undefined, 'quest');
@@ -2463,7 +2472,7 @@
                 healPercent: 1.0,   // 100% здоров'я
                 rarity: 3, 
                 type: "fruit",
-                color: "#673ab7"  // Фіолетовий
+                color: "#ff00dd"/*"#673ab7"*/  // Фіолетовий
             }
         ];
 
@@ -3313,6 +3322,7 @@
             if (player.overpoweredHealth > 0) {
                 player.overpoweredHealth--;
                 if (player.health > player.maxHealth) player.health--;
+                if (player.health < player.maxHealth && player.overpoweredHealth > 0) player.health++;
                 updateStats();
             }
 
@@ -3587,12 +3597,16 @@
 
             const healAmount = Math.floor(player.maxHealth * fruit.healPercent);
             const newHealth = Math.min(player.maxHealth, player.health + healAmount);
-            const actualHeal = newHealth - player.health;
+            let actualHeal = newHealth - player.health;
             let overHealth = 0;
 
             if (fruit.healPercent > 0.9) {
-                overHealth = Math.min(Math.floor(player.maxHealth / 2), healAmount - actualHeal);
-                player.overpoweredHealth += Math.min(Math.floor(player.maxHealth / 2), overHealth + player.overpoweredHealth);
+                const realMaxHealth = player.maxHealth - player.overpoweredHealth;
+
+                overHealth = Math.floor(realMaxHealth / 2);
+                actualHeal += overHealth;
+
+                player.overpoweredHealth = overHealth;
                 player.health = player.maxHealth;
             } else {
                 player.health = newHealth;
@@ -4163,7 +4177,7 @@
             // перерозраховуєм оверхелс
             const cleanMaxHealth = player.maxHealth - player.overpoweredHealth;
             elements.maxHealth.innerHTML
-                = ((player.overpoweredHealth > 0 && player.health > cleanMaxHealth) ? `<span style="color: #8c1ce5;text-shadow: 1px 1px 2px black;font-weight: bold;">${player.health}</span>` : player.health) + '/'
+                = ((player.overpoweredHealth > 0 && player.health > cleanMaxHealth) ? `<span style="color:#e5841c; text-shadow:1px 1px 2px black; font-weight:bold;">${player.health}</span>` : player.health) + '/'
                 + (player.overpoweredHealth > 0 ? cleanMaxHealth : player.maxHealth);
             
             // Оновлюємо health bar гравця
