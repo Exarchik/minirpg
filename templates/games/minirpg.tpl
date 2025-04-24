@@ -126,6 +126,9 @@
         .modal.danger .modal-header {
             border: 2px solid #ff0000;
         }
+        .modal.quest .modal-header {
+            border: 2px solid #0098ff;
+        }
         .modal-content {
             background-color: #333;
             margin: 15% auto;
@@ -140,6 +143,9 @@
         }
         .modal.danger .modal-content {
             border: 2px solid #ff0000;
+        }
+        .modal.quest .modal-content {
+            border: 2px solid #0098ff;
         }
 
         .modal .modal-button {
@@ -156,6 +162,9 @@
         }
         .modal.danger .modal-button {
             background-color: red;
+        }
+        .modal.quest .modal-button {
+            background-color: #0098ff;
         }
 
         .modal-button:hover {
@@ -1639,17 +1648,41 @@
             getQuestList() {
                 if (quests.length == 0) return `<div style="margin: 6px;">Квестів немає</div>`;
                 let questList = [];
+
+                selectorQuestIndex = 0;
                 const isQuestMaker = this.getCurrentCell().storeType != undefined && this.getCurrentCell().storeType == 'questmaker';
 
-                quests.forEach((questData, index) => {
-                    const questButton = isQuestMaker ? `<button class="complete-quest" onclick="completeQuest(${index})">Здати квест</button>` : '';
-                    let questInfo = `<div class='player-quest quest-${index}${questData.progress.isCompleted ? ' completed' : ''}${questSelected == index ? ' selected' : ''}'>
-                                        <span class="player-quest-caption">${this.getQuestInfo(questData)}</span>
-                                        <span class="player-quest-progress">${questData.progress.counter}&nbsp;/&nbsp;${questData.targets.counter}<div class="quest-progress"><div class="quest-progress-bar" style="width: ${(questData.progress.counter/questData.targets.counter*100)}%"></div></div>${questButton}</span>
-                                        <span class="player-quest-reward">Нагорода: <span class="nowrap">${questData.rewards.gold}${addEmoji('💰')} ${questData.rewards.xp}${addEmoji('📈')}</span></span>
-                                     </div>`;
-                    questList.push(questInfo);
-                });
+                const completeQuests = quests.filter(q => q.progress.isCompleted);
+                if (completeQuests.length != 0) {
+                    questList.push(`<div>Завершені квести:</div>`);
+
+                    completeQuests.forEach((questData, index) => {
+                        const questButton = isQuestMaker ? `<button class="complete-quest" onclick="completeQuest(${questData.id})">Здати квест</button>` : '';
+                        let questInfo = `<div data-selector='${selectorQuestIndex}' data-id='${questData.id}' class='player-quest quest-${index}${questData.progress.isCompleted ? ' completed' : ''}${questSelected == selectorQuestIndex ? ' selected' : ''}'>
+                                            <span class="player-quest-caption">${this.getQuestInfo(questData)}</span>
+                                            <span class="player-quest-progress">${questData.progress.counter}&nbsp;/&nbsp;${questData.targets.counter}<div class="quest-progress"><div class="quest-progress-bar" style="width: ${(questData.progress.counter/questData.targets.counter*100)}%"></div></div>${questButton}</span>
+                                            <span class="player-quest-reward">Нагорода: <span class="nowrap">${questData.rewards.gold}${addEmoji('💰')} ${questData.rewards.xp}${addEmoji('📈')}</span></span>
+                                        </div>`;
+                        questList.push(questInfo);
+                        selectorQuestIndex++;
+                    });
+                }
+
+                const activeQuests = quests.filter(q => !q.progress.isCompleted);
+                if (activeQuests.length != 0) {
+                    questList.push(`<div>Активні квести:</div>`);
+
+                    activeQuests.forEach((questData, index) => {
+                        const questButton = isQuestMaker ? `<button class="complete-quest" onclick="completeQuest(${questData.id})">Здати квест</button>` : '';
+                        let questInfo = `<div data-selector='${selectorQuestIndex}' data-id='${questData.id}' class='player-quest quest-${index}${questData.progress.isCompleted ? ' completed' : ''}${questSelected == selectorQuestIndex ? ' selected' : ''}'>
+                                            <span class="player-quest-caption">${this.getQuestInfo(questData)}</span>
+                                            <span class="player-quest-progress">${questData.progress.counter}&nbsp;/&nbsp;${questData.targets.counter}<div class="quest-progress"><div class="quest-progress-bar" style="width: ${(questData.progress.counter/questData.targets.counter*100)}%"></div></div>${questButton}</span>
+                                            <span class="player-quest-reward">Нагорода: <span class="nowrap">${questData.rewards.gold}${addEmoji('💰')} ${questData.rewards.xp}${addEmoji('📈')}</span></span>
+                                        </div>`;
+                        questList.push(questInfo);
+                        selectorQuestIndex++;
+                    });
+                }
                 return questList.join('');
             },
 
@@ -1825,7 +1858,8 @@
                 level: filteredQuest.level,
                 targets: {...filteredQuest.targets},
                 progress: {...filteredQuest.progress},
-                rewards: {...filteredQuest.rewards}
+                rewards: {...filteredQuest.rewards},
+                id: uniqueId()
             };
             //let randomQuest = {...filteredQuests.randOne(), questId: uniqueId()};
             if (randomQuest.type == 'q_kill_enemy_type') {
@@ -1882,13 +1916,22 @@
                 randomQuest.rewards.xp = levelForQuest * rand(30, 35);
             }
 
+            messageOfNewQuest = `
+                ${player.getQuestInfo(randomQuest)}<br>
+                <div>Нагорода за виконання: <span class='nowrap'>${addEmoji('💰', undefined, undefined, 'bottom:3px')}: ${randomQuest.rewards.gold} ${addEmoji('📈', undefined, undefined, 'bottom:3px')}: ${randomQuest.rewards.xp}</span></div>
+                `;
+            showGameMessage('Ви отримали нове завдання', messageOfNewQuest, undefined, 'quest');
+
             return randomQuest;
         }
 
-        function completeQuest(index) {
-            if (quests[index] == undefined) return;
-            if (!quests[index].progress.isCompleted) return;
-            const questReward = quests[index].rewards;
+        function completeQuest(qid) {
+            if (quests.find(q => q.id == qid) == undefined) return;
+            const thisQuest = quests.find(q => q.id == qid);
+            const index = quests.findIndex(q => q.id == qid);
+
+            if (!thisQuest.progress.isCompleted) return;
+            const questReward = thisQuest.rewards;
 
             player.addGold(questReward.gold);
             player.addXp(questReward.xp);
@@ -4022,7 +4065,9 @@
                 }
             }*/
 
-            okButton.focus();
+            setTimeout(() => {
+                okButton.focus();
+            }, 500);
         }
 
         // Додаємо повідомлення до журналу
@@ -4128,11 +4173,11 @@
             if (player.overpoweredHealth > 0 && !elements.playerHealthBar.classList.contains('overpowered')) {
                 elements.playerHealthBar.classList.add('overpowered');
                 elements.playerHeartEmoji.classList.add('megahealth');
-                elements.playerHeartEmoji.innerHTML = addEmoji(`💜`, '20px');
+                elements.playerHeartEmoji.innerHTML = addEmoji(`💜`, '10px', undefined, 'left:-4px;');
             } else if (player.overpoweredHealth < 1 && elements.playerHealthBar.classList.contains('overpowered')) {
                 elements.playerHealthBar.classList.remove('overpowered');
                 elements.playerHeartEmoji.classList.remove('megahealth');
-                elements.playerHeartEmoji.innerHTML = addEmoji(`❤️`, '20px');
+                elements.playerHeartEmoji.innerHTML = addEmoji(`❤️`, '10px');
             }
             
             // Оновлюємо xp bar гравця
@@ -4248,7 +4293,7 @@
             if (playerCell.storeType == 'questmaker') {
                 const itemElement = document.createElement('div');
                 if (quests.filter(q => !q.progress.isCompleted).length < 3) {
-                    itemElement.innerHTML = `<button onclick='getRandomQuest();'>Отримати випадковий квест</button>`;
+                    itemElement.innerHTML = `<button onclick='getRandomQuest();'>Отримати квест Писаря</button>`;
                 } else {
                     itemElement.innerHTML = `Наразі в писаря доступних квестів немає.`;
                 }
@@ -5911,6 +5956,8 @@
                 const currentStoreCount = getStoreItemsCount();
                 const inventoryCount = getInventoryCount();
 
+                const hasActiveModal = document.querySelector('.modal').style.display == 'block';
+
                 if (tabManager.getActiveTab() == 'map-block') {
                     if (e.code === "ArrowUp") movePlayer(player.position.x, player.position.y - 1);
                     if (e.code === "ArrowRight") movePlayer(player.position.x + 1, player.position.y);
@@ -5938,9 +5985,15 @@
                     if (e.code === "ArrowUp" || e.code === "ArrowDown") {
                         updateQuestsData();
                     }
-                    if (e.code === "Enter" && quests[questSelected] != undefined && quests[questSelected].progress.isCompleted && isQuestMaker) {
-                        completeQuest(questSelected);
-                        questSelected = 0;
+
+                    if (document.querySelector(`[data-selector='${questSelected}']`) != undefined) {
+                        const realQuestId = document.querySelector(`[data-selector='${questSelected}']`).dataset.id;
+                        const realQuest = quests.find(q => q.id == realQuestId);
+                        //console.log(realQuest, realQuestId, isQuestMaker);
+                        if (e.code === "Enter" && realQuest != undefined && realQuest.progress.isCompleted && isQuestMaker) {
+                            completeQuest(realQuestId);
+                            questSelected = 0;
+                        }
                     }
                 } else if (tabManager.getActiveTab() == 'store') {
                     if (!isQuestMaker) {
@@ -5953,7 +6006,7 @@
                         if (e.code === "Enter") {
                             buyItem(storeItemSelected);
                         }
-                    } else if (isQuestMaker && quests.filter(q => !q.progress.isCompleted).length < 3) {
+                    } else if (isQuestMaker && !hasActiveModal && quests.filter(q => !q.progress.isCompleted).length < 3) {
                         if (e.code === "Enter") getRandomQuest();
                     }
 
@@ -5983,9 +6036,13 @@
                 if (e.code === "KeyG") tabManager.clickTab('slots');
                 if (e.code === "KeyI") tabManager.clickTab('inventory');/* toogleInventory();*/
                 if (e.code === "KeyS") {tabManager.clickTab('store'); storeItemSelected = 0; updateStore();}
-                if (e.code === "KeyQ") tabManager.clickTab('quests');
+                if (e.code === "KeyJ") tabManager.clickTab('quests');
                 if (e.code === "KeyM") tabManager.clickTab('map-block');
                 if (e.code === "KeyL") tabManager.clickTab('levels');
+
+                // next and prev tabs
+                if (e.code === "KeyQ") tabManager.prevTabActive();
+                if (e.code === "KeyE") tabManager.nextTabActive();
                 //if (e.code === "KeyS" && player.atStore) toogleStore();
 
                 // resurrect
@@ -6115,18 +6172,35 @@
             { ident: 'inventory',   name: 'Інвентар', emoji: '🎒', keyCode: 'I', funcs: [updateInventory],   counterFunc: getInventoryCount },
             { ident: 'store',       name: 'Крамниця', emoji: '🏬', keyCode: 'S', funcs: [updateStore],       counterFunc: getStoreItemsCount,   captionFunc: getStoreName },
             { ident: 'slots',       name: 'Гемблінг', emoji: '🎰', keyCode: 'G', funcs: [updateGamblePrice], counterFunc: getPlayerTicketsCount },
-            { ident: 'quests',      name: 'Квести',   emoji: '📜', keyCode: 'Q', funcs: [updateQuestsData],  counterFunc: getPlayerQuestCompleted },
+            { ident: 'quests',      name: 'Квести',   emoji: '📜', keyCode: 'J', funcs: [updateQuestsData],  counterFunc: getPlayerQuestCompleted },
         ];
 
         const tabManager = (() => {
             let tabsContainer = document.getElementById('tabs');
             let tabs = []; // список табів { name, button }
+            let currentTabSelected = 0;
 
             function renderTabs() {
                 tabsContainer.innerHTML = '';
                 tabs.forEach(tab => tabsContainer.appendChild(tab.button));
 
                 drawTabsInfo();
+            }
+
+            function nextTabActive() {
+                currentTabSelected++;
+                if (currentTabSelected > (tabs.length - 1)) currentTabSelected = 0;
+                setActiveTabByIndex(currentTabSelected);
+            }
+
+            function prevTabActive() {
+                currentTabSelected--;
+                if (currentTabSelected < 0) currentTabSelected = (tabs.length - 1);
+                setActiveTabByIndex(currentTabSelected);
+            }
+
+            function setActiveTabByIndex(index) {
+                setActiveTab(tabs[index].ident);
             }
 
             function setActiveTab(ident) {
@@ -6216,7 +6290,9 @@
                 clickTab,
                 addTab,
                 removeTab,
-                setTab
+                setTab,
+                nextTabActive,
+                prevTabActive
             };
         })();
 
