@@ -1729,7 +1729,7 @@
 
                     if (q.progress.counter == q.targets.counter) {
                         q.progress.isCompleted = true;
-                        addPopupMessage(`${addEmoji('📜')}✔️`, document.getElementById('player-on-map'), {
+                        addPopupMessage(`${addEmoji('📒✔️')}`, document.getElementById('player-on-map'), {
                             color: '#ff0',
                             fontSize: '20px',
                             horizontalOffset: 10,
@@ -1846,7 +1846,7 @@
             quests.push({...generateRandomQuest(currentMapLevel)});
             updateStore();
 
-            addPopupMessage(`+${addEmoji('📜')}`, elements.playerEmoji, {
+            addPopupMessage(`+${addEmoji('📒')}`, elements.playerEmoji, {
                 color: '#ff0',
                 fontSize: '20px',
             });
@@ -1979,6 +1979,7 @@
             { type: '🧙‍♂️', image: 'wizard.png' },
             { type: '📦', image: 'chest.png' },
             { type: '📦👑', image: 'chest-golden.png' },
+            { type: '📦🗿', image: 'chest-stone.png' },
             { type: '💼', image: 'prize.png' },
             { type: '💀', image: 'skull.png' },
             { type: '🔥', image: 'fire.png' },
@@ -2003,16 +2004,25 @@
             { type: '🎒', image: 'inventory.png' },
             { type: '🌐', image: 'levels.png' },
             { type: '🎰', image: 'slot-machine.png' },
+            { type: '📒', image: 'quests.png' },
+            { type: '📒✔️', image: 'quest-completed.png' },
+
                 // торговці
             { type: '🤝🗑️', image: 'trader-flea.png' },
+                { type: '🏬🗑️', image: 'store-flea.png' },
             { type: '🤝📜', image: 'trader-quest.png' },
+                { type: '🏬📜', image: 'store-quest.png' },
             { type: '🤝🏬', image: 'trader-general.png' },
             { type: '🤝⚔️', image: 'trader-armory.png' },
+                { type: '🏬⚔️', image: 'store-armory.png' },
             { type: '🤝💍', image: 'trader-jewelry.png' },
+                { type: '🏬💍', image: 'store-jewelry.png' },
             { type: '🤝📖', image: 'trader-library.png' },
+                { type: '🏬📖', image: 'store-library.png' },
             { type: '🤝🔮', image: 'trader-antiques.png' },
+                { type: '🏬🔮', image: 'store-aniques.png' },
             { type: '🤝✨', image: 'trader-mystic.png' },
-
+                { type: '🏬✨', image: 'store-mystic.png' },
                 // фрукти
             { type: '🍎', image: 'red-apple.png' },
             { type: '🍌', image: 'banana.png' },
@@ -4012,6 +4022,7 @@
             // зберігаєм тип крамниці на випадок оновлення асортименту
             currentStoreType = storeType;
             const uniqId = generateStore(storeType);
+            const thisStore = storeTypes.find(s => s.type == storeType);
 
             let x, y;
             if (needX == -1 && needY == -1) {
@@ -4035,7 +4046,7 @@
 
             gameMap[y][x] = {
                 type: 'store',
-                emoji: '🏬',
+                emoji: thisStore.emoji,
                 storeType: storeType,
                 id: uniqId,
             };
@@ -4710,14 +4721,15 @@
         function getBiasedRarity(playerLevel, rarityBias = -1) {
             //console.log(rarityBias);
             // співвідношення
+            // playerLevel - наразі це level рівня
             const rarityTable = [
                 { 'rarity': 1, 'playerLevel': 1 },
-                { 'rarity': 2, 'playerLevel': 3 },
-                { 'rarity': 3, 'playerLevel': 5 },
-                { 'rarity': 4, 'playerLevel': 8 },
-                { 'rarity': 5, 'playerLevel': 11 },
-                { 'rarity': 6, 'playerLevel': 14 },
-                { 'rarity': 7, 'playerLevel': 17 },
+                { 'rarity': 2, 'playerLevel': 4 },
+                { 'rarity': 3, 'playerLevel': 8 },
+                { 'rarity': 4, 'playerLevel': 14 },
+                { 'rarity': 5, 'playerLevel': 20 },
+                { 'rarity': 6, 'playerLevel': 26 },
+                { 'rarity': 7, 'playerLevel': 35 },
             ];
 
             // 1. Відфільтровуємо лише ті rarity, які <= рівню гравця
@@ -6115,6 +6127,37 @@
             requestAnimationFrame(mainLoop);
         }
 
+        // підключаєм геймпад
+        const gamePadKeycodesList = [
+
+        ];
+        let prevButtonsState = [];
+
+        function checkGamepad() {
+            const gp = navigator.getGamepads()[0];
+            if (gp) {
+                gp.buttons.forEach((button, index) => {
+                const wasPressed = prevButtonsState[index]?.pressed || false;
+                const isPressed = button.pressed;
+
+                if (!wasPressed && isPressed) {
+                    console.log(`keydown: кнопка ${index}`, button);
+                }
+
+                if (wasPressed && !isPressed) {
+                    console.log(`keyup: кнопка ${index}`, button);
+                }
+                });
+
+                // зберігаємо стан на наступний кадр
+                prevButtonsState = gp.buttons.map(b => ({ pressed: b.pressed }));
+            }
+
+            requestAnimationFrame(checkGamepad);
+        }
+
+        checkGamepad(); // старт
+
         let levelSelected = 1;
         mainLoop();
 
@@ -6186,7 +6229,7 @@
             { ident: 'inventory',   name: 'Інвентар', emoji: '🎒', keyCode: 'I', funcs: [updateInventory],   counterFunc: getInventoryCount },
             { ident: 'store',       name: 'Крамниця', emoji: '🏬', keyCode: 'S', funcs: [updateStore],       counterFunc: getStoreItemsCount,   captionFunc: getStoreName },
             { ident: 'slots',       name: 'Гемблінг', emoji: '🎰', keyCode: 'G', funcs: [updateGamblePrice], counterFunc: getPlayerTicketsCount },
-            { ident: 'quests',      name: 'Квести',   emoji: '📜', keyCode: 'J', funcs: [updateQuestsData],  counterFunc: getPlayerQuestCompleted },
+            { ident: 'quests',      name: 'Квести',   emoji: '📒', keyCode: 'J', funcs: [updateQuestsData],  counterFunc: getPlayerQuestCompleted },
         ];
 
         const tabManager = (() => {
@@ -6313,5 +6356,10 @@
         function logCaller() {
             return new Error().stack.split('\n')[2].match(/at (\w+)/)?.[1];
         }
+
+        window.addEventListener("gamepadconnected", (e) => {
+            console.log("Геймпад підключено:");
+            console.log(e.gamepad);
+        });
     </script>
     {/ignore}
