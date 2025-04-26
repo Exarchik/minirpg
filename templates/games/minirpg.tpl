@@ -4724,12 +4724,12 @@
             // playerLevel - наразі це level рівня
             const rarityTable = [
                 { 'rarity': 1, 'playerLevel': 1 },
-                { 'rarity': 2, 'playerLevel': 4 },
-                { 'rarity': 3, 'playerLevel': 8 },
-                { 'rarity': 4, 'playerLevel': 14 },
-                { 'rarity': 5, 'playerLevel': 20 },
-                { 'rarity': 6, 'playerLevel': 26 },
-                { 'rarity': 7, 'playerLevel': 35 },
+                { 'rarity': 2, 'playerLevel': 3 },
+                { 'rarity': 3, 'playerLevel': 7 },
+                { 'rarity': 4, 'playerLevel': 11 },
+                { 'rarity': 5, 'playerLevel': 16 },
+                { 'rarity': 6, 'playerLevel': 20 },
+                { 'rarity': 7, 'playerLevel': 25 },
             ];
 
             // 1. Відфільтровуємо лише ті rarity, які <= рівню гравця
