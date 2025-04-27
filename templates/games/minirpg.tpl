@@ -244,6 +244,11 @@
             position: relative;
             height: 72px;
         }
+        #player-emoji-dot, #enemy-emoji-dot {
+            position: absolute;
+            visibility: hidden;
+            left: 50%;
+        }
         #battle-view {
             display: flex;
             justify-content: space-around;
@@ -664,7 +669,7 @@
             font-size: 14px;
             background-color: #333;
             padding: 5px 5px 0 5px;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             display: flex;
             justify-content: space-around;
             position: relative;
@@ -1041,9 +1046,7 @@
                 padding: 0;
                 margin: 0;
                 max-height: 405px;
-                /*zoom: 0.88;*/
-                /*transform: scale(0.9);
-                transform-origin: top;*/
+                background-color: #333;
             }
             .modal {
                 zoom: 0.8;
@@ -1064,8 +1067,10 @@
                 max-height: 405px;
             }
             #game {
-                padding: 2px;
+                padding: 0px;
+                border-radius: initial;
                 max-height: 405px;
+                box-shadow: initial;
             }
             #tabs {
 
@@ -1102,6 +1107,26 @@
             .player-quest.selected {
                 border: initial;
                 border-radius: initial;
+            }
+
+            #enemy-emoji {
+                text-align: right;
+                padding-right: 30px;
+            }
+            #player-emoji {
+                text-align: left;
+                padding-left: 30px;
+            }
+            #player-emoji-dot {
+                top: 50px;
+                left: 80%;
+            }
+            #enemy-emoji-dot {
+                top: 50px;
+                left: 20%;
+            }
+            .item-actions {
+                zoom: 1.1;
             }
         }
 
@@ -1333,7 +1358,7 @@
                     player.addGold(jackPot);
 
                     addPopupMessage(`${addEmoji('🌟', '40px')}`, elements.slotButton);
-                    addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {color: '#ff0',fontSize: '20px'});
+                    addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmojiDot, {color: '#ff0',fontSize: '20px'});
                     //addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.slotButton, {color: '#ff0',fontSize: '20px'});
                     addLog(`🎰🌟🌟💰 Дві зірки! +${jackPot} 💰!`, 'slots', 'rgb(127 69 0)');
                 } else if (winResult.emoji == `🔮`) {
@@ -1361,7 +1386,7 @@
                     player.addXp(addingXp);
                     
                     addPopupMessage(`${addEmoji('📈', '40px')}`, elements.slotButton);
-                    addPopupMessage(`+${addingXp}${addEmojiPlayer('📈')}`, elements.playerEmoji, {color: '#ff0',fontSize: '20px'});
+                    addPopupMessage(`+${addingXp}${addEmojiPlayer('📈')}`, elements.playerEmojiDot, {color: '#ff0',fontSize: '20px'});
                     addLog(`🎰📈📈 Ви отримали ${addingXp} досвіду!!!`, 'slots', 'rgb(127 69 0)');
                 }
             } else if (winResult.count === 3) {
@@ -1373,7 +1398,7 @@
 
                     player.addGold(jackPot);
 
-                    addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
+                    addPopupMessage(`+${jackPot}${addEmojiPlayer('💰')}`, elements.playerEmojiDot, {
                         color: '#ff0',
                         fontSize: '20px',
                     });
@@ -1419,7 +1444,7 @@
                     addPopupMessage(`${addEmoji('📈', '64px')}${addEmoji('📈', '64px')}${addEmoji('📈', '64px')}`, elements.slotButton, {
                         horizontalOffset: -76
                     });
-                    addPopupMessage(`+${addingXp}${addEmojiPlayer('📈')}`, elements.playerEmoji, {color: '#ff0',fontSize: '20px'});
+                    addPopupMessage(`+${addingXp}${addEmojiPlayer('📈')}`, elements.playerEmojiDot, {color: '#ff0',fontSize: '20px'});
                     addLog(`🎰📈📈📈 Ви отримали ${addingXp} досвіду!!!`, 'slots', 'rgb(127 69 0)');
                 }
             } else {
@@ -1450,6 +1475,7 @@
                 <div id="battle-view">
                     <div id="player-view">
                         <div id="player-emoji" style="width:170px">
+                            <span id="player-emoji-dot">.</span>
                             <span class="emoji-replace" data-emoji="🧙‍♂️" data-size="64px">🧙‍♂️</span>
                         </div>
                         <div class="stats">
@@ -1473,7 +1499,8 @@
                         </div>
                     </div>
                     <div id="vs"><span class="emoji-replace" data-emoji="⚔️" data-size="64px">⚔️</span></div>
-                    <div id="enemy-view" style="display: block; width:170px">
+                    <div id="enemy-view" style="display: block; width:170px; position: relative;">
+                        <span id="enemy-emoji-dot">.</span>
                         <div id="enemy-emoji">👤</div>
                         <div id="enemy-name" style="font-size: 16px; display: none;">Ворог</div>
                         <div class="stats" id="enemy-stats">
@@ -1827,17 +1854,23 @@
             // зачистити певний рівень
             { caption: 'Зачистити рівень %s', type: 'q_clear_level', level: 1, targets: { counter: 1 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // відкрити № сундуків
-            { caption: 'Відкрити %s сундуки', type: 'q_open_chest', level: 1, targets: { counter: 5 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            { caption: 'Відкрити %s сундуків', type: 'q_open_chest', level: 1, targets: { counter: 5 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // зібрати № золота
             { caption: 'Зібрати %s золота', type: 'q_find_gold', level: 1, targets: { counter: 2000 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // знайти № книжок
-            //{ caption: 'Знайти %s книжок для бібліотеки', type: 'q_find_book', targets: { counter: 3 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            { caption: `Знайти %s книжки для бібліотеки`, type: 'q_find_book', level: 2, targets: { counter: 3 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // знайти рідкісну річ
+            { caption: `Знайти рідкісну річ`, type: 'q_unique_item', level: 3, targets: { counter: 1 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // знайти прокляту річ
+            { caption: `Знайти прокляту річ`, type: 'q_cursed_item', level: 5, targets: { counter: 1 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // з'їсти певну к-сть їжі
+            { caption: `З'їсти %s їжі`, type: 'q_foods', level: 1, targets: { counter: 15 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // нанести ворогам № шкоди
             { caption: 'Нанести ворогам %s шкоди', type: 'q_kick_enemies', level: 1, targets: { counter: 50 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // нанести ворогам № критичних ударів
+            { caption: 'Нанести %s критичних ударів', type: 'q_kick_enemies_krit', level: 3, targets: { counter: 15 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // загинути в бою
+            { caption: 'Загинути в бою', type: 'q_die_in_battle', level: 1, targets: { counter: 1 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // зіграти в казино
             { caption: 'Зіграти %s разів в слоти', type: 'q_play_slots', level: 1, targets: { counter: 7 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
         ];
@@ -1846,7 +1879,7 @@
             quests.push({...generateRandomQuest(currentMapLevel)});
             updateStore();
 
-            addPopupMessage(`+${addEmoji('📒')}`, elements.playerEmoji, {
+            addPopupMessage(`+${addEmoji('📒')}`, elements.playerEmojiDot, {
                 color: '#ff0',
                 fontSize: '20px',
             });
@@ -1905,9 +1938,39 @@
                 // rewards
                 randomQuest.rewards.gold = levelForQuest * rand(35, 50);
                 randomQuest.rewards.xp = levelForQuest * rand(30, 35);
+            } else if (randomQuest.type == 'q_find_book') {
+                // targets
+                randomQuest.targets.counter = rand(3, 5);
+                // rewards
+                randomQuest.rewards.gold = levelForQuest * rand(35, 50);
+                randomQuest.rewards.xp = levelForQuest * rand(30, 35);
+            } else if (randomQuest.type == 'q_unique_item') {
+                // targets
+                randomQuest.targets.counter = 1;
+                // rewards
+                randomQuest.rewards.gold = levelForQuest * rand(50, 75);
+                randomQuest.rewards.xp = levelForQuest * rand(40, 50);
+            } else if (randomQuest.type == 'q_cursed_item') {
+                // targets
+                randomQuest.targets.counter = 1;
+                // rewards
+                randomQuest.rewards.gold = levelForQuest * rand(50, 75);
+                randomQuest.rewards.xp = levelForQuest * rand(40, 50);
+            } else if (randomQuest.type == 'q_foods') {
+                // targets
+                randomQuest.targets.counter = rand(15, 23);
+                // rewards
+                randomQuest.rewards.gold = levelForQuest * rand(35, 50);
+                randomQuest.rewards.xp = levelForQuest * rand(30, 35);
             } else if (randomQuest.type == 'q_kick_enemies') {
                 // targets
-                randomQuest.targets.counter = rand(40, 55) * levelForQuest;
+                randomQuest.targets.counter = rand(50, 75) * levelForQuest;
+                // rewards
+                randomQuest.rewards.gold = levelForQuest * rand(35, 50);
+                randomQuest.rewards.xp = levelForQuest * rand(30, 35);
+            } else if (randomQuest.type == 'q_kick_enemies_krit') {
+                // targets
+                randomQuest.targets.counter = rand(15, 23);
                 // rewards
                 randomQuest.rewards.gold = levelForQuest * rand(35, 50);
                 randomQuest.rewards.xp = levelForQuest * rand(30, 35);
@@ -1923,6 +1986,12 @@
                 // rewards
                 randomQuest.rewards.gold = levelForQuest * rand(35, 50);
                 randomQuest.rewards.xp = levelForQuest * rand(30, 35);
+            } else if (randomQuest.type == 'q_die_in_battle') {
+                // targets
+                randomQuest.targets.counter = 1;
+                // rewards
+                randomQuest.rewards.gold = levelForQuest * rand(60, 85);
+                randomQuest.rewards.xp = levelForQuest * rand(60, 80);
             }
 
             messageOfNewQuest = `
@@ -1947,11 +2016,11 @@
 
             addLog(`💰📈 Ви виконали квест і отримали ${questReward.gold} золота і ${questReward.xp} досвіду !`, 'loot');
 
-            addPopupMessage(`+${questReward.gold}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
+            addPopupMessage(`+${questReward.gold}${addEmojiPlayer('💰')}`, elements.playerEmojiDot, {
                 color: '#ff0',
                 fontSize: '20px'
             });
-            addPopupMessage(`+${questReward.xp}${addEmojiPlayer('📈')}`, elements.playerEmoji, {
+            addPopupMessage(`+${questReward.xp}${addEmojiPlayer('📈')}`, elements.playerEmojiDot, {
                 color: '#ff0',
                 fontSize: '20px',
                 horizontalOffset: -20,
@@ -2614,11 +2683,13 @@
             playerXpBar: document.getElementById('player-xp-bar'),
             playerView: document.getElementById('player-view'),
             playerEmoji: document.getElementById('player-emoji'),
+            playerEmojiDot: document.getElementById('player-emoji-dot'),
             playerHeartEmoji: document.getElementById('playerHeartEmoji'),
             enemyHealthBar: document.getElementById('enemy-health-bar'),
             enemyHealthBarWrapper: document.getElementById('enemy-health-bar-wrapper'),
             enemyView: document.getElementById('enemy-view'),
             enemyEmoji: document.getElementById('enemy-emoji'),
+            enemyEmojiDot: document.getElementById('enemy-emoji-dot'),
             enemyName: document.getElementById('enemy-name'),
             enemyStats: document.getElementById('enemy-stats'),
             enemyHealthDisplay: document.getElementById('enemy-health-display'),
@@ -3065,6 +3136,8 @@
             spawnChest();
             // Додаємо ворогів
             spawnEnemies();
+            // Додаємо ймовірний квест
+            spawnQuest();
             // прибираєм крамницю з карти
             deleteStore();
 
@@ -3252,7 +3325,11 @@
                     if (gameMap[y][x].type === 'store') {
                         cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
                         cell.classList.add('store-cell');
+                    }
 
+                    if (gameMap[y][x].type === 'quest') {
+                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
+                        cell.classList.add('artifact-cell');
                     }
 
                     if (gameMap[y][x].type === 'fruit') {
@@ -3433,6 +3510,12 @@
                 return;
             }
 
+            // Знаходімо квестік
+            if (gameMap[y][x].type === 'quest') {
+               getRandomQuest();
+               gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
+            }
+
             // Перевіряємо чи є крамниця
             player.atStore = false;
             tabManager.removeTab('store');
@@ -3589,6 +3672,15 @@
             // кладем в торбу
             player.inventory.push(item);
 
+            // чекаєм квести
+            if (item.type == 'book') {
+                player.checkQuest('q_find_book', 1);
+            }
+            if (item.magicLevel != undefined) {
+                if (item.magicLevel < 0) player.checkQuest('q_cursed_item', 1);
+                else if (item.magicLevel > 2) player.checkQuest('q_unique_item', 1);
+            }
+
             // покращуєм логіку
             const isEquipped = !!player.equipment[item.type];
             const isEquipable = equipableTypes.includes(item.type);
@@ -3623,6 +3715,9 @@
             }
 
             player.position = { x, y };
+
+            // чекаєм квести
+            player.checkQuest('q_foods', 1);
             
             // Анімація
             addPopupMessage(`+${actualHeal}${addEmojiPlayer('❤️')}`, targetOnMap, {
@@ -3961,6 +4056,32 @@
                     type: 'artifact',
                     emoji: item.emoji,
                     artifact: item
+                };
+            }
+        }
+
+        function spawnQuest() {
+            if (quests.length > 5 || Math.random() > 0.33) return;
+
+            let x, y;
+            let attempts = 0;
+
+            do {
+                x = Math.floor(Math.random() * mapSize);
+                y = Math.floor(Math.random() * mapSize);
+
+                attempts++;
+                if (attempts > 100) break; // Захист від нескінченного циклу
+            } while (
+                (x === player.position.x && y === player.position.y) ||
+                enemies.some(e => e.position.x === x && e.position.y === y) ||
+                gameMap[y][x].type !== 'empty'
+            );
+            
+            if (attempts <= 100) {
+                gameMap[y][x] = {
+                    type: 'quest',
+                    emoji: `📒`,
                 };
             }
         }
@@ -4675,7 +4796,7 @@
             pickUpItem(item, forceEquip);
             player.spendGold(buyPrice);
 
-            addPopupMessage(`-${buyPrice}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
+            addPopupMessage(`-${buyPrice}${addEmojiPlayer('💰')}`, elements.playerEmojiDot, {
                 color: '#ff0',
                 fontSize: '20px',
                 //delay: 500,
@@ -4708,7 +4829,7 @@
             
             addLog(`💰 Ви продали ${item.emoji} ${item.name} за ${sellPrice} золота`, 'sell');
             // сповіщення продажу
-            addPopupMessage(`+${sellPrice}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
+            addPopupMessage(`+${sellPrice}${addEmojiPlayer('💰')}`, elements.playerEmojiDot, {
                 color: '#ff0',
                 fontSize: '20px'
             });
@@ -5120,7 +5241,7 @@
             }
 
             if (['potion_attack', 'potion_defense', 'potion_health'].includes(item.type)) {
-                addPopupMessage(`${addEmojiPlayer(item.emojiType)}+${item.bonus}`, elements.playerEmoji, {
+                addPopupMessage(`${addEmojiPlayer(item.emojiType)}+${item.bonus}`, elements.playerEmojiDot, {
                     color: item.color ? item.color : '#f00',
                 });
             }
@@ -5355,7 +5476,7 @@
                 // Модифікатори від здібностей ворога
                 if (enemy.abilities.includes('flying') && Math.random() < 0.25) {
                     addLog(`🦅 ${enemy.emoji} ${enemy.type} ухилився від вашої атаки!`, 'enemy');
-                    addPopupMessage(`${addEmojiPlayer('💨','30px')}`, elements.enemyEmoji, {
+                    addPopupMessage(`${addEmojiPlayer('💨','30px')}`, elements.enemyEmojiDot, {
                         color: '#f00',
                     });
                     playerDamage = 0;
@@ -5364,7 +5485,7 @@
                 // Хвороба знижує атаку на 75% але лише не критичні
                 if (!isCritical && enemy.abilities.includes('disease') && Math.random() < 0.3) {
                     addLog(`🤢 ${enemy.emoji} ${enemy.type} послабив вашу атаку хворобою!`, 'enemy', '#124f12');
-                    addPopupMessage(`${addEmojiPlayer('🤢')}`, elements.enemyEmoji, {
+                    addPopupMessage(`${addEmojiPlayer('🤢')}`, elements.enemyEmojiDot, {
                         color: '#f00',
                         horizontalOffset: -25
                     });
@@ -5380,8 +5501,11 @@
                 if (!fastEnemyStatus) {
                     enemy.health -= playerDamage;
 
-                    // перевіряєм квест
+                    // перевіряєм квести
                     player.checkQuest('q_kick_enemies', playerDamage);
+                    if (isCritical) {
+                        player.checkQuest('q_kick_enemies_krit', 1);
+                    }
                     
                     animateAttack(elements.enemyEmoji, elements.enemyView);
                     updateEnemyStats(enemy);
@@ -5389,7 +5513,7 @@
                     // Показуємо анімацію шкоди
                     if (playerDamage > 0) {
                         //showDamage(playerDamage, elements.enemyEmoji, isCritical);
-                        addPopupMessage(`-${playerDamage}`, elements.enemyEmoji, {
+                        addPopupMessage(`-${playerDamage}`, elements.enemyEmojiDot, {
                             color: '#f00',
                             isCritical: isCritical
                         });
@@ -5418,13 +5542,13 @@
 
                     addLog(`💰 Ви отримали ${enemy.gold} золота і ${enemy.xp} досвіду.`, 'loot');
                     
-                    addPopupMessage(`+${enemy.gold}${addEmojiPlayer('💰')}`, elements.playerEmoji, {
+                    addPopupMessage(`+${enemy.gold}${addEmojiPlayer('💰')}`, elements.playerEmojiDot, {
                         color: '#ff0',
                         fontSize: '20px',
                         //delay: 500,
                         horizontalOffset: -25
                     });
-                    addPopupMessage(`+${enemy.xp}${addEmojiPlayer('📈')}`, elements.playerEmoji, {
+                    addPopupMessage(`+${enemy.xp}${addEmojiPlayer('📈')}`, elements.playerEmojiDot, {
                         color: '#88f',
                         fontSize: '18px',
                         //delay: 750,
@@ -5440,7 +5564,7 @@
 
                         updateInventory();
 
-                        addPopupMessage(`${addEmoji(enemy.item.emoji, '32px', enemy.item.subtype)}`, elements.playerEmoji, {
+                        addPopupMessage(`${addEmoji(enemy.item.emoji, '32px', enemy.item.subtype)}`, elements.playerEmojiDot, {
                             color: '#88f',
                             fontSize: '18px',
                             //delay: 1000,
@@ -5451,7 +5575,7 @@
                     if (enemy.boss && Math.random() < 0.3 || enemy.elite && Math.random() < 0.1) {
                         addLog(`✨🎟️ Ви знайшли квиток! Використайте його для гри або у крамниці!`, 'artifact', '#4504ed');
                         player.tickets++;
-                        addPopupMessage(`${addEmoji('🎟️', '32px')}`, elements.playerEmoji, {
+                        addPopupMessage(`${addEmoji('🎟️', '32px')}`, elements.playerEmojiDot, {
                             fontSize: '40px',
                             //delay: (enemy.item) ? 1250 : 1000,
                             horizontalOffset: (enemy.item) ? -25 : 0
@@ -5514,7 +5638,7 @@
                     // Спеціальні атаки
                     if (enemy.abilities.includes('strong') && Math.random() < 0.5) {
                         enemyDamage = Math.floor(enemyDamage * 1.3);
-                        addPopupMessage(`${addEmojiPlayer('💪')}`, elements.playerEmoji, {
+                        addPopupMessage(`${addEmojiPlayer('💪')}`, elements.playerEmojiDot, {
                             color: '#fff',
                             horizontalOffset: -25
                         });
@@ -5522,7 +5646,7 @@
                     if (enemy.abilities.includes('fire_breath') && Math.random() < 0.25) {
                         const fireDamage = Math.max(1, Math.floor(enemyDamage * 0.5));
                         enemyDamage += fireDamage;
-                        addPopupMessage(`-${fireDamage}${addEmojiPlayer('🔥')}`, elements.playerEmoji, {
+                        addPopupMessage(`-${fireDamage}${addEmojiPlayer('🔥')}`, elements.playerEmojiDot, {
                             color: '#f00',
                             delay: 250,
                             horizontalOffset: -40
@@ -5532,7 +5656,7 @@
                     if (enemy.abilities.includes('poison') && Math.random() < 0.25) {
                         const poisonDamage = Math.max(1, Math.floor(enemyDamage * 0.3));
                         enemyDamage += poisonDamage;
-                        addPopupMessage(`-${poisonDamage}${addEmojiPlayer('☣️')}`, elements.playerEmoji, {
+                        addPopupMessage(`-${poisonDamage}${addEmojiPlayer('☣️')}`, elements.playerEmojiDot, {
                             color: '#0f0',
                             delay: 250,
                             horizontalOffset: -40
@@ -5543,7 +5667,7 @@
                         const suckDamage = Math.max(1, Math.floor(enemyDamage * 0.333));
                         player.health -= suckDamage;
                         enemy.health = Math.min(enemy.maxHealth, enemy.health + suckDamage);
-                        addPopupMessage(`+${suckDamage}${addEmojiPlayer('🩸')}`, elements.enemyEmoji, {
+                        addPopupMessage(`+${suckDamage}${addEmojiPlayer('🩸')}`, elements.enemyEmojiDot, {
                             color: '#f00',
                             delay: 50,
                         });
@@ -5554,7 +5678,7 @@
                     player.health -= enemyDamage;
                     
                     if (enemyDamage > 0) {
-                        addPopupMessage(`-${enemyDamage}`, elements.playerEmoji, {
+                        addPopupMessage(`-${enemyDamage}`, elements.playerEmojiDot, {
                             color: '#f00',
                         });
                     }
@@ -5565,7 +5689,7 @@
                     if (enemy.abilities.includes('regeneration') && Math.random() < 0.4) {
                         const healAmount = Math.floor(enemy.maxHealth * 0.1);
                         enemy.health = Math.min(enemy.maxHealth, enemy.health + healAmount);
-                        addPopupMessage(`+${healAmount}${addEmojiPlayer('💚')}`, elements.enemyEmoji, {
+                        addPopupMessage(`+${healAmount}${addEmojiPlayer('💚')}`, elements.enemyEmojiDot, {
                             color: '#0f0',
                             delay: 200,
                             horizontalOffset: 25
@@ -5581,7 +5705,7 @@
                     // Хижак
                     if (enemy.abilities.includes('predator') && Math.random() < 0.3) {
                         player.health -= enemyDamage;
-                        addPopupMessage(`-${enemyDamage}`, elements.playerEmoji, {
+                        addPopupMessage(`-${enemyDamage}`, elements.playerEmojiDot, {
                             color: '#f00',
                             delay: 200,
                             horizontalOffset: -35
@@ -5594,7 +5718,7 @@
                     updateStats();
 
                     // Гравець - мрець
-                    startDeath(`💀 Ви загинули в бою з ${enemy.emoji} ${enemy.type}!`);
+                    startDeath(`💀 Ви загинули в бою з ${enemy.emoji} ${enemy.type}!`, true);
                     
                     // Продовжуємо бій
                     setTimeout(battleStep, 1000);
@@ -5605,8 +5729,11 @@
             battleStep();
         }
 
-        function startDeath(message) {
+        function startDeath(message, inBattle = false) {
             if (player.health <= 0) {
+                // чекаєм квести слотів
+                if (inBattle) player.checkQuest('q_die_in_battle', 1);
+
                 // Показуєм кнопку відродження
                 elements.resurrectBtn.style.display = 'inline-block';
 
@@ -5781,7 +5908,7 @@
                 const deltaHealth = player.maxHealth - player.health;
                 player.health = player.maxHealth;
                 addLog('💊 Ви повністю вилікувались!', 'system');
-                addPopupMessage(`+${deltaHealth}❤️`, elements.playerEmoji, {
+                addPopupMessage(`+${deltaHealth}❤️`, elements.playerEmojiDot, {
                     color: '#0f0',
                     fontSize: '22px'
                 });
