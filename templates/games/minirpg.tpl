@@ -414,6 +414,10 @@
         #store-items .item-slot .item-actions {
             top: 70%;
         }
+        #inventory-items .item-slot.item-medicine,
+        #store-items .item-slot.item-medicine {
+            background: radial-gradient(at 90% 60%, rgb(255 0 0 / 64%) 0%, rgb(47 1 1 / 33%) 100%);
+        }
         #inventory-items .item-slot.item-weapon,
         #store-items .item-slot.item-weapon {
             background: radial-gradient(at 90% 60%, rgb(255 102 0 / 64%) 0%, rgb(47 1 1 / 33%) 100%);
@@ -748,9 +752,9 @@
         }
         #map {
             display: grid;
-            grid-template-columns: repeat(11, 1fr);
+            grid-template-columns: repeat(10, 1fr);
             gap: 1px;
-            width: 64%;
+            width: 60%;
             justify-self: left /*center*/;
         }
         .map-cell.incognita-cell {
@@ -758,8 +762,8 @@
             background-image: none;
         }
         .map-cell {
-            width: 33px;
-            height: 33px;
+            width: 38px;
+            height: 38px;
             background-color: #444;
             display: flex;
             align-items: center;
@@ -768,7 +772,9 @@
             cursor: pointer;
             border-radius: 3px;
             transition: all 0.2s;
-            background-image: url(/templates/img/minirpg/clay/floor.png)
+            background-image: url('/templates/img/minirpg/clay/floor.png');
+            background-position-x: 2px;
+            background-position-y: 3px;
         }
         .map-cell:not(.sight-cell) {
             opacity: 0.5;
@@ -1266,6 +1272,7 @@
                 player.spendGold(gamblingPrice());
             } else {
                 player.tickets--;
+                player.checkQuest('q_use_tickets', 1);
             }
 
             // чекаєм квести слотів
@@ -1733,10 +1740,36 @@
             getQuestInfo(data) {
                 let caption;
 
-                if (data.type == 'q_kill_enemy_type') {
-                    caption = `<div>${sprintf(data.caption, data.targets.counter, data.targets.enemyType)}</div>`;
+                const formattedText = {
+                    'q_find_gold': ['золоту монету', 'золоті монети', 'золотих монет'],
+                    'q_find_book': ['книжку', 'книжки', 'книжок'],
+                    'q_foods': ['продукт', 'продукти', 'продуктів'],
+                    'q_kick_enemies': ['одиницю шкоди', 'одиниці шкоди', 'одиниць шкоди'],
+                    'q_kick_enemies_krit': ['критичний удар', 'критичні удари', 'критичних ударів'],
+                    'q_play_slots': ['раз', 'рази', 'разів'],
+                    'q_use_tickets': ['квиток', 'квитки', 'квітків'],
+                    'q_open_golden_chest': ['золотий сундук', 'золоті сундуки', 'золотих сундуків'],
+                };
+
+                const qCounter = checkQ1Q2Q3Counter(data.targets.counter);
+
+                if (data.type == 'q_kill_enemy_type' || data.type == 'q_kill_enemies') {
+                    let enemy;
+                    if (data.type == 'q_kill_enemies') {
+                        enemy = {qType1: 'будь-якого ворога', qType2: 'будь-яких ворогів'};
+                    } else {
+                        enemy = enemyTypes.find(e => e.type == data.targets.enemyType);
+                    }
+                    const enemyTypeFormatted = qCounter == 1 ? enemy.qType1 : enemy.qType2;
+
+                    caption = `<div>${sprintf(data.caption, data.targets.counter, enemyTypeFormatted)}</div>`;
                 } else if (data.type == 'q_kill_boss') {
-                    caption = `<div>${sprintf(data.caption, data.targets.enemyType)}</div>`;
+                    const enemy = enemyTypes.find(e => e.type == data.targets.enemyType);
+                    const enemyTypeFormatted = qCounter == 1 ? enemy.qType1 : enemy.qType2;
+
+                    caption = `<div>${sprintf(data.caption, enemyTypeFormatted)}</div>`;
+                } else if (formattedText[data.type] != undefined) {
+                    caption = `<div>${sprintf(data.caption, data.targets.counter, formattedText[data.type][qCounter - 1])}</div>`;
                 } else {
                     caption = `<div>${sprintf(data.caption, data.targets.counter)}</div>`;
                 }
@@ -1760,7 +1793,7 @@
 
                     if (q.progress.counter == q.targets.counter) {
                         q.progress.isCompleted = true;
-                        addPopupMessage(`${addEmoji('📒✔️')}`, document.getElementById('player-on-map'), {
+                        addPopupMessage(`${addEmoji('📒✔️', '32px')}`, document.getElementById('player-on-map'), {
                             color: '#ff0',
                             fontSize: '20px',
                             horizontalOffset: 10,
@@ -1806,7 +1839,7 @@
             // antiques - антикваріат - виключно артефакти
             { name: 'Антиквар', type: 'antiques', emoji: '🏬🔮', emojiTrader: '🤝🔮', chance: 15, isRefreshing: true, isSpawnable: true },
             // medic - лєчілка + еліксири (1-2 штукі) 
-            //{ name: 'Шпиталь', type: 'medic', emoji: '🏬💖', chance: 0.15, isRefreshing: false },
+            { name: 'Шпиталь', type: 'medic', emoji: '🏬💖', emojiTrader: '🤝💖', chance: 0.15, isRefreshing: false, isSpawnable: false },
             // містичний магаз з одним типом артефакту у різних варіаціях але неможливо оновити асортимент
             { name: 'Містична лавка', type: 'mystic', emoji: '🏬✨', emojiTrader: '🤝✨', chance: 1, isRefreshing: false, isSpawnable: true },
         ];
@@ -1840,43 +1873,47 @@
             ['🗻', '🗻', '🗻', '🗻', '🌳', '🏬🗑️', '🌳', '🗻', '🗻', '🗻', '🗻'],
             ['🗻', '🗻', '🗻', '🌳', ' ', ' ', ' ', '🌳', '🗻', '🗻', '🗻'],
             ['🗻', '🗻', '🌲', '🌳', ' ', ' ', ' ', '🌳', '🌲', '🗻', '🗻'],
-            ['🗻', '🧙‍♂️', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '🚪'],
+            ['🗻', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '🧙‍♂️', '🚪', ' '],
             ['🗻', '🗻', '🌲', '🌳', ' ', ' ', ' ', '🌳', '🌲', '🗻', '🗻'],
-            ['🗻', '🗻', '🗻', '🌳', ' ', ' ', ' ', '🌳', '🗻', '🗻', '🗻'],
-            ['🗻', '🗻', '🗻', '🗻', '🏬📜', '🌳', '🌳', '🗻', '🗻', '🗻', '🗻'],
+            ['🗻', '🗻', '🗻', '🌳', ' ', ' ', ' ', ' ', '🗻', '🗻', '🗻'],
+            ['🗻', '🗻', '🗻', '🗻', '🏬📜', '🌳', '🏬💖', '🗻', '🗻', '🗻', '🗻'],
             ['🗻', '🗻', '🗻', '🗻', '🌲', '🗻', '🌲', '🗻', '🗻', '🗻', '🗻'],
-            ['🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻'],
+            //10х10 ж ['🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻', '🗻'],
         ];
 
         const questTypes = [
-            // вбити № певного типу ворога
+            // вбити 10 Щурів
             { caption: 'Вбити %s %s', type: 'q_kill_enemy_type', level: 2, targets: { enemyType: '', counter: 10 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
-            // вбити № будь-яких ворогів
-            { caption: 'Вбити %s будь-яких ворогів', type: 'q_kill_enemies', level: 1, targets: { counter: 4 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
-            // вбити конкретного боса
+            // вбити 10 будь-яких ворогів
+            { caption: 'Вбити %s %s', type: 'q_kill_enemies', level: 1, targets: { counter: 4 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // вбити боса "Дракона"
             { caption: 'Вбити боса "%s"', type: 'q_kill_boss', level: 5, targets: { enemyType: '', counter: 1 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
-            // зачистити певний рівень
+            // зачистити рівень 5
             { caption: 'Зачистити рівень %s', type: 'q_clear_level', level: 1, targets: { counter: 1 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
-            // відкрити № сундуків
+            // відкрити 5 сундуків
             { caption: 'Відкрити %s сундуків', type: 'q_open_chest', level: 1, targets: { counter: 5 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
-            // зібрати № золота
-            { caption: 'Зібрати %s золота', type: 'q_find_gold', level: 1, targets: { counter: 2000 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
-            // знайти № книжок
-            { caption: `Знайти %s книжки для бібліотеки`, type: 'q_find_book', level: 2, targets: { counter: 3 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // відкрити 2 золоті сундики
+            { caption: 'Відкрити %s %s', type: 'q_open_golden_chest', level: 1, targets: { counter: 5 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // зібрати 15 золотих монет
+            { caption: 'Зібрати %s %s', type: 'q_find_gold', level: 1, targets: { counter: 2000 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // знайти 5 книжок
+            { caption: `Знайти %s %s`, type: 'q_find_book', level: 2, targets: { counter: 3 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // знайти рідкісну річ
             { caption: `Знайти рідкісну річ`, type: 'q_unique_item', level: 3, targets: { counter: 1 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // знайти прокляту річ
             { caption: `Знайти прокляту річ`, type: 'q_cursed_item', level: 5, targets: { counter: 1 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
-            // з'їсти певну к-сть їжі
-            { caption: `З'їсти %s їжі`, type: 'q_foods', level: 1, targets: { counter: 15 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
-            // нанести ворогам № шкоди
-            { caption: 'Нанести ворогам %s шкоди', type: 'q_kick_enemies', level: 1, targets: { counter: 50 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
-            // нанести ворогам № критичних ударів
-            { caption: 'Нанести %s критичних ударів', type: 'q_kick_enemies_krit', level: 3, targets: { counter: 15 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // З'їсти 10 продуктів
+            { caption: `З'їсти %s %s`, type: 'q_foods', level: 1, targets: { counter: 15 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // Нанести ворогам 51 одиницю шкоди
+            { caption: 'Нанести ворогам %s %s', type: 'q_kick_enemies', level: 1, targets: { counter: 50 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // нанести ворогам 21 критичний удар
+            { caption: 'Нанести %s %s', type: 'q_kick_enemies_krit', level: 3, targets: { counter: 15 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
             // загинути в бою
             { caption: 'Загинути в бою', type: 'q_die_in_battle', level: 1, targets: { counter: 1 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
-            // зіграти в казино
-            { caption: 'Зіграти %s разів в слоти', type: 'q_play_slots', level: 1, targets: { counter: 7 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // зіграти в казино 2 рази
+            { caption: 'Зіграти в казино %s %s', type: 'q_play_slots', level: 1, targets: { counter: 7 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
+            // Використати 2 квитки
+            { caption: 'Використати %s %s', type: 'q_use_tickets', level: 1, targets: { counter: 7 }, progress: { counter: 0, isCompleted: false }, rewards: { gold: 100, xp: 100 } },
         ];
 
         function getRandomQuest() {
@@ -1887,6 +1924,19 @@
                 color: '#ff0',
                 fontSize: '20px',
             });
+        }
+
+        // опріділяєм до якої групи відмінювання назви віднести за к-стю
+        // 1 - золоту монету / 2 - золоті монети / 3 - золотих монет
+        function checkQ1Q2Q3Counter(amount) {
+            const divRest = amount % 10;
+            if (divRest == 1 && amount != 11) {
+                return 1;
+            } else if ([2, 3, 4].includes(divRest) && ![12, 13, 14].includes(divRest)) {
+                return 2;
+            } else {
+                return 3;
+            }
         }
 
         function generateRandomQuest(currentLevel = 0) {
@@ -1942,6 +1992,12 @@
                 // rewards
                 randomQuest.rewards.gold = levelForQuest * rand(35, 50);
                 randomQuest.rewards.xp = levelForQuest * rand(30, 35);
+            } else if (randomQuest.type == 'q_open_golden_chest') {
+                // targets
+                randomQuest.targets.counter = rand(1, 5);
+                // rewards
+                randomQuest.rewards.gold = Math.ceil(levelForQuest * rand(40, 55) * (1 + randomQuest.targets.counter * 0.25));
+                randomQuest.rewards.xp = Math.ceil(levelForQuest * rand(40, 60) * (1 + randomQuest.targets.counter * 0.25));
             } else if (randomQuest.type == 'q_find_book') {
                 // targets
                 randomQuest.targets.counter = rand(3, 5);
@@ -1996,7 +2052,15 @@
                 // rewards
                 randomQuest.rewards.gold = levelForQuest * rand(60, 85);
                 randomQuest.rewards.xp = levelForQuest * rand(60, 80);
+            } else if (randomQuest.type == 'q_use_tickets') {
+                // targets
+                randomQuest.targets.counter = rand(1, 5);
+                // rewards
+                randomQuest.rewards.gold = Math.ceil(levelForQuest * rand(35, 50) * (1 + randomQuest.targets.counter * 0.25));
+                randomQuest.rewards.xp = Math.ceil(levelForQuest * rand(35, 40) * (1 + randomQuest.targets.counter * 0.25));
             }
+
+            //
 
             messageOfNewQuest = `
                 <div id="quest-modal-message">${player.getQuestInfo(randomQuest)}</div><br>
@@ -2096,6 +2160,11 @@
                 { type: '🏬🔮', image: 'store-aniques.png' },
             { type: '🤝✨', image: 'trader-mystic.png' },
                 { type: '🏬✨', image: 'store-mystic.png' },
+            { type: '🤝💖', image: 'trader-medic.png' },
+                { type: '🏬💖', image: 'store-medic.png' },
+                // медицина  
+            { type: '💊', image: 'medic-bandage.png' },
+            { type: '💉', image: 'medic-mixtures.png' },
                 // фрукти
             { type: '🍎', image: 'red-apple.png' },
             { type: '🍌', image: 'banana.png' },
@@ -2515,48 +2584,19 @@
             { index: 3, name: "Еліксир життя", emoji: "🧪", subtype: 3, type: "potion_health", emojiType: "💖", description: "💖+5", effect: "maxHealth", value: 100, bonus: 5, rarity: 2, canSell: false, color: 'red' }
         ];
 
+        // Медичні препарати в медика 
+        const medicines = [
+            { name: "Бинти", emoji: "💊", type: "medicine", healPercent: 0.33, value: 10 },
+            { name: "Мікстури", emoji: "💉", type: "medicine", healPercent: 0.75, value: 30 },
+        ];
+
         // Здорове харчівництво ;)
         const fruits = [
-            { 
-                name: "Яблуко", 
-                emoji: "🍎", 
-                healPercent: 0.25,  // 25% здоров'я
-                rarity: 1, 
-                type: "fruit",
-                color: "#ff5555"  // Червоний
-            },
-            /*{ 
-                name: "Банан", 
-                emoji: "🍌",
-                healPercent: 0.5,   // 50% здоров'я
-                rarity: 2, 
-                type: "fruit",
-                color: "#ffeb3b"  // Жовтий
-            },
-            { 
-                name: "Виноград", 
-                emoji: "🍇", 
-                healPercent: 1.0,   // 100% здоров'я
-                rarity: 3, 
-                type: "fruit",
-                color: "#673ab7"  // Фіолетовий
-            },*/
-            { 
-                name: "Піцца", 
-                emoji: "🍕",
-                healPercent: 0.5,   // 50% здоров'я
-                rarity: 2, 
-                type: "fruit",
-                color: "#ffeb3b"  // Жовтий
-            },
-            { 
-                name: "Стейк",
-                emoji: "🥩",
-                healPercent: 1.0,   // 100% здоров'я
-                rarity: 3, 
-                type: "fruit",
-                color: "#ff00dd"/*"#673ab7"*/  // Фіолетовий
-            }
+            { name: "Яблуко", emoji: "🍎", healPercent: 0.25, rarity: 1, type: "fruit", color: "#ff5555" },
+            //{ name: "Банан", emoji: "🍌", healPercent: 0.5, rarity: 2, type: "fruit", color: "#ffeb3b" },
+            //{ name: "Виноград", emoji: "🍇", healPercent: 1.0, rarity: 3, type: "fruit", color: "#673ab7" },
+            { name: "Піцца", emoji: "🍕", healPercent: 0.5, rarity: 2, type: "fruit", color: "#ffeb3b" },
+            { name: "Стейк",emoji: "🥩", healPercent: 1.0, rarity: 3, type: "fruit", color: "#ff00dd" }
         ];
 
 
@@ -2614,28 +2654,29 @@
 
         const enemyTypes = [
             // Звичайні монстри
-            { type: 'Гоблін', emoji: '👺', color: '#5f5', abilities: [] },
-            { type: 'Скелет', emoji: '💀💀', color: '#fff', abilities: ['undead', 'disease'] },
-            { type: 'Вовк', emoji: '🐕', color: '#aaa', abilities: ['fast', 'predator'] },
-            { type: 'Павук', emoji: '🕷️', color: '#8b4513', abilities: ['poison'] },
-            { type: 'Щур', emoji: '🐀', color: '#808080', abilities: ['disease', 'hungry'] },
-            { type: 'Зомбі', emoji: '🧟', color: '#5a5', abilities: ['undead', 'tough', 'disease'] },
-            { type: 'Привид', emoji: '👻', color: '#aaf', abilities: ['ghost', 'magic_resist'] },
-            { type: 'Гарпія', emoji: '🦅', color: '#add8e6', abilities: ['flying', 'fast'] },
-            { type: 'Ящіролюд', emoji: '🦎', color: '#ff6347', abilities: ['trap_master'] },
+            // відмінки для квестів на питання "скількох" qType1 - 1,21,31, qType - ...
+            { type: 'Гоблін', emoji: '👺', color: '#5f5', qType1: 'Гобліна', qType2: 'Гоблінів', abilities: []},
+            { type: 'Скелет', emoji: '💀💀', color: '#fff', qType1: 'Скелета', qType2: 'Скелетів', abilities: ['undead', 'disease'] },
+            { type: 'Вовк', emoji: '🐕', color: '#aaa', qType1: 'Вовка', qType2: 'Вовків', abilities: ['fast', 'predator'] },
+            { type: 'Павук', emoji: '🕷️', color: '#8b4513', qType1: 'Павука', qType2: 'Павуків', abilities: ['poison'] },
+            { type: 'Щур', emoji: '🐀', color: '#808080',  qType1: 'Щура', qType2: 'Щурів', abilities: ['disease', 'hungry'] },
+            { type: 'Зомбі', emoji: '🧟', color: '#5a5', qType1: 'Зомбі', qType2: 'Зомбі', abilities: ['undead', 'tough', 'disease'] },
+            { type: 'Привид', emoji: '👻', color: '#aaf', qType1: 'Привида', qType2: 'Привидів', abilities: ['ghost', 'magic_resist'] },
+            { type: 'Гарпія', emoji: '🦅', color: '#add8e6', qType1: 'Гарпію', qType2: 'Гарпій', abilities: ['flying', 'fast'] },
+            { type: 'Ящіролюд', emoji: '🦎', color: '#ff6347', qType1: 'Ящіролюда', qType2: 'Ящіролюдів', abilities: ['trap_master'] },
             
             // Елітні монстри
-            { type: 'Орк-воїн', emoji: '👹', color: '#f55', abilities: ['strong', 'tough', 'hungry'], elite: true },
-            { type: 'Троль', emoji: '🤢🤢', color: '#228b22', abilities: ['regeneration', 'tough'], elite: true },
-            { type: 'Варґ', emoji: '🐺', color: '#4b0082', abilities: ['predator', 'fast'], elite: true },
-            { type: 'Вампір', emoji: '🧛', color: '#00ffff', abilities: ['undead', 'bloodsucker', 'magic_resist'], elite: true },
-            { type: 'Демон', emoji: '😈', color: '#ff0000', abilities: ['fire_aura', 'magic_resist'], elite: true },
+            { type: 'Орк-воїн', emoji: '👹', color: '#f55', qType1: 'Орка-воїна', qType2: 'Орків-воїнів', abilities: ['strong', 'tough', 'hungry'], elite: true },
+            { type: 'Троль', emoji: '🤢🤢', color: '#228b22', qType1: 'Троля', qType2: 'Тролів', abilities: ['regeneration', 'tough'], elite: true },
+            { type: 'Варґ', emoji: '🐺', color: '#4b0082', qType1: 'Варґа', qType2: 'Варґів', abilities: ['predator', 'fast'], elite: true },
+            { type: 'Вампір', emoji: '🧛', color: '#00ffff', qType1: 'Вампіра', qType2: 'Вампірів', abilities: ['undead', 'bloodsucker', 'magic_resist'], elite: true },
+            { type: 'Демон', emoji: '😈', color: '#ff0000', qType1: 'Демона', qType2: 'Демонів', abilities: ['fire_aura', 'magic_resist'], elite: true },
             
             // Боси
-            { type: 'Дракон', emoji: '🐉', color: '#f33', abilities: ['fire_breath', 'flying', 'tough'], boss: true },
-            { type: 'Гарбузоголовий', emoji: '🎃', color: '#800080', abilities: ['strong', 'tough', 'stomp'], boss: true },
-            { type: 'Архідемон', emoji: '🤬', color: '#8b0000', abilities: ['fire_aura', 'bloodsucker', 'fear'], boss: true },
-            { type: 'Королева павуків', emoji: '🕸️', color: '#000000', abilities: ['poison', 'web', 'summon'], boss: true }
+            { type: 'Дракон', emoji: '🐉', color: '#f33', qType1: 'Дракона', qType2: 'Драконів', abilities: ['fire_breath', 'flying', 'tough'], boss: true },
+            { type: 'Гарбузоголовий', emoji: '🎃', color: '#800080', qType1: 'Гарбузоголового', qType2: 'Гарбузоголових', abilities: ['strong', 'tough', 'stomp'], boss: true },
+            { type: 'Архідемон', emoji: '🤬', color: '#8b0000', qType1: 'Архідемона', qType2: 'Архідемонів', abilities: ['fire_aura', 'bloodsucker', 'fear'], boss: true },
+            { type: 'Королева павуків', emoji: '🕸️', color: '#000000', qType1: 'Королеву павуків', qType2: 'Королев павуків', abilities: ['poison', 'web', 'summon'], boss: true }
         ];
 
         // popup повідомлення
@@ -2643,7 +2684,7 @@
         let popupSendingStatus = false;
 
         // Карта гри
-        const mapSize = 11;
+        const mapSize = 10;
         let gameMap = [];
         let enemies = [];
         let visitedCells = new Set();
@@ -3108,7 +3149,7 @@
         }
 
         // Ініціалізація карти
-        function initMap(mapLevel = 0) {
+        function initMap(mapLevel = 0, isPlayerResurrected = false) {
             gameMap = [];
             enemies = [];
             elements.map.innerHTML = '';
@@ -3129,7 +3170,27 @@
             if ([5,6].includes(mapLevel)) tmpDensity = 0.45;
 
             if (mapLevel == 0) {
-                generateMapByTemplate(preparedStartLevel);
+                generateMapByTemplate(preparedStartLevel, isPlayerResurrected);
+
+                if (isPlayerResurrected) {
+                    const playerCell = player.getCurrentCell();
+                    const currentStore = getStoreHubById(playerCell.id);
+
+                    player.atStore = true;
+                    elements.gambleBtn.style.display = 'none';
+                    elements.storeBtn.style.display = 'inline-block';
+
+                    tabManager.addTab('store');
+
+                    elements.enemyEmoji.innerHTML = addEmoji(currentStore.emojiTrader, '64px');
+                    elements.enemyEmoji.style.filter = `grayscale(0%)`;
+                    elements.vs.innerHTML = addEmoji('🤝', '64px');
+                    elements.vs.style.visibility = 'visible';
+
+                    elements.enemyName.innerHTML = currentStore.name;
+                    elements.enemyName.style.display = 'block';
+                }
+
                 updateMap();
                 return;
             }
@@ -3142,6 +3203,8 @@
             spawnEnemies();
             // Додаємо ймовірний квест
             spawnQuest();
+            // Додаємо ймовірний кам'яний сундук
+            spawnStoneChest();
             // прибираєм крамницю з карти
             deleteStore();
 
@@ -3194,7 +3257,7 @@
             }
         }
 
-        function generateMapByTemplate(templateData) {
+        function generateMapByTemplate(templateData, isPlayerResurrected = false) {
             elements.map.innerHTML = '';
             gameMap = [];
 
@@ -3216,6 +3279,12 @@
                         gameMap[y][x] = { type: 'obstacle', obstacle: obsObj, emoji: templateElement, passable: false };
                     } else if (storeTypes.map(s => s.emoji).includes(templateElement)) {
                         const localStoreType = storeTypes.find(s => s.emoji == templateElement).type;
+
+                        // якщо воскресли
+                        if (localStoreType == 'medic' && isPlayerResurrected) {
+                            player.position = { x, y };
+                        }
+
                         currentStoreType = localStoreType;
                         const storeId = spawnStore(localStoreType, x, y);
                     } else if (templateElement == '🚪') {
@@ -3284,7 +3353,7 @@
                 }
                 
                 if (x === player.position.x && y === player.position.y) {
-                    cell.innerHTML = addEmoji(player.emoji, '30px');
+                    cell.innerHTML = addEmoji(player.emoji, '36px');
                     cell.classList.add('player-cell');
                     cell.classList.add('sight-cell');
                     if (gameMap[y][x].type === 'store') cell.classList.add('store-cell');
@@ -3296,17 +3365,29 @@
                     if (gameMap[y][x].type === 'obstacle') {
                         cell.classList.add('obstacle-cell');
                         cell.classList.add('tree-cell');
-                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
+                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '36px');
+                    }
+
+                    if (gameMap[y][x].type === 'obstacle-stone-chest' && gameMap[y][x].health < 1) {
+                        gameMap[y][x].type = 'chest';
+                        gameMap[y][x].emoji = '📦🗿';
+                        gameMap[y][x].artifact = generateStoneChestItem();
+                    }
+                    if (gameMap[y][x].type === 'obstacle-stone-chest') {
+                        cell.classList.add('obstacle-cell');
+                        cell.classList.add('tree-cell');
+                        cell.style.opacity = '0.7';
+                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '36px');
                     }
 
                     if (gameMap[y][x].type == 'exit') {
                         cell.classList.add('exit-cell');
-                        cell.innerHTML = addEmoji(`🚪`, '30px');
+                        cell.innerHTML = addEmoji(`🚪`, '36px');
                     }
 
                     const enemy = enemies.find(e => e.position.x === x && e.position.y === y);
                     if (enemy && isNeighbour(enemy.position, player.position, 3)) {
-                        cell.innerHTML = addEmoji(enemy.emoji, '30px');
+                        cell.innerHTML = addEmoji(enemy.emoji, '36px');
                         
                         if (enemy.boss) cell.classList.add('boss-cell');
                         else if (enemy.elite) cell.classList.add('elite-cell');
@@ -3317,27 +3398,27 @@
                     
                     if (gameMap[y][x].type === 'artifact') {
                         if (gameMap[y][x].artifact.type.startsWith('potion')) {
-                            cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px', gameMap[y][x].artifact.subtype);
+                            cell.innerHTML = addEmoji(gameMap[y][x].emoji, '36px', gameMap[y][x].artifact.subtype);
                             cell.classList.add('potion-cell');
                         } else {
-                            cell.innerHTML = addEmoji('💼', '30px', gameMap[y][x].artifact.subtype);
+                            cell.innerHTML = addEmoji('💼', '36px', gameMap[y][x].artifact.subtype);
                             cell.classList.add('artifact-cell');
                         }
                         return;
                     }
 
                     if (gameMap[y][x].type === 'store') {
-                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
+                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '36px');
                         cell.classList.add('store-cell');
                     }
 
                     if (gameMap[y][x].type === 'quest') {
-                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
+                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '36px');
                         cell.classList.add('artifact-cell');
                     }
 
                     if (gameMap[y][x].type === 'fruit') {
-                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
+                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '36px');
                         cell.classList.add('fruit-cell');
                         cell.style.color = gameMap[y][x].color;
                         cell.dataset.fruit = Math.floor(gameMap[y][x].fruit.healPercent * 100);
@@ -3345,7 +3426,7 @@
                     }
 
                     if (['treasure', 'chest'].includes(gameMap[y][x].type)) {
-                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '30px');
+                        cell.innerHTML = addEmoji(gameMap[y][x].emoji, '36px');
                         
                         if (gameMap[y][x].type === 'chest') {
                             cell.classList.add('chest-cell');
@@ -3418,8 +3499,12 @@
             }
 
             // Перевіряємо чи клітинка є перешкодою
-            if (gameMap[y][x].type === 'obstacle') {
+            if (gameMap[y][x].type === 'obstacle' || gameMap[y][x].type == 'obstacle-stone-chest') {
                 addLog(`🚫 Не можна пройти: ${gameMap[y][x].obstacle.name}!`, 'system');
+                if (gameMap[y][x].type == 'obstacle-stone-chest') {
+                    gameMap[y][x].health--;
+                    if (gameMap[y][x].health < 1) updateMap();
+                }
                 return;
             }
             
@@ -3819,6 +3904,9 @@
 
                 // чекаєм квести
                 player.checkQuest('q_open_chest', 1);
+                if (isGoldenChest) {
+                    player.checkQuest('q_open_golden_chest', 1);
+                }
 
                 // Видаляємо сундук
                 gameMap[y][x] = { type: 'empty', emoji: emptyEmoji };
@@ -3975,6 +4063,37 @@
                     artifact: isGold ? makeItemMagic(item) : item,
                 };
             }
+        }
+
+        // схований кам'яний сундук - ховається під перешкодами
+        function spawnStoneChest() {
+            if (Math.random() > 0.3) return;
+
+            let chestPositionCreated = false;
+            let attempts = 0;
+            const obstacles = findCellByTypes('obstacle');
+
+            do {
+                const obj = obstacles.randOne();
+                const o = obj.position;
+                if ((
+                    getCell(o.x, o.y - 1).type == 'empty' ||
+                    getCell(o.x, o.y + 1).type == 'empty' ||
+                    getCell(o.x - 1, o.y).type == 'empty' ||
+                    getCell(o.x + 1, o.y).type == 'empty'
+                ) && (o.y > 0 && o.y < mapSize - 1) && (o.x > 0 && o.x < mapSize - 1)) {
+                    gameMap[o.y][o.x] = {
+                        type: 'obstacle-stone-chest',
+                        emoji: obj.emoji,
+                        obstacle: obj.obstacle,
+                        health: 3
+                    };
+                    chestPositionCreated = true;
+                }
+
+                attempts++;
+                if (attempts > 50) break;
+            } while (!chestPositionCreated);
         }
 
         // Додаємо артефакти на карту
@@ -4367,6 +4486,7 @@
                     magicLevel = item.magicLevel != 0 ? ` ${(item.status || '')} ${(item.status || '')}-${(magicLevel)}` : '';
 
                 itemElement.className = `item-slot ${magicLevel} item-${item.type}${inventoryItemSelected == index ? ' selected' : ''}`;
+
                 itemElement.innerHTML = getItemView(item, index, 'inventory');
                 
                 elements.inventoryItems.appendChild(itemElement);
@@ -4435,6 +4555,7 @@
                     const buyPriceTotal = (item.promoValue != undefined) ? buyPricePromo : buyPrice;
 
                 itemElement.className = `item-slot ${magicLevel} item-${item.type}${buyPriceTotal > player.gold ? ' not-enough-gold': ''}${storeItemSelected == index ? ' selected' : ''}`;
+
                 itemElement.innerHTML = getItemView(item, index, 'store');
 
                 elements.storeItems.appendChild(itemElement);
@@ -4474,7 +4595,8 @@
             if (item.attack) bonusText += ` <span class="nowrap">⚔️${viewType == 'store' ? comparePlayerParamValue(item, 'attack') : signedValue(item.attack)}</span>`;
             if (item.defense) bonusText += ` <span class="nowrap">🛡️${viewType == 'store' ? comparePlayerParamValue(item, 'defense') : signedValue(item.defense)}</span>`;
             if (item.maxHealth) bonusText += ` <span class="nowrap">❤️${viewType == 'store' ? comparePlayerParamValue(item, 'maxHealth') : signedValue(item.maxHealth)}</span>`;
-            if (item.critChance) bonusText += ` <span class="nowrap">💥${Math.floor(item.critChance*100)}%</span>`;
+            if (item.critChance) bonusText += ` <span class="nowrap">💥${Math.floor(item.critChance * 100)}%</span>`;
+            if (item.healPercent) bonusText += ` <span class="nowrap">+${Math.round(item.healPercent * 100)}%❤️</span>`;
             if (item.description) bonusText = ` ${item.description}`;
             
             const currentSubtype = typeof item.subtype != 'undefined' ? item.subtype : 0;
@@ -4525,15 +4647,20 @@
                     </div>` : '';
             let storeActions = '';
             if (index != -1 && viewType == 'store') {
-                if (buyPriceTotal <= player.gold) {
+                if (buyPriceTotal <= player.gold && item.type != 'medicine') {
                     storeActions = `<div class="item-actions">
                                         <div class="item-action" onclick="buyItem(${index})">${buyPriceTotal}💰 Купити</div>
                                         <div class="item-action" onclick="buyItem(${index}, true)">${buyPriceTotal}💰 ... і ${item.type.startsWith('potion') ? 'випити' : 'екіпірувати'}</div>
+                                    </div>`;
+                } else if (buyPriceTotal <= player.gold && item.type == 'medicine') {
+                    storeActions = `<div class="item-actions">
+                                        <div class="item-action" onclick="healItem(${index})">${buyPriceTotal}💰 Лікуватись</div>
                                     </div>`;
                 } else {
                     storeActions = `<div class="item-actions"><div class="item-action">Недостатньо коштів</div></div>`;
                 }
             }
+
             const storePriceBlock = (index != -1 && viewType == 'store')
                 ? `<div class="item-desc item-price">
                         <span class="artifact-bonus store-price${(buyPricePromo != 0 ? ' store-price-old' : '')}">${buyPrice}💰</span>${(buyPricePromo != 0 ? ' <span class="store-price-promo">' + buyPricePromo + '💰</span>' : '')}
@@ -4592,6 +4719,9 @@
             // писар - видає і приймає квести
             if (storeType == 'questmaker') {
                 //....
+            } else if (storeType == 'medic') {
+                storeHub.listOfGoods.push({...medicines[1]});
+                storeHub.listOfGoods.push({...medicines[0]});
             // барахолка
             } else if (storeType == 'flea') {
                 storeHub.listOfGoods.push({...weapons[0]});
@@ -4780,6 +4910,37 @@
             updateInventory();
         }
 
+        // лікуємось
+        function healItem(index) {
+            const playerCell = player.getCurrentCell();
+
+            if (playerCell.storeType == undefined) return;
+            let localStoreData = getStoreHubById(playerCell.id);
+
+            if (localStoreData.listOfGoods[index] == undefined) return;
+
+            const item = localStoreData.listOfGoods[index];
+
+            const buyPrice = (item.promoValue != undefined) ? Math.max(1, Math.floor(item.promoValue * buyCoefficient)) : Math.max(1, Math.floor(item.value * buyCoefficient));
+            if (player.gold < buyPrice) {
+                addLog(`🏬💰 У вас недостатньо коштів для лікування "${item.emoji} ${item.name}"`, 'system');
+                return;
+            }
+
+            player.health += Math.round(player.maxHealth * item.healPercent);
+            if (player.health > player.maxHealth) player.health = player.maxHealth;
+
+            player.spendGold(buyPrice);
+            addPopupMessage(`-${buyPrice}${addEmojiPlayer('💰')} +${Math.round(item.healPercent * 100)}%${addEmojiPlayer('❤️')}`, elements.playerEmojiDot, {
+                color: '#ff0',
+                fontSize: '20px',
+            });
+
+            updateStats();
+            updateInventory();
+            updateStore();
+        }
+
         // Купляємо предмет
         function buyItem(index, forceEquip = false) {
             const playerCell = player.getCurrentCell();
@@ -4790,6 +4951,11 @@
             if (localStoreData.listOfGoods[index] == undefined) return;
 
             const item = localStoreData.listOfGoods[index];
+
+            if (item.type == 'medicine') {
+                healItem(index);
+                return;
+            }
 
             const buyPrice = (item.promoValue != undefined) ? Math.max(1, Math.floor(item.promoValue * buyCoefficient)) : Math.max(1, Math.floor(item.value * buyCoefficient));
             if (player.gold < buyPrice) {
@@ -4923,6 +5089,19 @@
             }
         }
 
+        // спеціальна генерілка для кам'яного сундука - завжди спавнить магічні предмети 2 чи 3 рівня
+        function generateStoneChestItem() {
+            let itemsPool = [...weapons, ...armors, ...artifacts];
+            let rarity = getBiasedRarity(currentMapLevel, 0);
+
+            let stoneItem = itemsPool.filter(item => item.rarity == rarity).randOne();
+            if (stoneItem == undefined || stoneItem == null) {
+                stoneItem = {...weapons[0]};
+            }
+
+            return makeItemMagicNew(stoneItem, undefined, rand(2, 3));
+        }
+
         // Звична функція генерації предмета
         function generateItem(isForced = false, rarityBias = -1, mustBeModifed = false, itemHandyPool = null) {
             return generateItemByLevel(currentMapLevel, isForced, rarityBias, mustBeModifed, itemHandyPool);
@@ -4978,15 +5157,16 @@
 
         // нова логіка створення магічного предмету
         // bonusRarity 0.0 - 1.0
-        function makeItemMagicNew(magicItem, bonusRarity = 0) {
+        // stoneMagic = 0 - якщо цей параметр встановлено 1-3, то предмет обов'язково буде магічним
+        function makeItemMagicNew(magicItem, bonusRarity = 0, stoneMagic = 0) {
             // якщо предмет не з пулу екіпуємих - повертаєм його без змін
             if (!equipableTypes.includes(magicItem.type)) return magicItem;
 
             // є мізерний шанс отримати проклятий предмет
-            if (Math.random() < 0.05) return makeItemCursed(magicItem);
+            if (Math.random() < 0.05 && stoneMagic == 0) return makeItemCursed(magicItem);
 
             // є шанс отримати звичайний предмет
-            if (Math.random() < 0.25) return {...magicItem};
+            if (Math.random() < 0.25 && stoneMagic == 0) return {...magicItem};
 
             let itemTemplate = {...magicItem};
             // Особливі параметри
@@ -5002,7 +5182,7 @@
             else if (mainRandomValue < 0.9) magicLevel = 2;
             else magicLevel = 3;
 
-            //magicLevel = 3;
+            if (stoneMagic > 0) magicLevel = stoneMagic;
 
             for (ml = 0; ml < magicLevel; ml++) {
                 itemTemplate = addRandomItemParam(itemTemplate);
@@ -5769,12 +5949,12 @@
                 });
 
                 // ховаєм карту і викидаєм гравця з карти на вибір рівнів
-                spawnLevelList();
+                //spawnLevelList();
 
                 // виходим на вибір рівнів
-                player.inLevelSelection = true;
-                elements.levels.style.display = 'block';
-                elements.map.style.display = 'none';
+                //player.inLevelSelection = true;
+                //elements.levels.style.display = 'block';
+                //elements.map.style.display = 'none';
                 // Ховаєм кнопку гемблінга
                 elements.gambleBtn.style.display = 'none';
 
@@ -5783,7 +5963,7 @@
                 elements.enemyStats.style.visibility = 'hidden';
                 elements.enemyHealthBarWrapper.style.visibility = 'hidden';
 
-                tabManager.setTab(['levels', 'quests', 'inventory']);
+                //tabManager.setTab(['levels', 'quests', 'inventory']);
 
                 return;
             }
@@ -5974,7 +6154,7 @@
 
             // скидуєм оверхелс
             player.overpoweredHealth = 0;
-            player.health = Math.ceil(player.maxHealth * 0.5);
+            player.health = Math.ceil(player.maxHealth * 0.1);
             addLog('⚡ Ви відродились і частково відновили здоров\'я!', 'system');
             
             // Вороги також відпочивають (респавняться)
@@ -5982,12 +6162,15 @@
 
             const savedData = gatherAllMapData();
             const tmpDensity = 0.45 + Math.random() * 0.15;
-            regenerateMap(player.position, tmpDensity, savedData);
+            //regenerateMap(player.position, tmpDensity, savedData);
+
+            tabManager.setTab(['map-block', 'quests', 'inventory', 'slots']);
+            initMap(0, true);
 
             // спавн фрукта після смерті трошки покращить становище в бою
-            spawnFruits(1);
+            /*spawnFruits(1);
             spawnEnemies();
-            resetTerra();
+            resetTerra();*/
 
             updateStats();
             updateMap();
@@ -6015,6 +6198,7 @@
 
             if (player.tickets > 0) {
                 player.tickets--;
+                player.checkQuest('q_use_tickets', 1);
             } else {
                 player.spendGold(updatePrice);
             }
