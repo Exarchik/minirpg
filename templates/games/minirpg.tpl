@@ -97,6 +97,8 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(3px);
+            align-items: center;
+            justify-content: center;
         }
 
         .emoji-sprite {
@@ -636,7 +638,7 @@
         .item-actions {
             display: none;
             position: absolute;
-            top: 80%;
+            top: 54%;
             left: 0;
             background-color: #555;
             border-radius: 3px;
@@ -661,6 +663,28 @@
             color: #ff8f00;
             text-shadow: 2px 2px 1px #000;
         }
+
+        .item-details {
+            display: grid;
+            grid-template-columns: 4fr 2fr 2fr;
+        }
+        .item-details-cell {
+            text-align: center;
+            background-color: #474747;
+            margin: 1px;
+            padding: 5px;
+        }
+        .item-details-cell.param {
+            background-color: #1a5f44;
+        }
+
+        .item-info-card .item-caption {
+            /*text-shadow: 2px 2px 0 black;*/
+        }
+        .item-info-card .item-caption.better { text-shadow: 2px 2px 0 black; color: #0f0; }
+        .item-info-card .item-caption.best { text-shadow: 2px 2px 0 black; color: #3e92ed; font-weight: bold; }
+        .item-info-card .item-caption.unique { color: #ed983e; font-weight: bold; text-shadow: 3px 3px 2px black; }
+        .item-info-card .item-caption.cursed { text-shadow: 2px 2px 2px black; }
 
         #quests {
             height: 354px;
@@ -1059,10 +1083,10 @@
                 background-color: #333;
             }
             .modal {
-                zoom: 0.8;
+                zoom: 0.7;
             }
             .modal-content {
-                top: -3%;
+                top: 5%;
             }
             
             .main-container {
@@ -1145,7 +1169,7 @@
                 display: block;
             }
             .modal-content {
-                top: 29%;
+                top: 5%;
             }
         }
 
@@ -1800,8 +1824,9 @@
                         });
                     }
                 });
-            }
 
+                updateQuestsData();
+            }
         };
 
         const emptySlotsEquipmentsEmojies = {
@@ -2476,43 +2501,43 @@
 
         // Оновлена база даних зброї з параметрами критичної шкоди 
         let weapons = [
-            { index: 1, name: "Посох", emoji: "🏒",          subtype: 1,            critChance: 0.1, rarity: 1, value: 5, type: "weapon" },
-            { index: 2, name: "Дерев'яний меч", emoji: "🗡",  subtype: 1, attack: 1, critChance: 0.03, rarity: 1, value: 5, type: "weapon" },
-            { index: 3, name: "Кинджал", emoji: "🔪",         subtype: 2, attack: 2, critChance: 0.15, rarity: 2, value: 25, type: "weapon" },
-            { index: 4, name: "Дубина", emoji: "🏏",          subtype: 3, attack: 3, critChance: 0.08, rarity: 2, value: 45, type: "weapon" },
-            { index: 5, name: "Сокира", emoji: "🪓",          subtype: 4, attack: 4, critChance: 0.1, rarity: 3, value: 85, type: "weapon" },
-            { index: 6, name: "Спис", emoji: "🔱",            subtype: 5, attack: 5, critChance: 0.12, rarity: 3, value: 135, type: "weapon" },
-            { index: 7, name: "Коса", emoji: "⛏️",            subtype: 15, attack: 6, defense: -1, critChance: 0.15, rarity: 3, value: 135, type: "weapon" },
-            { index: 8, name: "Меч", emoji: "🗡️",             subtype: 6, attack: 6, critChance: 0.12, rarity: 4, value: 220, type: "weapon" },
-            { index: 9, name: "Кистінь", emoji: "🏏",         subtype: 7, attack: 7, critChance: 0.1, rarity: 4, value: 310, type: "weapon" },
-            { index: 10, name: "Бойовий молот", emoji: "🔨",   subtype: 8, attack: 8, critChance: 0.07, rarity: 4, value: 420, type: "weapon" },
-            { index: 11, name: "Лук", emoji: "🏹",             subtype: 9, attack: 6, critChance: 0.2, rarity: 5, value: 260, type: "weapon" },
-            { index: 12, name: "Арбалет", emoji: "🎯",         subtype: 10, attack: 8, critChance: 0.25, rarity: 5, value: 555, type: "weapon" },
-            { index: 13, name: "Магічний меч", emoji: "🗡️",    subtype: 14, attack: 7, critChance: 0.3, rarity: 6, value: 440, type: "weapon" },
-            { index: 14, name: "Катана", emoji: "🗡",          subtype: 11, attack: 9, critChance: 0.15, rarity: 6, value: 645, type: "weapon" },
-            { index: 15, name: "Вогняний меч", emoji: "🗡🔥",  subtype: 12, attack: 12, critChance: 0.15, rarity: 7, value: 1375, type: "weapon" },
-            { index: 16, name: "Міфічний клинок", emoji: "🗡✨", subtype: 13, attack: 15, critChance: 0.2, rarity: 7, value: 2650, type: "weapon" }
+            { index: 1001, name: "Посох", emoji: "🏒",          subtype: 1,            critChance: 0.1, rarity: 1, value: 5, type: "weapon" },
+            { index: 1002, name: "Дерев'яний меч", emoji: "🗡",  subtype: 1, attack: 1, critChance: 0.03, rarity: 1, value: 5, type: "weapon" },
+            { index: 1003, name: "Кинджал", emoji: "🔪",         subtype: 2, attack: 2, critChance: 0.15, rarity: 2, value: 25, type: "weapon" },
+            { index: 1004, name: "Дубина", emoji: "🏏",          subtype: 3, attack: 3, critChance: 0.08, rarity: 2, value: 45, type: "weapon" },
+            { index: 1005, name: "Сокира", emoji: "🪓",          subtype: 4, attack: 4, critChance: 0.1, rarity: 3, value: 85, type: "weapon" },
+            { index: 1006, name: "Спис", emoji: "🔱",            subtype: 5, attack: 5, critChance: 0.12, rarity: 3, value: 135, type: "weapon" },
+            { index: 1007, name: "Коса", emoji: "⛏️",            subtype: 15, attack: 6, defense: -1, critChance: 0.15, rarity: 3, value: 135, type: "weapon" },
+            { index: 1008, name: "Меч", emoji: "🗡️",             subtype: 6, attack: 6, critChance: 0.12, rarity: 4, value: 220, type: "weapon" },
+            { index: 1009, name: "Кистінь", emoji: "🏏",         subtype: 7, attack: 7, critChance: 0.1, rarity: 4, value: 310, type: "weapon" },
+            { index: 1010, name: "Бойовий молот", emoji: "🔨",   subtype: 8, attack: 8, critChance: 0.07, rarity: 4, value: 420, type: "weapon" },
+            { index: 1011, name: "Лук", emoji: "🏹",             subtype: 9, attack: 6, critChance: 0.2, rarity: 5, value: 260, type: "weapon" },
+            { index: 1012, name: "Арбалет", emoji: "🎯",         subtype: 10, attack: 8, critChance: 0.25, rarity: 5, value: 555, type: "weapon" },
+            { index: 1013, name: "Магічний меч", emoji: "🗡️",    subtype: 14, attack: 7, critChance: 0.3, rarity: 6, value: 440, type: "weapon" },
+            { index: 1014, name: "Катана", emoji: "🗡",          subtype: 11, attack: 9, critChance: 0.15, rarity: 6, value: 645, type: "weapon" },
+            { index: 1015, name: "Вогняний меч", emoji: "🗡🔥",  subtype: 12, attack: 12, critChance: 0.15, rarity: 7, value: 1375, type: "weapon" },
+            { index: 1016, name: "Міфічний клинок", emoji: "🗡✨", subtype: 13, attack: 15, critChance: 0.2, rarity: 7, value: 2650, type: "weapon" }
         ];
 
         // Розширена база даних броні
         let armors = [
-            { index: 1, name: "Плащ", emoji: "🥼",            subtype: 1,                        rarity: 1, value: 5, type: "armor" },
-            { index: 2, name: "Деревна броня", emoji: "🧥🪓", subtype: 1, defense: 1,            rarity: 1, value: 5, type: "armor" },
-            { index: 3, name: "Шкіряний жилет", emoji: "🧥",   subtype: 2, defense: 2,            rarity: 2, value: 10, type: "armor" },
-            { index: 4, name: "Шкіряна броня", emoji: "🧥✨", subtype: 1, defense: 2, maxHealth: 5, rarity: 2, value: 25, type: "armor" },
-            { index: 5, name: "Кольчуга", emoji: "⛓️",        subtype: 3, defense: 3,             rarity: 3, value: 25, type: "armor" },
-            { index: 6, name: "Бектер", emoji: "⛓️✨",        subtype: 3, defense: 3, maxHealth: 5, rarity: 3, value: 50, type: "armor" },
-            { index: 7, name: "Луската броня", emoji: "⛓️",   subtype: 4, defense: 4,             rarity: 4, value: 50, type: "armor" },
-            { index: 8, name: "Кіраса", emoji: "🛡️🛡️",        subtype: 5, defense: 5,             rarity: 4, value: 100, type: "armor" },
-            { index: 9, name: "Панцир", emoji: "🛡️✨",        subtype: 5, defense: 5, maxHealth: 10, rarity: 4, value: 200, type: "armor" },
-            { index: 10, name: "Латна броня", emoji: "🛡️🛡️",   subtype: 6, defense: 6,             rarity: 4, value: 200, type: "armor" },
-            { index: 11, name: "Обладунки", emoji: "🛡️✨",     subtype: 6, defense: 6, maxHealth: 10, rarity: 5, value: 350, type: "armor" },
-            { index: 12, name: "Міфічна броня", emoji: "🛡️👑", subtype: 7, defense: 7,             rarity: 5, value: 350, type: "armor" },
-            { index: 13, name: "Елітна броня", emoji: "🛡️✨",  subtype: 7, defense: 7, maxHealth: 10, rarity: 5, value: 600, type: "armor" },
-            { index: 14, name: "Драконяча шкура", emoji: "🐉⛓️", subtype: 8, defense: 8,           rarity: 6, value: 700, type: "armor" },
-            { index: 15, name: "Легендарна броня", emoji: "🛡️🌟", subtype: 9, defense: 10,         rarity: 6, value: 1000, type: "armor" },
-            { index: 16, name: "Кристальна броня", emoji: "🛡️❄️", subtype: 11, attack: -2, defense: 14, rarity: 7, value: 1000, type: "armor" },
-            { index: 17, name: "Ельфійська броня", emoji: "🛡️✨", subtype: 10, defense: 12,        rarity: 7, value: 2000, type: "armor" }
+            { index: 2001, name: "Плащ", emoji: "🥼",            subtype: 1,                        rarity: 1, value: 5, type: "armor" },
+            { index: 2002, name: "Деревна броня", emoji: "🧥🪓", subtype: 1, defense: 1,            rarity: 1, value: 5, type: "armor" },
+            { index: 2003, name: "Шкіряний жилет", emoji: "🧥",   subtype: 2, defense: 2,            rarity: 2, value: 10, type: "armor" },
+            { index: 2004, name: "Шкіряна броня", emoji: "🧥✨", subtype: 1, defense: 2, maxHealth: 5, rarity: 2, value: 25, type: "armor" },
+            { index: 2005, name: "Кольчуга", emoji: "⛓️",        subtype: 3, defense: 3,             rarity: 3, value: 25, type: "armor" },
+            { index: 2006, name: "Бектер", emoji: "⛓️✨",        subtype: 3, defense: 3, maxHealth: 5, rarity: 3, value: 50, type: "armor" },
+            { index: 2007, name: "Луската броня", emoji: "⛓️",   subtype: 4, defense: 4,             rarity: 4, value: 50, type: "armor" },
+            { index: 2008, name: "Кіраса", emoji: "🛡️🛡️",        subtype: 5, defense: 5,             rarity: 4, value: 100, type: "armor" },
+            { index: 2009, name: "Панцир", emoji: "🛡️✨",        subtype: 5, defense: 5, maxHealth: 10, rarity: 4, value: 200, type: "armor" },
+            { index: 2010, name: "Латна броня", emoji: "🛡️🛡️",   subtype: 6, defense: 6,             rarity: 4, value: 200, type: "armor" },
+            { index: 2011, name: "Обладунки", emoji: "🛡️✨",     subtype: 6, defense: 6, maxHealth: 10, rarity: 5, value: 350, type: "armor" },
+            { index: 2012, name: "Міфічна броня", emoji: "🛡️👑", subtype: 7, defense: 7,             rarity: 5, value: 350, type: "armor" },
+            { index: 2013, name: "Елітна броня", emoji: "🛡️✨",  subtype: 7, defense: 7, maxHealth: 10, rarity: 5, value: 600, type: "armor" },
+            { index: 2014, name: "Драконяча шкура", emoji: "🐉⛓️", subtype: 8, defense: 8,           rarity: 6, value: 700, type: "armor" },
+            { index: 2015, name: "Легендарна броня", emoji: "🛡️🌟", subtype: 9, defense: 10,         rarity: 6, value: 1000, type: "armor" },
+            { index: 2016, name: "Кристальна броня", emoji: "🛡️❄️", subtype: 11, attack: -2, defense: 14, rarity: 7, value: 1000, type: "armor" },
+            { index: 2017, name: "Ельфійська броня", emoji: "🛡️✨", subtype: 10, defense: 12,        rarity: 7, value: 2000, type: "armor" }
         ];
 
         // Розширена база даних артефактів
@@ -2579,9 +2604,9 @@
         
         // Додаємо еліксири до бази даних предметів
         const potions = [
-            { index: 1, name: "Еліксир сили", emoji: "🧪", subtype: 1, type: "potion_attack", emojiType: "⚔️", description: "⚔️+1", effect: "attack", value: 100, bonus: 1, rarity: 2, canSell: false, color: '#0f0' },
-            { index: 2, name: "Еліксир захисту", emoji: "🧪", subtype: 2, type: "potion_defense", emojiType: "🛡️", description: "🛡️+1", effect: "defense", value: 100, bonus: 1, rarity: 2, canSell: false, color: '#00ceff' },
-            { index: 3, name: "Еліксир життя", emoji: "🧪", subtype: 3, type: "potion_health", emojiType: "💖", description: "💖+5", effect: "maxHealth", value: 100, bonus: 5, rarity: 2, canSell: false, color: 'red' }
+            { index: 9001, name: "Еліксир сили", emoji: "🧪", subtype: 1, type: "potion_attack", emojiType: "⚔️", description: "⚔️+1", effect: "attack", value: 100, bonus: 1, rarity: 2, canSell: false, color: '#0f0' },
+            { index: 9002, name: "Еліксир захисту", emoji: "🧪", subtype: 2, type: "potion_defense", emojiType: "🛡️", description: "🛡️+1", effect: "defense", value: 100, bonus: 1, rarity: 2, canSell: false, color: '#00ceff' },
+            { index: 9003, name: "Еліксир життя", emoji: "🧪", subtype: 3, type: "potion_health", emojiType: "💖", description: "💖+5", effect: "maxHealth", value: 100, bonus: 5, rarity: 2, canSell: false, color: 'red' }
         ];
 
         // Медичні препарати в медика 
@@ -4308,7 +4333,7 @@
             
             messageHeader.innerHTML = header;
             messageElement.innerHTML = message;
-            modal.style.display = 'block';
+            modal.style.display = 'flex';
             if (addClass != '') modal.classList.add(addClass);
             
             // Обробник кнопки OK
@@ -4574,6 +4599,87 @@
             drawTabsInfo();
         }
 
+        function itemInfo(index, itemIndex, type = 'inventory') {
+            const basicItem = [...weapons, ...armors, ...artifacts, ...potions].find(i => i.index == itemIndex);
+            const itemDesc = itemDescriptions.find(d => d.name == basicItem.name).desc;
+
+            let item;
+            if (type == 'inventory') {
+                item = player.inventory[index];
+            } else if (type == 'equipment') {
+                item = player.equipment[equipableTypes[index]];
+            } else if (type == 'store') {
+                const playerCell = player.getCurrentCell();
+                const localStoreData = getStoreHubById(playerCell.id);
+                item = localStoreData.listOfGoods[index];
+            }
+
+            //console.log(item);
+
+            if (item != undefined) {
+                let info = [];
+                if (item.magicLevel != undefined) {
+                    if (item.magicLevel == 1) info.push(`<div class="item-caption better">[Покращений предмет]</div>`);
+                    else if (item.magicLevel == 2) info.push(`<div class="item-caption best">[Рідкісний предмет]</div>`);
+                    else if (item.magicLevel == 3) info.push(`<div class="item-caption unique">[Унікальний предмет]</div>`);
+                    else if (item.magicLevel < 0) info.push(`<div class="item-caption cursed">[Проклятий предмет]</div>`);
+                } else {
+                    info.push(`<div class="item-caption">[Звичайний предмет]</div>`);
+                }   
+
+                let infoDetails = [];
+                if (item.attack != undefined) {
+                    const basicAttack = (basicItem.attack || 0);
+                    let attackInfo = `<div class="item-details-cell param">Атака ⚔️:</div><div class="item-details-cell value">${item.attack}</div><div class="item-details-cell base">${item.attack != basicAttack ? `(${basicAttack})` : '-'}</div>`;
+                    infoDetails.push(`${attackInfo}`);
+                }
+                if (item.critChance != undefined) {
+                    const basicCritChance = (basicItem.critChance || 0);
+                    let critChanceInfo = `<div class="item-details-cell param">Шанс Крита 💥:</div><div class="item-details-cell value">${Math.round(item.critChance * 100)}%</div><div class="item-details-cell base">${item.critChance != basicCritChance ? `(${Math.round(basicCritChance * 100)}%)` : '-'}</div>`;
+                    infoDetails.push(`${critChanceInfo}`);
+                }
+                if (item.defense != undefined) {
+                    const basicDefense = (basicItem.defense || 0);
+                    let defenseInfo = `<div class="item-details-cell param">Захист 🛡️:</div><div class="item-details-cell value">${item.defense}</div><div class="item-details-cell base">${item.defense != basicDefense ? `(${basicDefense})` : '-'}</div>`;
+                    infoDetails.push(`${defenseInfo}`);
+                }
+                if (item.maxHealth != undefined) {
+                    const basicMaxHealth = (basicItem.maxHealth || 0);
+                    let maxHealthInfo = `<div class="item-details-cell param">Здоров'я ❤️:</div><div class="item-details-cell value">${item.maxHealth}</div><div class="item-details-cell base">${item.maxHealth != basicMaxHealth ? `(${basicMaxHealth})` : '-'}</div>`;
+                    infoDetails.push(`${maxHealthInfo}`);
+                }
+                if (['potion_attack', 'potion_defense', 'potion_health'].includes(item.type)) {
+                    let potionInfo = '';
+                    if (item.type == 'potion_attack') potionInfo += `<div class="item-details-cell param">Атака назавжди ⚔️:</div>`;
+                    else if (item.type == 'potion_defense') potionInfo += `<div class="item-details-cell param">Захист назавжди 🛡️:</div>`;
+                    else if (item.type == 'potion_health') potionInfo += `<div class="item-details-cell param">Здоров'я назавжди ❤️:</div>`;
+
+                    potionInfo += `<div class="item-details-cell value">+${item.bonus}</div><div class="item-details-cell base"></div>`;
+                    infoDetails.push(`${potionInfo}`);
+                }
+
+                if (infoDetails.length) {
+                    info.push(`
+                        <div class='item-details'>
+                            <div class="item-details-cell" style="background-color: transparent;">Параметр:</div>
+                            <div class="item-details-cell" style="background-color: transparent;">Значення:</div>
+                            <div class="item-details-cell" style="background-color: transparent;">База:</div>
+                            ${infoDetails.join('')}
+                        </div>
+                    `);
+                }
+
+                if (itemDesc != undefined) {
+                    info.push(`<div class='item-details-desc'>${itemDesc}</div>`);
+                }
+
+                //console.log(info);
+                showGameMessage(item.name, `<div class="item-info-card">${info.join('')}</div>`);
+            }
+
+            return '';
+        }
+
         // порівняння параметрів предмета гравця і товару
         function comparePlayerParamValue(item, paramType) {
             if (equipableTypes.includes(item.type)) {
@@ -4638,26 +4744,32 @@
 
             const inventoryActions = (index != -1 && viewType == 'inventory')
                 ? `<div class="item-actions">
-                        <div class="item-action" onclick="useItem(${index})">${item.type.startsWith('potion') ? 'Випити' : 'Екіпірувати'}</div>
-                        ${canSellitem !== false ? `<div class="item-action" onclick="sellItem(${index})">Продати (${Math.max(1, Math.floor(item.value * sellCoefficient))}💰)</div>` : ''}
+                        <div class="item-action" onclick="itemInfo(${index}, ${item.index})">👁️ Деталі</div>
+                        <div class="item-action" onclick="useItem(${index})">${item.type.startsWith('potion') ? '🧴 Випити' : '✋ Екіпірувати'}</div>
+                        ${canSellitem !== false ? `<div style="background-color: #7d0000;" class="item-action" onclick="sellItem(${index})">💰 Продати (${Math.max(1, Math.floor(item.value * sellCoefficient))})</div>` : ''}
                     </div>` : '';
             const equipmentActions = (equipmentTypeIndex != -1 && viewType == 'equipment')
                 ? `<div class="item-actions">
-                        <div class="item-action" onclick="unequipItem(${equipmentTypeIndex})">Зняти</div>
+                        <div class="item-action" onclick="itemInfo(${equipmentTypeIndex}, ${player.equipment[equipmentSlot].index}, '${viewType}')">👁️ Деталі</div>
+                        <div class="item-action" onclick="unequipItem(${equipmentTypeIndex})">🎒 Зняти</div>
                     </div>` : '';
             let storeActions = '';
             if (index != -1 && viewType == 'store') {
                 if (buyPriceTotal <= player.gold && item.type != 'medicine') {
                     storeActions = `<div class="item-actions">
-                                        <div class="item-action" onclick="buyItem(${index})">${buyPriceTotal}💰 Купити</div>
-                                        <div class="item-action" onclick="buyItem(${index}, true)">${buyPriceTotal}💰 ... і ${item.type.startsWith('potion') ? 'випити' : 'екіпірувати'}</div>
+                                        <div class="item-action" onclick="itemInfo(${index}, ${item.index}, '${viewType}')">👁️ Деталі</div>
+                                        <div style="background-color: #014502;" class="item-action" onclick="buyItem(${index})">${buyPriceTotal}💰 Купити</div>
+                                        <div style="background-color: #014502;" class="item-action" onclick="buyItem(${index}, true)">${buyPriceTotal}💰 ... і ${item.type.startsWith('potion') ? 'випити' : 'екіпірувати'}</div>
                                     </div>`;
                 } else if (buyPriceTotal <= player.gold && item.type == 'medicine') {
                     storeActions = `<div class="item-actions">
                                         <div class="item-action" onclick="healItem(${index})">${buyPriceTotal}💰 Лікуватись</div>
                                     </div>`;
                 } else {
-                    storeActions = `<div class="item-actions"><div class="item-action">Недостатньо коштів</div></div>`;
+                    storeActions = `<div class="item-actions">
+                                        <div class="item-action" onclick="itemInfo(${index}, ${item.index}, '${viewType}')">👁️ Деталі</div>
+                                        <!--<div class="item-action">❌ Недостатньо коштів</div>-->
+                                    </div>`;
                 }
             }
 
@@ -5016,11 +5128,11 @@
             const rarityTable = [
                 { 'rarity': 1, 'playerLevel': 1 },
                 { 'rarity': 2, 'playerLevel': 3 },
-                { 'rarity': 3, 'playerLevel': 7 },
-                { 'rarity': 4, 'playerLevel': 11 },
-                { 'rarity': 5, 'playerLevel': 16 },
-                { 'rarity': 6, 'playerLevel': 20 },
-                { 'rarity': 7, 'playerLevel': 25 },
+                { 'rarity': 3, 'playerLevel': 6 },
+                { 'rarity': 4, 'playerLevel': 10 },
+                { 'rarity': 5, 'playerLevel': 14 },
+                { 'rarity': 6, 'playerLevel': 18 },
+                { 'rarity': 7, 'playerLevel': 22 },
             ];
 
             // 1. Відфільтровуємо лише ті rarity, які <= рівню гравця
@@ -5500,7 +5612,7 @@
             const basePower = 2 + currentMapLevel;
             let powerMultiplier = 1.5;
             if (enemy.elite) powerMultiplier = 2.1;
-            if (enemy.boss) powerMultiplier = 3;
+            if (enemy.boss) powerMultiplier = 2.9;
             
             // Характеристики ворога
             //enemy.health = Math.floor(basePower * powerMultiplier * (0.8 + Math.random() * 0.4));
